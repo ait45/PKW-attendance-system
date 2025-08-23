@@ -1,0 +1,36 @@
+{
+  "name": "pkw-attendance-system",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --turbopack",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@zxing/browser": "^0.1.5",
+    "bcrypt": "^6.0.0",
+    "cookie": "^1.0.2",
+    "html5-qrcode": "^2.3.8",
+    "jsonwebtoken": "^9.0.2",
+    "jsqr": "^1.4.0",
+    "lucide-react": "^0.539.0",
+    "mongodb": "^6.18.0",
+    "next": "15.4.6",
+    "next-auth": "^4.24.11",
+    "quagga": "^0.12.1",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "react-qr-barcode-scanner": "^2.1.8",
+    "recharts": "^3.1.2",
+    "sweetalert2": "^11.22.4"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "@tailwindcss/postcss": "^4",
+    "eslint": "^9",
+    "eslint-config-next": "15.4.6",
+    "tailwindcss": "^4"
+  }
+}
