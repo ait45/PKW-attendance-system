@@ -19,8 +19,9 @@ const handler =  NextAuth({
                     await connectDB();
                     console.log(username);
                     console.log(password);
-                    const users = await User.findOne({ username: username });
-
+                    //const users = await User.findOne({ username: username});
+                    const users = await User.find({});
+                    
                     if(!users) throw new Error("user not found!");
                     console.log(users);
                     const passwordmatch = await bcrypt.compare(password, credentials.password);
