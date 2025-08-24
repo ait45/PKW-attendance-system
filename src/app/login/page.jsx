@@ -61,15 +61,18 @@ export default function LoginPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const newErrors = validateForm();
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      isLoading(false);
+      return;
+    }
     setIsLoading(true);
     setErrors({});
     const user = formData.username;
     const pass = formData.password;
-    const newErrors = validateForm();
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      return;
-    }
+    
+
     try {
       const res = await signIn("credentials", { redirect: false, user, pass });
       if (res?.error) setErrors("ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง");
