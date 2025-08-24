@@ -1,4 +1,11 @@
-import ClientLayout from './ClientLayout';
+import { AuthProvider } from "./Provider";
+import { Kanit } from "next/font/google";
+import "./globals.css";
+const kanitSans = Kanit({
+  weight: '400',
+  subsets: ['thai'],
+});
+
 
 export const metadata = {
   title: "PKW Attendance",
@@ -7,8 +14,12 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <ClientLayout>
-      { children }
-    </ClientLayout>
+    <html lang="en">
+      <body className={kanitSans.className} >
+        <AuthProvider>
+          {children}
+        </AuthProvider>
+      </body>
+    </html>
   );
 }

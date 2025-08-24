@@ -1,36 +1,41 @@
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { connectDB } from "../../../../../lib/mongodb";
-import User from "../../../../../modals/User";
+import User from "../../../../../models/User";
 import bcrypt from "bcrypt";
 
-export default NextAuth({
+const handler =  NextAuth({
     providers: [
         CredentialsProvider({
             name: "Credentials",
             credentials: {
                 username: { label: "Username", type: "text" },
-                password: { labal: "password", type: "password" }
+                password: { labal: "Password", type: "password" }
             },
             async authorize(credentials) {
-                await connectDB();
+                const { username, password } = credentials;
 
-                const user = await User.findOne({ username: credentials.username});
-                if (!user) throw new Error("User not found");
+                try {
+                    await connectDB();
+                    console.log(username);
+                    console.log(password);
+                    const users = await User.findOne({ username: username });
 
-                const isPasswordValid = await bcrypt.compare(credentials.password, user.password);
-                if (!isPasswordValid) throw new Error("Invalid Password");
+                    if(!users) throw new Error("user not found!");
+                    console.log(users);
+                    const passwordmatch = await bcrypt.compare(password, credentials.password);
+                    if(!passwordmatch) throw new Error("Password not Match!");
 
-                return {
-                    id: user._id,
-                    username: user.username,
-                    role: user.role
-                };
+                    return users;
+                    
+                } catch (error) {
+                    console.error(error);
+                }
             }
         })
     ],
     session: {
-        strategy: "jwt"
+        strategy: "jwt",
     },
     callbacks: {
         async jwt({ token, user }) {
@@ -46,5 +51,9 @@ export default NextAuth({
             return session;
         }
     },
-    secret: process.env.NEXTAUTH_SECRET
+    secret: process.env.NEXTAUTH_SECRET,
+    pages: {
+        signIn: "/login"
+    }
 });
+export { handler as GET, handler as POST };

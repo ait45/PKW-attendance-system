@@ -64,19 +64,20 @@ export default function LoginPage() {
     const newErrors = validateForm();
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
-      isLoading(false);
+      setIsLoading(false);
       return;
     }
     setIsLoading(true);
     setErrors({});
-    const user = formData.username;
-    const pass = formData.password;
+    const username = formData.username;
+    const password = formData.password;
     
+    console.log(username, password);
 
     try {
-      const res = await signIn("credentials", { redirect: false, user, pass });
+      const res = await signIn("credentials", { redirect: false, username, password });
       if (res?.error) setErrors("ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง");
-      else router.replace("/Teacher");
+      else router.replace("Teacher");
     } catch (error) {
       setErrors({ submit: 'เกิดข้อผิดพลาดในการเข้าสู่ระบบ กรุณาลองใหม่' });
     } finally {

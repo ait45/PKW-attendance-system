@@ -3,11 +3,11 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import logo from '../../assets/logo.png';
 import Link from 'next/link';
-import { Clock, Calendar, LogIn } from 'lucide-react';
+import { Clock, Calendar, LogIn, LogOut } from 'lucide-react';
+import { signOut } from 'next-auth/react';
 
 
-
-function navBar() {
+function navBar({ session }) {
   const [currentDate] = useState(new Date().toLocaleDateString('th-TH'));
   const [currentTime, setCurrentTime] = useState(new Date().toLocaleTimeString('th-TH', {
     hour: '2-digit',
@@ -36,15 +36,27 @@ function navBar() {
       <div className='flex items-center justify-end ml-auto gap-2 '>
         <Calendar width={12} height={12} />
         <p className='text-xs font-bold'>{currentDate}</p>
-        <Clock width={12} height={12}/>
+        <Clock width={12} height={12} />
         <p className='text-xs font-bold'>{currentTime}</p>
-        <Link 
-        href='/login' 
-        className='flex items-center text-sm text-[#AFFDFF]  hover:text-[#8AFBFF] hover:transition-colors'
-        >
-          <LogIn width={15} height={15} className='mr-1'/>
-          <p className='hidden sm:inline'>เข้าสู่ระบบ</p>
-        </Link>
+        {!session ? (
+          <Link
+            href='/login'
+            className='flex items-center text-sm text-[#AFFDFF]  hover:text-[#8AFBFF] hover:transition-colors'
+          >
+            <LogIn width={15} height={15} className='mr-1' />
+            <p className='hidden sm:inline'>เข้าสู่ระบบ</p>
+          </Link>
+        ) : (
+          <a
+            onClick={() => signOut()}
+            className='flex items-center text-sm text-red-500 hover:text-red-700 hover:transition-colors'
+          >
+            <LogOut width={15} height={15} className='mr-1' />
+            <p className='hidden sm:inline'>ออกจากระบบ</p>
+          </a>
+        )}
+
+
       </div>
 
     </header>
