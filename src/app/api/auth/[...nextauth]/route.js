@@ -3,8 +3,9 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { connectDB } from "../../../../../lib/mongodb";
 import User from "../../../../../models/User";
 import bcrypt from "bcrypt";
+import Swal from "sweetalert2";
 
-const handler =  NextAuth({
+const handler = NextAuth({
     providers: [
         CredentialsProvider({
             name: "Credentials",
@@ -12,23 +13,21 @@ const handler =  NextAuth({
                 username: { label: "Username", type: "text" },
                 password: { labal: "Password", type: "password" }
             },
-            async authorize(credentials) {
-                const { username, password } = credentials;
+            async authorize(Credentials) {
+                const { username, password } = Credentials;
 
                 try {
                     await connectDB();
                     console.log(username);
                     console.log(password);
-                    //const users = await User.findOne({ username: username});
-                    const users = await User.find({});
-                    
-                    if(!users) throw new Error("user not found!");
-                    console.log(users);
-                    const passwordmatch = await bcrypt.compare(password, credentials.password);
-                    if(!passwordmatch) throw new Error("Password not Match!");
+                    const users = await User.findOne({ username: username });
+                    if (!users) return null;
+
+                    const passwordmatch = await bcrypt.compare(password, users.password);
+                    if (!passwordmatch) return null;
 
                     return users;
-                    
+
                 } catch (error) {
                     console.error(error);
                 }

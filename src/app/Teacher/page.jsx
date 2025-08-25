@@ -10,6 +10,7 @@ import Nav from '../components/Navbar/page';
 import Footer from '../components/Footer/page';
 import Swal from 'sweetalert2';
 import { useSession } from 'next-auth/react';
+import { redirect } from 'next/navigation';
 const AttendanceCheckPage = () => {
     <div className='max-w-4xl mx-auto p-6'>
         <div className='bg-white rounded-lg shadow-lg p-8'>
@@ -30,13 +31,11 @@ const AttendanceCheckPage = () => {
 }
 
 function Teacher_dashboard() {
-
     const { data: session } = useSession();
-    console.log(session);
+    if (!session) redirect("/login");
     return (
         <main className='bg-[#AFFDFF]'>
-            <Nav />
-            <h3 className='text-bold'>Welcome {session?.user?.id}</h3>
+            <Nav session={session}/>
             <AttendanceCheckPage />
             <QRScanning />
             <Footer />

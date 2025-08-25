@@ -7,7 +7,7 @@ import { Eye, EyeOff, User, Lock, LogIn } from 'lucide-react';
 import Image from 'next/image';
 import logo from '../assets/logo.png';
 import Footer from '../components/Footer/page';
-import Link from 'next/link';
+import Swal from "sweetalert2";
 
 export default function LoginPage() {
   const { status } = useSession();
@@ -71,13 +71,29 @@ export default function LoginPage() {
     setErrors({});
     const username = formData.username;
     const password = formData.password;
-    
-    console.log(username, password);
+
 
     try {
       const res = await signIn("credentials", { redirect: false, username, password });
-      if (res?.error) setErrors("ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง");
-      else router.replace("Teacher");
+      if (res.error) {
+        Swal.fire({
+          title: "เข้าสู่ระบบไม่สำเร็จ",
+          text: "กรุณาตรวจสอบชื่อผู้ใช้\nและรหัสผ่าน.",
+          icon: "error",
+          timer: 5000,
+          width: '80%',
+          maxWidth: '350px'
+        });
+      } else {
+        Swal.fire({
+          title: "เข้าสู่ระบบสำเร็จ",
+          icon: "success",
+          timer: 5000,
+          width: '90%',
+          maxWidth: '350px'
+        });
+        router.replace("Teacher");
+      }
     } catch (error) {
       setErrors({ submit: 'เกิดข้อผิดพลาดในการเข้าสู่ระบบ กรุณาลองใหม่' });
     } finally {

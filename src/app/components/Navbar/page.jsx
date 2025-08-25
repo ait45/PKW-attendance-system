@@ -7,6 +7,7 @@ import { Clock, Calendar, LogIn, LogOut } from 'lucide-react';
 import { signOut } from 'next-auth/react';
 
 
+
 function navBar({ session }) {
   const [currentDate] = useState(new Date().toLocaleDateString('th-TH'));
   const [currentTime, setCurrentTime] = useState(new Date().toLocaleTimeString('th-TH', {
@@ -49,7 +50,7 @@ function navBar({ session }) {
         ) : (
           <a
             onClick={() => signOut()}
-            className='flex items-center text-sm text-red-500 hover:text-red-700 hover:transition-colors'
+            className='flex items-center text-sm text-red-500 hover:text-red-700 hover:transition-colors cursor-pointer'
           >
             <LogOut width={15} height={15} className='mr-1' />
             <p className='hidden sm:inline'>ออกจากระบบ</p>
