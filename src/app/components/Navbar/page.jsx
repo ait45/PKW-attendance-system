@@ -36,9 +36,9 @@ function navBar({ session }) {
       <h2 className='text-sm sm:text-lg font-bold'>PKW SERVICE TH</h2>
       <div className='flex items-center justify-end ml-auto gap-2 '>
         <Calendar width={12} height={12} />
-        <p className='text-xs font-bold'>{currentDate}</p>
+        <p className='text-xs font-bold cursor-context-menu'>{currentDate}</p>
         <Clock width={12} height={12} />
-        <p className='text-xs font-bold'>{currentTime}</p>
+        <p className='text-xs font-bold cursor-context-menu'>{currentTime}</p>
         {!session ? (
           <Link
             href='/login'

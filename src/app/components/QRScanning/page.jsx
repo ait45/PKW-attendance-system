@@ -6,7 +6,7 @@ import { Html5Qrcode } from "html5-qrcode";
 
 
 
-function QRScanning() {
+function QRScanning({ QrCodeData }) {
     const scannerRef = useRef(null);
     const [result, setResult] = useState("");
     const [scanning, IsScanning] = useState(false);
@@ -36,6 +36,7 @@ function QRScanning() {
                     config,
                     (decodedText, decodedResult) => {
                         setResult(decodedText);
+                        QrCodeData(decodedText);
                         // วาดกรอบรอบ QR ที่เจอ
                         if (decodedResult?.decodedResult?.points && canvasRef.current) {
                             const ctx = canvasRef.current.getContext("2d");
