@@ -92,9 +92,10 @@ const StudentAttendanceSystem = () => {
     const [newStudent, setNewStudent] = useState({
         studentId: '', name: '', class: '', grade: '', phone: '', parentPhone: '', address: ''
     });
-    const [selectedClass, setSelectClass] = useState("ม.1");
+
+    const [selectedClass, setSelectedClass] = useState("ม.1");
     const [selectedSubject, setSelectedSubject] = useState('คณิตศาสตร์');
-    const [selectedPeriod, setSelectPeriod] = useState(1);
+    const [selectedPeriod, setSelectedPeriod] = useState(1);
     const handleQRScan = (qrData) => {
         const student = students.find(s => s.studentId === qrData);
         if (student) {
@@ -256,7 +257,7 @@ const StudentAttendanceSystem = () => {
                         <label className="block text-sm font-medium text-gray-700 mb-2">คาบเรียน</label>
                         <select
                             value={selectedPeriod}
-                            onChange={(e) => setSelectPeriod(parseInt(e.target.value))}
+                            onChange={(e) => setSelectedPeriod(parseInt(e.target.value))}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
                             {periods.map(p => (
@@ -267,7 +268,7 @@ const StudentAttendanceSystem = () => {
                 </div>
 
                 <div className="text-center">
-                    <QRScanning QrCodeData={(value) => setQrdata(value)} />
+                    <QRScanning QrCodeData={(value) => setQrdata(value)}/>
                 </div>
             </div>
         </div>
@@ -293,12 +294,12 @@ const StudentAttendanceSystem = () => {
                             placeholder='ชื่อ-นามสกุล'
                             value={newStudent.name}
                             onChange={(e) => setNewStudent({ ...newStudent, studentId: e.target.value })}
-                            className='px-4 py-2 border border-gra-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500'
+                            className='px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500'
                         />
                         <select
                             value={newStudent.class}
                             onChange={(e) => setNewStudent({ ...newStudent, class: e.target.value })}
-                            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="px-4 py-2 h-[50%] border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
                             <option value="">เลือกห้องเรียน</option>
                             {classes.map(cls => (
@@ -325,7 +326,7 @@ const StudentAttendanceSystem = () => {
                                 placeholder="ที่อยู่"
                                 value={newStudent.address}
                                 onChange={(e) => setNewStudent({ ...newStudent, address: e.target.value })}
-                                className="px-4 py-2 h-[250%] border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                             />
                         </div>
                         <button
