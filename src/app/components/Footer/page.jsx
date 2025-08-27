@@ -3,7 +3,7 @@ import React from 'react';
 
 function Footer() {
     return (
-        <footer className="text-center text-[10px] sm:text-xs text-gray-500">
+        <footer className="bg-transparen text-center text-[10px] sm:text-xs text-gray-500">
             <p><span className='text-amber-300'>&copy;</span> 2025 PKW SERVICE TH. All rights reserved.</p>
             <Link 
             href='/report'

@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import logo from '../../assets/logo.png';
 import Link from 'next/link';
@@ -15,6 +15,9 @@ function navBar({ session }) {
     minute: '2-digit'
   }));
 
+  const timeRef = useRef(new Date());
+  const timerRef = useRef(null);
+  const dateRef = useRef(new Date());
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentTime(new Date().toLocaleTimeString('th-TH', {

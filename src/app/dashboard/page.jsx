@@ -1,11 +1,11 @@
 "use client"
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import Nav from '../components/Navbar/page';
 import Footer from '../components/Footer/page';
 import { useSession } from 'next-auth/react';
 import Swal from 'sweetalert2';
 
-import { Camera, Users, Settings, Plus, Edit, Trsh2, Save, X, QrCode, GraduationCap, BookOpen, UserCheck, Calendar, BarChart3, UserStar } from 'lucide-react';
+import { Camera, Users, Settings, Plus, Edit, Trsh2, Save, X, QrCode, GraduationCap, BookOpen, UserRoundCheck, Calendar, BarChart3, UserStar } from 'lucide-react';
 import QRScanning from '../components/QRScanning/page';
 
 
@@ -92,7 +92,9 @@ const StudentAttendanceSystem = () => {
     const [newStudent, setNewStudent] = useState({
         studentId: '', name: '', class: '', grade: '', phone: '', parentPhone: '', address: ''
     });
-
+    const handleChange = useCallback((e) => {
+        setNewStudent(prev => ({ ...prev, name: e.target.value })); // ✅ ใช้ prev
+    }, []);
     const [selectedClass, setSelectedClass] = useState("ม.1");
     const [selectedSubject, setSelectedSubject] = useState('คณิตศาสตร์');
     const [selectedPeriod, setSelectedPeriod] = useState(1);
@@ -152,7 +154,8 @@ const StudentAttendanceSystem = () => {
             Swal.fire({
                 title: 'กรุณากรอกข้อมูลให้ครบถ้วน',
                 text: 'รหัสนักเรียน ชื่อ-นามสกุล และห้องเรียนเป็นข้อมูลที่จำเป็น',
-                icon: 'warning'
+                icon: 'warning',
+                width: '80%'
             });
             return;
         }
@@ -214,18 +217,15 @@ const StudentAttendanceSystem = () => {
             });
         }
     };
-    const Dashboard = () => {
-        return (
-            <div className='bg-white w-[100%]'>
-
-            </div>
-        );
-    }
     // หน้าเช็คชื่อ
     const AttendanceCheckPage = () => (
         <div className="max-w-4xl mx-auto p-6">
             <div className="bg-white rounded-lg shadow-lg p-8">
-                <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">เช็คชื่อนักเรียน</h2>
+                <div className='flex items-center justify-center mb-6'>
+                    <UserRoundCheck width={30} height={30} />
+                    <h2 className="text-2xl font-bold text-gray-800 text-center ml-2">เช็คชื่อนักเรียน</h2>
+                </div>
+
 
                 {/* ตั้งค่าการเช็คชื่อ */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
@@ -268,7 +268,7 @@ const StudentAttendanceSystem = () => {
                 </div>
 
                 <div className="text-center">
-                    <QRScanning QrCodeData={(value) => setQrdata(value)}/>
+                    <QRScanning QrCodeData={(value) => setQrdata(value)} />
                 </div>
             </div>
         </div>
@@ -286,20 +286,20 @@ const StudentAttendanceSystem = () => {
                             type="text"
                             placeholder='รหัสนักเรียน'
                             value={newStudent.studentId}
-                            onChange={(e) => setNewStudent({ ...newStudent, studentId: e.target.value })}
+                            onChange={handleChange('studentId')}
                             className='px-4 py-2 border border-gra-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500'
                         />
                         <input
                             type="text"
                             placeholder='ชื่อ-นามสกุล'
                             value={newStudent.name}
-                            onChange={(e) => setNewStudent({ ...newStudent, studentId: e.target.value })}
+                            onChange={handleChange('name')}
                             className='px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500'
                         />
                         <select
                             value={newStudent.class}
-                            onChange={(e) => setNewStudent({ ...newStudent, class: e.target.value })}
-                            className="px-4 py-2 h-[50%] border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            onChange={handleChange('class')}
+                            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
                             <option value="">เลือกห้องเรียน</option>
                             {classes.map(cls => (
@@ -312,20 +312,20 @@ const StudentAttendanceSystem = () => {
                                 type='tel'
                                 placeholder='เบอร์โทรนักเรียน'
                                 className='px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500'
-                                onChange={(e) => setNewStudent({ ...newStudent, phone: e.target.value })}
+                                onChange={handleChange('phone')}
                             />
                             <input
                                 value={newStudent.parentPhone}
                                 type='tel'
                                 placeholder='เบอร์โทรผู้ปกครอง'
                                 className='px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500'
-                                onChange={(e) => setNewStudent({ ...newStudent, parentPhone: e.target.value })}
+                                onChange={handleChange('parentPhone')}
                             />
                             <input
                                 type="text"
                                 placeholder="ที่อยู่"
                                 value={newStudent.address}
-                                onChange={(e) => setNewStudent({ ...newStudent, address: e.target.value })}
+                                onChange={handleChange('address')}
                                 className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                             />
                         </div>
@@ -603,7 +603,7 @@ const StudentAttendanceSystem = () => {
                                     }`}
                             >
                                 <BookOpen size={20} />
-                               <p className='hidden md:inline'>รายงาน</p>
+                                <p className='hidden md:inline'>รายงาน</p>
                             </button>
                             <button
                                 onClick={() => setCurrentPage('statistics')}
