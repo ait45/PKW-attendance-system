@@ -5,28 +5,11 @@ import logo from '../../assets/logo.png';
 import Link from 'next/link';
 import { Clock, Calendar, LogIn, LogOut } from 'lucide-react';
 import { signOut } from 'next-auth/react';
-
+import Timer from '../Clock/page';
 
 
 function navBar({ session }) {
   const [currentDate] = useState(new Date().toLocaleDateString('th-TH'));
-  const [currentTime, setCurrentTime] = useState(new Date().toLocaleTimeString('th-TH', {
-    hour: '2-digit',
-    minute: '2-digit'
-  }));
-
-  const timeRef = useRef(new Date());
-  const timerRef = useRef(null);
-  const dateRef = useRef(new Date());
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentTime(new Date().toLocaleTimeString('th-TH', {
-        hour: '2-digit',
-        minute: '2-digit'
-      }));
-    }, 60000);
-    return () => clearInterval(interval);
-  }, []);
   return (
     <header className='flex items-center bg-white w-auto max-h-50 border-b-2 border-[#AFFDFF]'>
       <Image
@@ -41,7 +24,7 @@ function navBar({ session }) {
         <Calendar width={12} height={12} />
         <p className='text-xs font-bold cursor-context-menu'>{currentDate}</p>
         <Clock width={12} height={12} />
-        <p className='text-xs font-bold cursor-context-menu'>{currentTime}</p>
+        <p className='text-xs font-bold cursor-context-menu'><Timer/></p>
         {!session ? (
           <Link
             href='/login'

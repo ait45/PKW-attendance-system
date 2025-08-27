@@ -92,9 +92,9 @@ const StudentAttendanceSystem = () => {
     const [newStudent, setNewStudent] = useState({
         studentId: '', name: '', class: '', grade: '', phone: '', parentPhone: '', address: ''
     });
-    const handleChange = useCallback((e) => {
-        setNewStudent(prev => ({ ...prev, name: e.target.value })); // ✅ ใช้ prev
-    }, []);
+    const handleChange = useCallback((field) => (e) => {
+        setNewStudent(prev => ({ ...prev, [field]: e.target.value }));
+    }, []); // ✅ ไม่มี dependency
     const [selectedClass, setSelectedClass] = useState("ม.1");
     const [selectedSubject, setSelectedSubject] = useState('คณิตศาสตร์');
     const [selectedPeriod, setSelectedPeriod] = useState(1);
@@ -555,7 +555,7 @@ const StudentAttendanceSystem = () => {
 
     return (
         <div className="min-h-screen bg-gray-100">
-            <Nav session={session} />
+            <Nav />
             {/* Navigation */}
             <nav className="bg-white shadow-lg">
                 <div className="max-w-7xl mx-auto px-4">
