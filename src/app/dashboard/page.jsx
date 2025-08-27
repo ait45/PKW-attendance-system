@@ -92,9 +92,7 @@ const StudentAttendanceSystem = () => {
     const [newStudent, setNewStudent] = useState({
         studentId: '', name: '', class: '', grade: '', phone: '', parentPhone: '', address: ''
     });
-    const handleChange = useCallback((field) => (e) => {
-        setNewStudent(prev => ({ ...prev, [field]: e.target.value }));
-    }, []); // ✅ ไม่มี dependency
+    const [name, setName] = useState('');
     const [selectedClass, setSelectedClass] = useState("ม.1");
     const [selectedSubject, setSelectedSubject] = useState('คณิตศาสตร์');
     const [selectedPeriod, setSelectedPeriod] = useState(1);
@@ -285,20 +283,14 @@ const StudentAttendanceSystem = () => {
                         <input
                             type="text"
                             placeholder='รหัสนักเรียน'
-                            value={newStudent.studentId}
-                            onChange={handleChange('studentId')}
-                            className='px-4 py-2 border border-gra-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500'
+                            className='px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500'
                         />
                         <input
                             type="text"
                             placeholder='ชื่อ-นามสกุล'
-                            value={newStudent.name}
-                            onChange={handleChange('name')}
                             className='px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500'
                         />
                         <select
-                            value={newStudent.class}
-                            onChange={handleChange('class')}
                             className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
                             <option value="">เลือกห้องเรียน</option>
@@ -308,24 +300,19 @@ const StudentAttendanceSystem = () => {
                         </select>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-15">
                             <input
-                                value={newStudent.phone}
                                 type='tel'
                                 placeholder='เบอร์โทรนักเรียน'
                                 className='px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500'
-                                onChange={handleChange('phone')}
+
                             />
                             <input
-                                value={newStudent.parentPhone}
                                 type='tel'
                                 placeholder='เบอร์โทรผู้ปกครอง'
                                 className='px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500'
-                                onChange={handleChange('parentPhone')}
                             />
                             <input
                                 type="text"
                                 placeholder="ที่อยู่"
-                                value={newStudent.address}
-                                onChange={handleChange('address')}
                                 className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                             />
                         </div>
