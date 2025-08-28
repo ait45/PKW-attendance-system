@@ -1,5 +1,5 @@
 "use client"
-import React, { useState, useCallback, useRef } from 'react';
+import { useState } from 'react';
 import Nav from '../components/Navbar/page';
 import Footer from '../components/Footer/page';
 import { useSession } from 'next-auth/react';
@@ -90,9 +90,13 @@ const StudentAttendanceSystem = () => {
     ]);
     const [editingStudent, setEditingStudent] = useState(null);
     const [newStudent, setNewStudent] = useState({
-        studentId: '', name: '', class: '', grade: '', phone: '', parentPhone: '', address: ''
+        studentId: '',
+        name: '',
+        class: '',
+        phone: '',
+        parentPhone: '',
+        address: '',
     });
-    const [name, setName] = useState('');
     const [selectedClass, setSelectedClass] = useState("ม.1");
     const [selectedSubject, setSelectedSubject] = useState('คณิตศาสตร์');
     const [selectedPeriod, setSelectedPeriod] = useState(1);
@@ -215,6 +219,15 @@ const StudentAttendanceSystem = () => {
             });
         }
     };
+    const handleFormNewStudentChange = (e) => {
+        const { name, value } = e.target;
+        setNewStudent((prev) => ({
+            ...prev,
+            [name]: value,
+        }));
+    };
+    const handleSubmitNewStudent = (e) => {
+    };
     // หน้าเช็คชื่อ
     const AttendanceCheckPage = () => (
         <div className="max-w-4xl mx-auto p-6">
@@ -283,15 +296,20 @@ const StudentAttendanceSystem = () => {
                         <input
                             type="text"
                             placeholder='รหัสนักเรียน'
+                            name='studentId'
+                            value={newStudent.studentId}
+                            onChange={handleFormNewStudentChange}
                             className='px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500'
                         />
                         <input
                             type="text"
                             placeholder='ชื่อ-นามสกุล'
+                            name='name'
                             className='px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500'
                         />
                         <select
                             className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            name='class'
                         >
                             <option value="">เลือกห้องเรียน</option>
                             {classes.map(cls => (
@@ -303,17 +321,19 @@ const StudentAttendanceSystem = () => {
                                 type='tel'
                                 placeholder='เบอร์โทรนักเรียน'
                                 className='px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500'
-
+                                name='phone'
                             />
                             <input
                                 type='tel'
                                 placeholder='เบอร์โทรผู้ปกครอง'
                                 className='px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500'
+                                name='parentPhone'
                             />
                             <input
                                 type="text"
                                 placeholder="ที่อยู่"
                                 className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                name='address'
                             />
                         </div>
                         <button
