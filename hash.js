@@ -1,5 +1,6 @@
 // testFindAll.js
 import mongoose from "mongoose";
+import bcrypt from "bcrypt";
 
 // สร้าง Schema ให้ตรงกับที่คุณมี
 const userSchema = new mongoose.Schema(
@@ -16,25 +17,9 @@ const User = mongoose.model("users", userSchema);
 
 // main function
 async function main() {
-  try {
-    // ✅ เชื่อมต่อ MongoDB (เปลี่ยน mydb เป็นชื่อ DB ของคุณ)
-    await mongoose.connect("mongodb://127.0.0.1:27017/PkwservicesDB", {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
-
-    console.log("✅ Connected to MongoDB");
-
-    // ✅ ดึงข้อมูลทั้งหมด
-    const users = await User.find({});
-    console.log("📌 Users in DB:", users);
-
-  } catch (err) {
-    console.error("❌ Error:", err);
-  } finally {
-    await mongoose.disconnect();
-    console.log("🔌 Disconnected");
-  }
+  const password = "1234567890123";
+  const hash = await bcrypt.hash(password, 10);
+  console.log(hash);
 }
 
 // run
