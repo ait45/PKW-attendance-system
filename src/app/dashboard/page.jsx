@@ -7,6 +7,10 @@ import Swal from 'sweetalert2';
 
 import { Camera, Users, Settings, Plus, Edit, Trsh2, Save, X, QrCode, GraduationCap, BookOpen, UserRoundCheck, Calendar, BarChart3, UserStar } from 'lucide-react';
 import QRScanning from '../components/QRScanning/page';
+import StatisticsPage from '../components/Statistics/page';
+import SchedulePage from '../components/Schedule/page';
+import StudentManagement from '../components/StudentManagement/page';;
+import AttendanceCheckPage from '../components/AttendanceCheck/page';
 
 
 
@@ -97,9 +101,8 @@ const StudentAttendanceSystem = () => {
         parentPhone: '',
         address: '',
     });
-    const [selectedClass, setSelectedClass] = useState("ม.1");
-    const [selectedSubject, setSelectedSubject] = useState('คณิตศาสตร์');
-    const [selectedPeriod, setSelectedPeriod] = useState(1);
+    
+    
     const handleQRScan = (qrData) => {
         const student = students.find(s => s.studentId === qrData);
         if (student) {
