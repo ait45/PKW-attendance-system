@@ -13,6 +13,14 @@ function QRScanning({ QrCodeData }) {
     const html5QrCodeRef = useRef(null);
     const canvasRef = useRef(null);
 
+    const beepSound = useRef(
+      typeof Audio !== "undefined"  
+        ? new Audio(
+            "https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg"
+        )
+        : null
+    );
+
     useEffect(() => {
         if (!html5QrCodeRef.current) {
             html5QrCodeRef.current = new Html5Qrcode('reader');
@@ -25,7 +33,7 @@ function QRScanning({ QrCodeData }) {
             const cameras = await Html5Qrcode.getCameras();
             const config = {
                 fps: 25,
-                qrbox: { width: 180, height: 180 },
+                qrbox: { width: 100, height: 120 },
                 aspectRetio: 1.0,
                 showTorchButtonIfSupported: true,
             };
@@ -37,14 +45,16 @@ function QRScanning({ QrCodeData }) {
                     (decodedText, decodedResult) => {
                         setResult(decodedText);
                         QrCodeData(decodedText);
+
+                        
                         // วาดกรอบรอบ QR ที่เจอ
                         if (decodedResult?.decodedResult?.points && canvasRef.current) {
                             const ctx = canvasRef.current.getContext("2d");
-                            const points = decodedResult.decodedResult.points;
                             alert(ctx);
+                            const points = decodedResult.decodedResult.points;
                             ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
                             ctx.strokeStyle = "lime";
-                            ctx.lineWidth = 4;
+                            ctx.lineWidth = 2;
                             ctx.beginPath();
                             ctx.moveTo(points[0].x, points[0].y);
                             points.forEach((p, idx) => {
@@ -53,6 +63,8 @@ function QRScanning({ QrCodeData }) {
                             ctx.closePath();
                             ctx.stroke();
                         }
+                        beepSound.current?.play().catch(() => {});
+                        
                     }
                 )
                     .then(() => {
@@ -116,12 +128,12 @@ function QRScanning({ QrCodeData }) {
                         กรุณาวาง QRcode ภายในกรอบ
                     </p>
                     <div className="flex rounded-lg mt-4">
-                        <div id="reader" className="m-auto w-full max-w-sm h-80 border-4 border-[#AFFDFF] rounded-2xl shadow-lg bg-black relative"></div>
+                        <div id="reader" className="m-auto w-50 h-50 border-4 border-[#AFFDFF] rounded-2xl shadow-lg bg-black relative"></div>
                         {/* กรอบ Overlay */}
                         <canvas
                             ref={canvasRef}
-                            width={150}
-                            height={150}
+                            width={80}
+                            height={100}
                             className="absolute top-0 left-0 rounded-2xl"
 
                         />
