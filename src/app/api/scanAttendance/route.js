@@ -1,0 +1,51 @@
+import { connectDB } from "../../../../lib/mongodb";
+import { NextResponse } from "next/server";
+import LineupAttendanceModal from "../../../../models/LineupAttendanceModal";
+import Student from "../../../../models/Student";
+
+export async function POST(req) {
+  const startOfDay = new Date();
+  startOfDay.setHours(0, 0, 0, 0);
+  const endOfDay = new Date();
+  endOfDay.setHours(23, 59, 59, 999);
+  try {
+    const { id } = req.json();
+    await connectDB();
+    const data = await Student.findOne({ id });
+    if (data) {
+      const { studentId, name, Class, grade } = data;
+      const existing = await LineupAttendanceModal.findOne({
+        studentId,
+        createdAt: { $gte: startOfDay, $lte: endOfDay },
+      });
+
+      if (existing) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: "วันนี้นักเรียนคนนี้ได้ทำการเช็คชื่อไปแล้ว",
+          },
+          { status: 400 }
+        );
+      }
+      const doc = await LineupAttendanceModal.create({
+        studentId,
+        name,
+        Class,
+        grade,
+      });
+      await doc.save();
+      return NextResponse.json({ success: true, data: "success" });
+    }
+    return NextResponse.json(
+      { success: false, message: "no Data in System" },
+      { status: 500 }
+    );
+  } catch (error) {
+
+    return NextResponse.json(
+      { success: false, message: error.message },
+      { status: 501 }
+    );
+  }
+}

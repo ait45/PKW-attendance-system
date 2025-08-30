@@ -17,9 +17,16 @@ const User = mongoose.model("users", userSchema);
 
 // main function
 async function main() {
-  const password = "1234567890123";
-  const hash = await bcrypt.hash(password, 10);
-  console.log(hash);
+  const id = {
+    id: 1517,
+  };
+  const res = await fetch("http://localhost:3000/api/scanAttendance", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(id),
+  });
+  const data = await res.json();
+  console.log(data);
 }
 
 // run

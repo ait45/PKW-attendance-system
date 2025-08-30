@@ -20,21 +20,14 @@ const handler = NextAuth({
                 try {
                     await connectDB();
                     if (username.startsWith("T")) {
-                        const users = await Teacher.findOne({ TeacherId: "T002" }).select("+password");
-                        //const t = await Teacher.find({});
-
-                        console.log(users.department);
+                        const users = await Teacher.findOne({ teacherId: username }).select("+password");
                         if (!users) return null;
-                        console.log(password);
-                        console.log(users.password);
                         const passwordmatch = await bcrypt.compare(password, users.password);
                         if (!passwordmatch) return null;
                         return users;
                     } else {
-                        const users = await Student.findOne({ StudentId: username });
-                        console.log(users);
+                        const users = await Student.findOne({ studentId: username });
                         if (!users) return null;
-                        console.log(users);
                         const passwordmatch = await bcrypt.compare(password, users.password);
                         if (!passwordmatch) return null;
                         return users;

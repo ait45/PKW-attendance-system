@@ -6,83 +6,20 @@ import { useSession } from 'next-auth/react';
 import Swal from 'sweetalert2';
 
 import { Camera, Users, Settings, Plus, Edit, Trsh2, Save, X, QrCode, GraduationCap, BookOpen, UserRoundCheck, Calendar, BarChart3, UserStar } from 'lucide-react';
-import QRScanning from '../components/QRScanning/page';
 import StatisticsPage from '../components/Statistics/page';
 import SchedulePage from '../components/Schedule/page';
 import StudentManagement from '../components/StudentManagement/page';;
 import AttendanceCheckPage from '../components/AttendanceCheck/page';
+import { redirect } from 'next/navigation';
 
 
 
 const StudentAttendanceSystem = () => {
-    const [qrData, setQrdata] = useState("");
+
     const [currentPage, setCurrentPage] = useState('scan');
     const [userRole, setUserRole] = useState("teacher");
     // ข้อมูลนักเรียน
-    const [students, setStudents] = useState([
-        {
-            id: 1,
-            studentId: 'STD001',
-            name: 'สมชาย ใจดี',
-            class: 'ม.6/1',
-            grade: 'มัธยมปลาย',
-            phone: '081-234-5678',
-            parentPhone: '089-876-5432',
-            address: '123 หมู่ 1 ต.ในเมือง อ.เมือง จ.นครสวรรค์'
-        },
-        {
-            id: 2,
-            studentId: 'STD002',
-            name: 'สมหญิง รักเรียน',
-            class: 'ม.6/1',
-            grade: 'มัธยมปลาย',
-            phone: '082-345-6789',
-            parentPhone: '088-765-4321',
-            address: '456 หมู่ 2 ต.ในเมือง อ.เมือง จ.นครสวรรค์'
-        }
-    ]);
-    // ข้อมูลครู
-    const [teachers, setTeachers] = useState([
-        {
-            id: 1,
-            teacherId: 'TCH001',
-            name: 'อาจารย์สมศักดิ์ ใจใส',
-            subject: 'คณิตศาสตร์',
-            phone: '081-111-2222',
-            email: 'somsak@school.ac.th'
-        }
-    ]);
-    const [subjects] = useState([
-        'คณิตศาสตร์', 'ภาษาไทย', 'ภาษาอังกฤษ', 'วิทยาศาสตร์', 'สังคมศึกษา', 'ประวัติศาสตร์'
-    ]);
-
-    const [classes] = useState([
-        'ม.1', 'ม.2', 'ม.3', 'ม.4', 'ม.5', 'ม.6'
-    ]);
-    const [attendanceRecords, setAttendanceRecords] = useState([
-        {
-            id: 1,
-            studentId: 1,
-            studentName: 'สมชาย ใจดี',
-            class: 'ม.6/1',
-            checkIn: '07:45',
-            date: '2024-03-15',
-            status: 'Present',
-            subject: 'คณิตศาสตร์',
-            period: 1
-        },
-        {
-            id: 2,
-            studentId: 2,
-            studentName: 'สมหญิง รักเรียน',
-            class: 'ม.6/1',
-            checkIn: '08:00',
-            date: '2024-03-15',
-            status: 'Late',
-            subject: 'คณิตศาสตร์',
-            period: 1
-        }
-    ]);
+    
     const [periods] = useState([
         { period: 1, time: '08:40-09:30' },
         { period: 2, time: '09:30-10:20' },
@@ -93,14 +30,7 @@ const StudentAttendanceSystem = () => {
         { period: 7, time: '14:40-15:30' }
     ]);
     const [editingStudent, setEditingStudent] = useState(null);
-    const [newStudent, setNewStudent] = useState({
-        studentId: '',
-        name: '',
-        class: '',
-        phone: '',
-        parentPhone: '',
-        address: '',
-    });
+    
     
     
     const handleQRScan = (qrData) => {
@@ -233,7 +163,7 @@ const StudentAttendanceSystem = () => {
 
 
     const { data: session } = useSession();
-
+    if(!session) redirect("/login");
     return (
         <div className="min-h-screen bg-gray-100">
             <Nav session={session}/>

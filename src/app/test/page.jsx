@@ -1,181 +1,134 @@
 "use client"
-import Nav from "../components/Navbar/page";
-import { useState } from "react";
-import { Plus } from "lucide-react";
 
-export default function StudentForm() {
-    const [newStudent, setNewStudent] = useState({
-        studentId: "",
-        name: "",
-        class: "",
-        phone: "",
-        parentPhone: "",
-        address: "",
-    });
-    const [attendanceRecords, setAttendanceRecords] = useState([
+import { Html5QrcodeScanner } from 'html5-qrcode';
+import { useEffect, useRef } from 'react';
+
+
+export default function QRScannerWithBeep() {
+  const scannerRef = useRef(null);
+  const audioContextRef = useRef(null);
+
+  // วิธีที่ 1: สร้างเสียง beep แบบเครื่องสแกนบาร์โค้ด
+  const playBeepSound = () => {
+    try {
+      if (!audioContextRef.current) {
+        audioContextRef.current = new AudioContext();
+      }
+      
+      const audioContext = audioContextRef.current;
+      
+      // Resume AudioContext ถ้าถูก suspend
+      if (audioContext.state === 'suspended') {
+        audioContext.resume();
+      }
+      
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      // เสียงแบบเครื่องสแกนบาร์โค้ด: ความถี่สูง, สั้น, แหลม
+      oscillator.frequency.setValueAtTime(2800, audioContext.currentTime); // 2800Hz แหลมกว่า
+      oscillator.type = 'square'; // เสียงแหลมคมชัด
+      
+      // Envelope: เริ่มเบา -> ดัง -> เบา (เหมือนเครื่องจริง)
+      gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+      gainNode.gain.linearRampToValueAtTime(0.4, audioContext.currentTime + 0.01);
+      gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + 0.08);
+      
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.08); // สั้นๆ 0.08 วินาที
+    } catch (error) {
+      console.error('Error playing beep sound:', error);
+      // Fallback ใช้ vibration แทน (บนมือถือ)
+      if ('vibrate' in navigator) {
+        navigator.vibrate(100);
+      }
+    }
+  };
+
+  // วิธีที่ 2: ใช้ Base64 Audio Data (แบบเครื่องสแกนจริง)
+  const playBarcodeBeep = () => {
+    try {
+      // ไฟล์เสียง beep ในรูปแบบ base64 (เสียงสั้นๆ แหลมๆ)
+      const beepSound = 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmseAUyQ2u/LdA==';
+      
+      const audio = new Audio("/scanner.mp3");
+      audio.volume = 0.5;
+      audio.play().catch(error => {
+        console.error('Error playing audio:', error);
+      });
+    } catch (error) {
+      console.error('Error creating audio:', error);
+    }
+  };
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && scannerRef.current) {
+      const scanner = new Html5QrcodeScanner(
+        "qr-reader",
         {
-            id: 1,
-            studentId: 1,
-            studentName: 'สมชาย ใจดี',
-            class: 'ม.6/1',
-            checkIn: '07:45',
-            date: '2024-03-15',
-            status: 'Present',
-            subject: 'คณิตศาสตร์',
-            period: 1
+          fps: 10,
+          qrbox: {
+            width: 250,
+            height: 250,
+          },
+          aspectRatio: 1.0,
         },
-        {
-            id: 2,
-            studentId: 2,
-            studentName: 'สมหญิง รักเรียน',
-            class: 'ม.6/1',
-            checkIn: '08:00',
-            date: '2024-03-15',
-            status: 'Late',
-            subject: 'คณิตศาสตร์',
-            period: 1
+        false
+      );
+
+      const onScanSuccess = (decodedText, decodedResult) => {
+        console.log(`QR Code scanned: ${decodedText}`);
+        
+        // เล่นเสียง beep เมื่อสแกนสำเร็จ
+        playBeepSound(); // หรือใช้ playBeepFromFile() แทน
+        
+        // หยุดการสแกนชั่วคราวเพื่อป้องกันการสแกนซ้ำ
+        scanner.pause(true);
+        
+        // แสดงผลลัพธ์
+        alert(`QR Code: ${decodedText}`);
+        
+        // เริ่มสแกนใหม่หลังจาก 2 วินาที
+        setTimeout(() => {
+          scanner.resume();
+        }, 2000);
+      };
+
+      const onScanFailure = (error) => {
+        // console.warn(`QR Code scan error: ${error}`);
+      };
+
+      scanner.render(onScanSuccess, onScanFailure);
+      scannerRef.current = scanner;
+
+      return () => {
+        if (scannerRef.current) {
+          scannerRef.current.clear();
         }
-    ]);
-    const [selectedClass, setSelectedClass] = useState("ม.1");
-    const [classes] = useState([
-        'ม.1', 'ม.2', 'ม.3', 'ม.4', 'ม.5', 'ม.6'
-    ]);
-    const [students, setStudents] = useState([]);
+      };
+    }
+  }, []);
 
-    const handleFormNewStudentChange = (e) => {
-        const { name, value } = e.target;
-        setNewStudent((prev) => ({
-            ...prev,
-            [name]: value,
-        }));
-    };
-
-    const handleAddStudent = () => {
-        setStudents((prev) => [...prev, newStudent]);
-        // reset form
-        setNewStudent({
-            studentId: "",
-            name: "",
-            class: "",
-            phone: "",
-            parentPhone: "",
-            address: "",
-        });
-    };
-
-    return (
-        <div className="max-w-7xl mx-auto p-6">
-            <div className='bg-white rounded-lg shadow-lg p-8'>
-                <h2 className='text-2xl font-bold text-gray-800 mb-6'>จัดการข้อมูลนักเรียน</h2>
-                {/* ฟอร์มเพิ่มนักเรียน */}
-                <div className='mb-8 p-6 bg-gray-50 rounded-lg'>
-                    <h3 className='text-lg font-semibold mb-4'>เพิ่มนักเรียนใหม่</h3>
-                    <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4'>
-                        <input
-                            type="text"
-                            placeholder='รหัสนักเรียน'
-                            name='studentId'
-                            value={newStudent.studentId}
-                            onChange={handleFormNewStudentChange}
-                            className='px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500'
-                        />
-                        <input
-                            type="text"
-                            placeholder='ชื่อ-นามสกุล'
-                            name='name'
-                            className='px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500'
-                        />
-                        <select
-                            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            name='class'
-                        >
-                            <option value="">เลือกห้องเรียน</option>
-                            {classes.map(cls => (
-                                <option key={cls} value={cls}>{cls}</option>
-                            ))}
-                        </select>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-15">
-                            <input
-                                type='tel'
-                                placeholder='เบอร์โทรนักเรียน'
-                                className='px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500'
-                                name='phone'
-                            />
-                            <input
-                                type='tel'
-                                placeholder='เบอร์โทรผู้ปกครอง'
-                                className='px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500'
-                                name='parentPhone'
-                            />
-                            <input
-                                type="text"
-                                placeholder="ที่อยู่"
-                                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                name='address'
-                            />
-                        </div>
-                        <button
-                            onClick={handleAddStudent}
-                            className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-medium transition-colors inline-flex items-center gap-2"
-                        >
-                            <Plus size={20} />
-                            เพิ่มนักเรียน
-                        </button>
-                    </div>
-                    {/* ตารางนักเรียน */}
-                    <div className='overflow-x-auto'>
-                        <table className='w-full table-auto'>
-                            <thead>
-                                <tr className='bg-gray-100'>
-                                    <th className='px-4 py-3 text-left'>รหัสนักเรียน</th>
-                                    <th className='px-4 py-3 text-left'>ชื่อ-นามสกุล</th>
-                                    <th className='px-4 py-3 text-left'>ห้องเรียน</th>
-                                    <th className='px-4 py-3 text-left'>วิชา</th>
-                                    <th className='px-4 py-3 text-left'>คาบ</th>
-                                    <th className='px-4 py-3 text-left'>เวลาเข้าเรียน</th>
-                                    <th className='px-4 py-3 text-left'>สถานะ</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {attendanceRecords
-                                    .filter(record => !selectedClass || record.class === selectedClass)
-                                    .filter(record => !selectedSubject || record.subject === selectedClass)
-                                    .map((record) => {
-                                        <tr key={record.id} className='border-b border-gray-200'>
-                                            <td className='px-4 py-3'>{new Date(record.date).toLocaleDateString('th-TH')}</td>
-                                            <td className='px-4 py-3'>
-                                                {students.find(s => s.id === record.studentId)?.studentId}
-                                            </td>
-                                            <td className='px-4 py-3'>{record.studentName}</td>
-                                            <td className='px-4 py-3'>{record.class}</td>
-                                            <td className='px-4 py-3'>{record.subject}</td>
-                                            <td className='px-4 py-3'>{record.period}</td>
-                                            <td className='px-4 py-3'>{record.checkIn}</td>
-                                            <td className='px-4 py-3'>
-                                                <span className={`
-                                                px-2 py-1 rounded-full text-sm ${record.status === 'Present'
-                                                        ? 'bg-green-100 text-green-800'
-                                                        : record.status === 'Late'
-                                                            ? 'bg-yellow-100 text-yellow-800'
-                                                            : record.status === 'Sick'
-                                                                ? 'bg-blue-100 text-blue-800'
-                                                                : 'bg-red-100 text-red-800'
-                                                    }`}>
-                                                    {record.status === 'Present' ? 'มาตรงเวลา'
-                                                        : record.status === 'Late' ? 'มาสาย'
-                                                            : record.status === 'Sick' ? 'ลาป่วย'
-                                                                : 'ขาดเรียน'
-                                                    }
-                                                </span>
-                                            </td>
-                                        </tr>
-                                    })
-                                }
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
+  return (
+    <div className="container mx-auto p-4">
+      <h1 className="text-2xl font-bold mb-4">QR Code Scanner with Beep</h1>
+      <div id="qr-reader" style={{ width: "100%" }}></div>
+      
+      <div className="mt-4 p-4 bg-gray-100 rounded">
+        <h3 className="font-semibold mb-2">การตั้งค่าเสียง:</h3>
+        <button 
+          onClick={playBarcodeBeep}
+          className="bg-blue-500 text-white px-4 py-2 rounded mr-2"
+        >
+          ทดสอบเสียง Beep
+        </button>
+        <p className="text-sm text-gray-600 mt-2">
+          * หากไม่ได้ยินเสียง ให้ตรวจสอบว่าเบราว์เซอร์อนุญาตให้เล่นเสียงหรือไม่
+        </p>
+      </div>
+    </div>
+  );
 }
