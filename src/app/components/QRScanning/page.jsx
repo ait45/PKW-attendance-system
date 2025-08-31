@@ -4,18 +4,23 @@ import { Camera, QrCode, BarChart3, RotateCcw, PowerOff } from "lucide-react";
 import Swal from "sweetalert2";
 import { Html5Qrcode } from "html5-qrcode";
 
-function QRScanning({ QrCodeData }) {
+function QRScanning({ onScan, label = "Scan QR" }) {
   const scannerRef = useRef(null);
   const [result, setResult] = useState("");
   const [scanning, IsScanning] = useState(false);
   const html5QrCodeRef = useRef(null);
   const canvasRef = useRef(null);
+  const [scanProps, setScanProps] = useState('');
 
   useEffect(() => {
     if (!html5QrCodeRef.current) {
       html5QrCodeRef.current = new Html5Qrcode("reader");
     }
   }, []);
+  const handleScan = (data) => {
+    setScanProps(data);
+    if (onScan) onScan(data)
+  };
   // ฟังก์ชันหยุดสแกน
   const stopScanning = async () => {
     if (!scanning || !html5QrCodeRef) return;
@@ -147,7 +152,7 @@ function QRScanning({ QrCodeData }) {
         {/* Header */}
         <div className="bg-white rounded-t-2xl shadow-lg p-6">
           <h1 className="text-2xl font-bold text-center text-gray-800 mb-2">
-            การเช็คชื่อเข้าแถว
+            ตัวสแกน QR Code
           </h1>
           <p className="text-center text-gray-600">กรุณาวาง QRcode ภายในกรอบ</p>
           <div className="flex rounded-lg mt-4">

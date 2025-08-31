@@ -1,6 +1,6 @@
 "use client";
 import { signIn, useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { redirect, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { Eye, EyeOff, User, Lock, LogIn } from "lucide-react";
 import Image from "next/image";
@@ -9,16 +9,40 @@ import Footer from "../components/Footer/page";
 import Swal from "sweetalert2";
 
 export default function LoginPage() {
-  const { status } = useSession();
+  const { data: session, status } = useSession();
   const router = useRouter();
   const [formData, setFormData] = useState({
     username: "",
     password: "",
   });
+  useEffect(() => {
+    if (session && status === "authenticated") {
+      const role = session?.user?.role;
+      if (role === "teacher") {
+        Swal.fire({
+          width: "75%",
+          didOpen: () => {
+            Swal.showLoading();
+          },
+        });
+        router.replace("/teacher");
+      } else if (role === "student") {
+        router.replace("/dashboard");
+        Swal.fire({
+          width: "75%",
+          didOpen: () => {
+            Swal.showLoading();
+          },
+        });
+      } else {
+        router.replace("/login");
+      }
+    }
+  }, [status, session, router]);
+
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({});
-
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
