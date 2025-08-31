@@ -17,6 +17,7 @@ function AttendanceCheckPage() {
     "สังคมศึกษา",
     "ประวัติศาสตร์",
   ]);
+  
   const [periods] = useState([
     { period: 1, time: "08:40-09:30" },
     { period: 2, time: "09:30-10:20" },

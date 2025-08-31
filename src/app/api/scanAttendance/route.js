@@ -9,9 +9,9 @@ export async function POST(req) {
   const endOfDay = new Date();
   endOfDay.setHours(23, 59, 59, 999);
   try {
-    const { id } = req.json();
+    const post = await req.json();
     await connectDB();
-    const data = await Student.findOne({ id });
+    const data = await Student.findOne({ studentId: post.id });
     if (data) {
       const { studentId, name, Class, grade } = data;
       const existing = await LineupAttendanceModal.findOne({
@@ -38,7 +38,7 @@ export async function POST(req) {
       return NextResponse.json({ success: true, data: "success" });
     }
     return NextResponse.json(
-      { success: false, message: "no Data in System" },
+      { success: false, message: "ไม่มีข้อมูลนักเรียน!" },
       { status: 500 }
     );
   } catch (error) {

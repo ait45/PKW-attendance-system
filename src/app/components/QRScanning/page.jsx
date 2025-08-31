@@ -58,8 +58,8 @@ function QRScanning({ QrCodeData }) {
             { facingMode: "environment" },
             config,
             async (decodedText, decodedResult) => {
-                if(!process) return;
-                process = false;
+              if (!process) return;
+              process = false;
               // วาดกรอบรอบ QR ที่เจอ
               if (decodedResult?.decodedResult?.points && canvasRef.current) {
                 const ctx = canvasRef.current.getContext("2d");
@@ -82,21 +82,39 @@ function QRScanning({ QrCodeData }) {
               }
               const beepSound = new Audio("/scanner.mp3");
               beepSound.play();
-              
-              await new Promise((resolve) => setTimeout(resolve, 1000));
               setResult(decodedText);
-              setTimeout(() => {
+              const res = await fetch(
+                "http://localhost:3000/api/scanAttendance",
+                {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({ id: decodedText }),
+                }
+              );
+              const data = await res.json();
+              if (res.ok) {
                 Swal.fire({
                   title: "สแกนสำเร็จ",
-                  text: decodedText,
+                  text: data.message,
                   icon: "success",
                   timer: 3000,
                   showConfirmButton: true,
                 });
                 process = true;
                 setResult("");
-              }, 500);
-              
+              } else {
+                Swal.fire({
+                  title: "สแกนไม่สำเร็จ",
+                  text: data.message,
+                  icon: "error",
+                  timer: 3000,
+                  showConfirmButton: true,
+                });
+                process = true;
+                setResult("");
+              }
               QrCodeData(decodedText);
             }
           )

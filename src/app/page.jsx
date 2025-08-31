@@ -1,13 +1,19 @@
-'use client'
+"use client"
 import React from 'react';
-import Image from 'next/image';
 import Nav from './components/Navbar/page';
 import Footer from './components/Footer/page';
 import {
   CalendarCheck, Globe
 } from 'lucide-react';
 import Link from 'next/link';
+
+
+
+
 function Index() {
+
+
+
   return (
     <main className='bg-white'>
       {/* Header */}
@@ -15,7 +21,7 @@ function Index() {
       {/* Hero Section */}
       <section className='bg-white py-5 text-center'>
         <div className='flex justify-center items-center'>
-          <CalendarCheck size={20} color='gray' />
+          <CalendarCheck size={20} color='red' />
           <h1 className='ml-2 font-bold text-2xl'>Prakeawasawittaya</h1>
         </div>
         <p>ยินดีต้อนรับเข้าสู่เว็บไซต์</p>

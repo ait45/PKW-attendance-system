@@ -19,9 +19,6 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({});
 
-  useEffect(() => {
-    if (status === "authenticated") router.replace("/Teacher");
-  }, [status, router]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -87,7 +84,7 @@ export default function LoginPage() {
             width: "90%",
             maxWidth: "350px",
           });
-          router.push("/Teacher");
+          router.push("/teacher");
         } else if (session?.user?.role === "student") {
           Swal.fire({
             title: "เข้าสู่ระบบสำเร็จ",
