@@ -68,7 +68,7 @@ export async function GET() {
     } else {
       return NextResponse.json(
         { success: false, message: "no data" },
-        { status: 400 }
+        { status: 401 }
       );
     }
   } catch (error) {

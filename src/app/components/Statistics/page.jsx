@@ -1,5 +1,13 @@
 import React from "react";
 
+const getData = async () => {
+  const res = await fetch("http://localhost:3000/api/scanAttendance");
+  const data = await res.json();
+  if (res.ok) {
+    const payload = data.message;
+  }
+};
+getData();
 function StatisticsPage() {
   // หน้าสถิติ
   const totalStudents = 18;
