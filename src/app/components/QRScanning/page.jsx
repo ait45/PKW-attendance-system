@@ -10,7 +10,6 @@ function QRScanning({ onScan, label = "Scan QR" }) {
   const [scanning, IsScanning] = useState(false);
   const html5QrCodeRef = useRef(null);
   const canvasRef = useRef(null);
-  const [scanProps, setScanProps] = useState('');
 
   useEffect(() => {
     if (!html5QrCodeRef.current) {
@@ -18,8 +17,7 @@ function QRScanning({ onScan, label = "Scan QR" }) {
     }
   }, []);
   const handleScan = (data) => {
-    setScanProps(data);
-    if (onScan) onScan(data)
+    if (onScan) onScan(data);
   };
   // ฟังก์ชันหยุดสแกน
   const stopScanning = async () => {
@@ -63,8 +61,6 @@ function QRScanning({ onScan, label = "Scan QR" }) {
             { facingMode: "environment" },
             config,
             async (decodedText, decodedResult) => {
-              if (!process) return;
-              process = false;
               // วาดกรอบรอบ QR ที่เจอ
               if (decodedResult?.decodedResult?.points && canvasRef.current) {
                 const ctx = canvasRef.current.getContext("2d");
@@ -88,39 +84,10 @@ function QRScanning({ onScan, label = "Scan QR" }) {
               const beepSound = new Audio("/scanner.mp3");
               beepSound.play();
               setResult(decodedText);
-              const res = await fetch(
-                "http://localhost:3000/api/scanAttendance",
-                {
-                  method: "POST",
-                  headers: {
-                    "Content-Type": "application/json",
-                  },
-                  body: JSON.stringify({ id: decodedText }),
-                }
-              );
-              const data = await res.json();
-              if (res.ok) {
-                Swal.fire({
-                  title: "สแกนสำเร็จ",
-                  text: data.message,
-                  icon: "success",
-                  timer: 3000,
-                  showConfirmButton: true,
-                });
-                process = true;
-                setResult("");
-              } else {
-                Swal.fire({
-                  title: "สแกนไม่สำเร็จ",
-                  text: data.message,
-                  icon: "error",
-                  timer: 3000,
-                  showConfirmButton: true,
-                });
-                process = true;
-                setResult("");
-              }
-              QrCodeData(decodedText);
+              handleScan(decodedText);
+              setTimeout(() => {
+                setResult('');
+              }, 500);
             }
           )
           .then(() => {

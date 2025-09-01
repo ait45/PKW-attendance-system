@@ -6,7 +6,16 @@ const nextConfig = {
             fs: false,
         };
         return config;
-    }
+    },
+    turbopack: {
+        resolveExtensions: ['.mdx', '.tsx', '.jsx', '.js', '.mjs', '.json'],
+        rules: {
+            '*.svg': {
+                loaders: ['@svgr/webpack'],
+                as: '*.js',
+            },
+        },
+    },
 };
 
 export default nextConfig;

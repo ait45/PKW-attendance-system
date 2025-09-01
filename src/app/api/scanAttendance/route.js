@@ -42,10 +42,40 @@ export async function POST(req) {
       { status: 500 }
     );
   } catch (error) {
-
     return NextResponse.json(
       { success: false, message: error.message },
       { status: 501 }
+    );
+  }
+}
+
+export async function GET() {
+  try {
+    await connectDB();
+    const data = await Student.findOne({});
+
+    const payload = {
+      name: data.name,
+      Class: data.Class,
+      grade: data.grade,
+    }
+
+    if (data) {
+      return NextResponse.json(
+        { success: true, message: payload },
+        { status: 201 }
+      );
+    } else {
+      return NextResponse.json(
+        { success: false, message: "no data" },
+        { status: 400 }
+      );
+    }
+  } catch (error) {
+    console.log(error);
+    return NextResponse.json(
+      { success: false, message: "Failed to Request!" },
+      { status: 503 }
     );
   }
 }

@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useRef, useEffect } from "react";
+import { useRef, useState } from "react";
 import {
   Users,
   Calendar,
@@ -50,17 +50,62 @@ const AttendanceCheckPage = () => {
 
 function dashboard() {
   const { data: session, status } = useSession();
+  const lastRequestTime = useRef(0);
   if (!session?.user?.role === "student" && status === "unauthenticated")
     redirect("/login");
   if (session?.user?.role === "teacher") return redirect("/login");
   if (!session && status === "unauthenticated") return redirect("/login");
   if (status === "loading") return null;
   Swal.close();
+  async function handleScan(req) {
+    const now = Date.now();
+    if (now - lastRequestTime.current < 1000) {
+      Swal.fire({
+        width: '60%',
+        didOpen: () => {
+          Swal.showLoading();
+        },
+      })
+      return;
+    }
+    lastRequestTime.current = now;
+    try {
+      const res = await fetch("http://localhost:3000/api/scanAttendance", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ id: req }),
+      });
+      const data = await res.json();
+      console.log(data);
+      if (res.ok) {
+        Swal.fire({
+          title: "สแกนสำเร็จ",
+          text: data.message,
+          icon: "success",
+          timer: 3000,
+          showConfirmButton: true,
+        });
+      } else {
+        Swal.fire({
+          title: "สแกนไม่สำเร็จ",
+          text: data.message,
+          icon: "error",
+          timer: 3000,
+          showConfirmButton: true,
+        });
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
   return (
     <main className="bg-[#AFFDFF]">
       <Nav session={session} />
       <AttendanceCheckPage />
-      <QRScanning />
+      <QRScanning onScan={handleScan} label="Check-in" />
       <Footer />
     </main>
   );
