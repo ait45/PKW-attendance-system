@@ -55,7 +55,6 @@ function QRScanning({ onScan, label = "Scan QR" }) {
       };
       if (cameras && cameras.length) {
         IsScanning(true);
-        let process = true;
         await html5QrCodeRef.current
           .start(
             { facingMode: "environment" },
@@ -118,7 +117,8 @@ function QRScanning({ onScan, label = "Scan QR" }) {
       <div className="max-w-md mx-auto">
         {/* Header */}
         <div className="bg-white rounded-t-2xl shadow-lg p-6">
-          <h1 className="text-2xl font-bold text-center text-gray-800 mb-2">
+          <h1 className=" flex items-center justify-center text-2xl font-bold text-center text-gray-800 mb-2">
+            <Camera className="text-blue-500 mr-2"/>
             ตัวสแกน QR Code
           </h1>
           <p className="text-center text-gray-600">กรุณาวาง QRcode ภายในกรอบ</p>

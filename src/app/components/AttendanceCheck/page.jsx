@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import QRScanning from "../QRScanning/page";
 import { UserRoundCheck } from "lucide-react";
 
@@ -27,6 +27,12 @@ function AttendanceCheckPage() {
     { period: 6, time: "13:50-14:40" },
     { period: 7, time: "14:40-15:30" },
   ]);
+  useEffect(() => {
+    if (qrData) {
+      alert(qrData);
+      setQrdata("");
+    }
+  },);
   return (
     <div className="max-w-4xl mx-auto p-6">
       <div className="bg-white rounded-lg shadow-lg p-8">

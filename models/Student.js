@@ -5,7 +5,6 @@ const UserSchema = new Schema(
     studentId: {
       type: String,
       required: true,
-      unique: true,
     },
     name: {
       type: String,
@@ -15,30 +14,37 @@ const UserSchema = new Schema(
       type: String,
       required: true,
     },
+
     Class: {
       type: String,
       require: true,
     },
-    grade: {
+    phone: {
       type: String,
       required: true,
     },
-    phone: {
-      type: Number,
-      required: true,
-    },
     parentPhone: {
-      type: Number,
+      type: String,
       required: true,
     },
     address: {
       type: String,
       required: true,
     },
+    status: {
+      type: String,
+      enum: ["Active", "Idle"],
+      required: true,
+      default: "Active",
+    },
     role: {
       type: String,
       required: true,
       default: "student",
+    },
+    cardId: {
+      type: String,
+      required: true,
     },
   },
   { collection: "ClientDB", timestamps: true }

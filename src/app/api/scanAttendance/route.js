@@ -35,7 +35,7 @@ export async function POST(req) {
         grade,
       });
       await doc.save();
-      return NextResponse.json({ success: true, data: "success" });
+      return NextResponse.json({ success: true, data: "success" }, { status: 201 });
     }
     return NextResponse.json(
       { success: false, message: "ไม่มีข้อมูลนักเรียน!" },
