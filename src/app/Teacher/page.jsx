@@ -34,9 +34,11 @@ const StudentAttendanceSystem = () => {
   
   const { data: session, status } = useSession();
   Swal.close();
+  console.log(session);
   if (!session?.user?.role === "teacher" && status === "unauthenticated")
     redirect("/login");
-  if (session?.user?.role === "student") return redirect("/login");
+  if (session?.user?.role === "teacher" && session?.user?.isAdmin) redirect("/teacher/admin");
+  if (session?.user?.role === "student") return redirect("/dashboard");
   if (!session && status === "unauthenticated") return redirect("/login");
   if (status === "loading") return null;
   return (

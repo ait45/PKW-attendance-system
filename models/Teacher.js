@@ -5,7 +5,6 @@ const TeacherSchema = Schema(
     teacherId: {
       type: String,
       required: true,
-      unique: true,
     },
     password: {
       type: String,
@@ -23,6 +22,10 @@ const TeacherSchema = Schema(
       type: Number,
       required: true,
     },
+    isAdmin: {
+      type: Boolean,
+      default: false,
+    }
   },
   { collection: "TeacherDB", Timestamp: true }
 );

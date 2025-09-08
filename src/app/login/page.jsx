@@ -100,8 +100,8 @@ export default function LoginPage() {
       if (res.ok) {
         const sessionRes = await fetch("/api/auth/session");
         const session = await sessionRes.json();
-
-        if (session?.user?.role === "teacher") {
+        
+        if (session?.user?.role === "teacher" && !session?.user?.isAdmin) {
           Swal.fire({
             title: "เข้าสู่ระบบสำเร็จ",
             icon: "success",
@@ -110,7 +110,7 @@ export default function LoginPage() {
             maxWidth: "350px",
           });
           router.push("/teacher");
-        } else if (session?.user?.role === "student") {
+        } else if (session?.user?.role === "student" && !session?.user?.isAdmin) {
           Swal.fire({
             title: "เข้าสู่ระบบสำเร็จ",
             icon: "success",
@@ -119,6 +119,24 @@ export default function LoginPage() {
             maxWidth: "350px",
           });
           router.push("/dashboard");
+        } else if (session?.user?.role === "teacher" && session?.user?.isAdmin) {
+          Swal.fire({
+            title: "เข้าสู่ระบบสำเร็จ",
+            icon: "success",
+            timer: 5000,
+            width: "90%",
+            maxWidth: "350px",
+          });
+          router.push("/teacher/admin");
+        } else if (session?.user?.role === "student" && session?.user?.isAdmin) {
+          Swal.fire({
+            title: "เข้าสู่ระบบสำเร็จ",
+            icon: "success",
+            timer: 5000,
+            width: "90%",
+            maxWidth: "350px",
+          });
+          router.push("/dashboard/admin");
         } else {
           Swal.fire({
             title: "เข้าสู่ระบบไม่สำเร็จ",
@@ -152,11 +170,11 @@ export default function LoginPage() {
       <div className="max-w-md w-full space-y-8">
         {/* Header */}
         <div className="text-center">
-          <div className="flex justify-center scale-80 sm:scale-100">
+          <div className="flex justify-center scale-80 sm:scale-100 mb-2">
             <div className="h-12 w-12 bg-white rounded-full flex justify-center items-center mr-1 shadow">
               <Image src={logo} width={35} height={35} alt="logo" />
             </div>
-            <div className="h-12 w-12 bg-[#2EF8FF] rounded-full flex justify-center items-center shadow">
+            <div className="h-12 w-12 bg-[#009EA3] rounded-full flex justify-center items-center shadow">
               <LogIn className="h-6 w-6 text-white" />
             </div>
           </div>
@@ -265,7 +283,7 @@ export default function LoginPage() {
               <div className="text-sm">
                 <a
                   href="#"
-                  className="font-medium text-[10px] sm:text-sm text-[#00CAD1] hover:text-[#00CAD1] transition-colors"
+                  className="font-medium text-[10px] sm:text-sm text-[#009EA3] hover:text-[#00CAD1] transition-colors"
                 >
                   ลืมรหัสผ่าน?
                 </a>
@@ -288,7 +306,7 @@ export default function LoginPage() {
                 className={`group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white transition-colors ${
                   isLoading
                     ? "bg-gray-400 cursor-not-allowed"
-                    : "bg-[#00CAD1] hover:bg-[#009EA3] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                    : "bg-[#009EA3] hover:bg-[#009EA3] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                 }`}
               >
                 {isLoading ? (
@@ -323,7 +341,7 @@ export default function LoginPage() {
           </div>
           <p className="text-center text-xs text-gray-500 mt-3">
             กลับเข้าสู่{" "}
-            <a href="/" className="text-[#00CAD1]">
+            <a href="/" className="text-[#009EA3]">
               หน้าแรก ?
             </a>
           </p>

@@ -22,17 +22,19 @@ const handler = NextAuth({
         try {
           await connectDB();
           if (username.startsWith("T")) {
-            const user = await Teacher.findOne({ teacherId: username }).select(
-              "+password"
-            );
+            const user = await Teacher.findOne({ teacherId: username });
+            
             if (!user) return null;
             const passwordmatch = await bcrypt.compare(password, user.password);
             if (!passwordmatch) return null;
+
             return {
               id: user._id.toString(),
               username: user.teacherId,
               name: user.name,
               role: user.role,
+              isAdmin: user.isAdmin,
+              test: true,
             };
           } else {
             const user = await Student.findOne({ studentId: username });
@@ -44,6 +46,7 @@ const handler = NextAuth({
               username: user.studentId,
               name: user.name,
               role: user.role,
+              isAdmin: user.isAdmin,
             };
           }
         } catch (error) {
@@ -64,6 +67,7 @@ const handler = NextAuth({
       if (user) {
         token.username = user.username;
         token.role = user.role;
+        token.isAdmin = user.isAdmin;
       }
 
       if (token.username?.startsWith("T")) {
@@ -76,6 +80,7 @@ const handler = NextAuth({
     async session({ session, token }) {
       session.user.username = token.username;
       session.user.role = token.role;
+      session.user.isAdmin = token.isAdmin;
       return session;
     },
     async redirect({ url, baseUrl }) {

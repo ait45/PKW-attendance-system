@@ -42,10 +42,10 @@ const UserSchema = new Schema(
       required: true,
       default: "student",
     },
-    cardId: {
-      type: String,
-      required: true,
-    },
+    isAdmin: {
+      type: Boolean,
+      default: false,
+    }
   },
   { collection: "ClientDB", timestamps: true }
 );

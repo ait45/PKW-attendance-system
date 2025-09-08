@@ -11,7 +11,7 @@ import Timer from '../Clock/page';
 function navBar({ session }) {
   const [currentDate] = useState(new Date().toLocaleDateString('th-TH'));
   return (
-    <header className='flex items-center bg-white w-auto max-h-50 border-b-2 border-[#AFFDFF]'>
+    <header className='flex items-center bg-white w-auto max-h-50 border-b-2 border-[#009EA3]'>
       <Image
         src={logo}
         width={40}
@@ -28,7 +28,7 @@ function navBar({ session }) {
         {!session ? (
           <Link
             href='/login'
-            className='flex items-center text-sm text-[#AFFDFF]  hover:text-[#8AFBFF] hover:transition-colors'
+            className='flex items-center text-sm text-[#009EA3]  hover:text-[#8AFBFF] hover:transition-colors'
           >
             <LogIn width={15} height={15} className='mr-1' />
             <p className='hidden sm:inline'>เข้าสู่ระบบ</p>
