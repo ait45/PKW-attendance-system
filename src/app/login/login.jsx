@@ -8,6 +8,7 @@ import logo from "../assets/logo.png";
 import Footer from "../components/Footer/page";
 import Swal from "sweetalert2";
 
+
 export default function LoginPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -71,13 +72,12 @@ export default function LoginPage() {
 
     if (!formData.password) {
       newErrors.password = "กรุณากรอกรหัสผ่าน";
-    } else if (formData.password.length < 13) {
-      newErrors.password = "รหัสผ่านต้องมีความยาวอย่างน้อย 13 ตัวอักษร";
+    } else if (formData.password.length < 8) {
+      newErrors.password = "รหัสผ่านต้องมีความยาวอย่างน้อย 8 ตัวอักษร";
     }
 
     return newErrors;
   };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     const newErrors = validateForm();
@@ -100,41 +100,45 @@ export default function LoginPage() {
       if (res.ok) {
         const sessionRes = await fetch("/api/auth/session");
         const session = await sessionRes.json();
-        
         if (session?.user?.role === "teacher" && !session?.user?.isAdmin) {
           Swal.fire({
             title: "เข้าสู่ระบบสำเร็จ",
             icon: "success",
             timer: 5000,
-            width: "90%",
-            maxWidth: "350px",
+            width: "60%",
           });
           router.push("/teacher");
-        } else if (session?.user?.role === "student" && !session?.user?.isAdmin) {
+        } else if (
+          session?.user?.role === "student" &&
+          !session?.user?.isAdmin
+        ) {
           Swal.fire({
             title: "เข้าสู่ระบบสำเร็จ",
             icon: "success",
             timer: 5000,
-            width: "90%",
-            maxWidth: "350px",
+            width: "60%",
           });
           router.push("/dashboard");
-        } else if (session?.user?.role === "teacher" && session?.user?.isAdmin) {
+        } else if (
+          session?.user?.role === "teacher" &&
+          session?.user?.isAdmin
+        ) {
           Swal.fire({
             title: "เข้าสู่ระบบสำเร็จ",
             icon: "success",
             timer: 5000,
-            width: "90%",
-            maxWidth: "350px",
+            width: "60%",
           });
           router.push("/teacher/admin");
-        } else if (session?.user?.role === "student" && session?.user?.isAdmin) {
+        } else if (
+          session?.user?.role === "student" &&
+          session?.user?.isAdmin
+        ) {
           Swal.fire({
             title: "เข้าสู่ระบบสำเร็จ",
             icon: "success",
             timer: 5000,
-            width: "90%",
-            maxWidth: "350px",
+            width: "60%",
           });
           router.push("/dashboard/admin");
         } else {
@@ -143,8 +147,7 @@ export default function LoginPage() {
             text: "สถานะไม่ถูกต้อง",
             icon: "error",
             timer: 5000,
-            width: "80%",
-            maxWidth: "350px",
+            width: "60%",
           });
           router.push("/");
         }
@@ -154,8 +157,7 @@ export default function LoginPage() {
           text: "กรุณาตรวจสอบชื่อผู้ใช้\nและรหัสผ่าน.",
           icon: "error",
           timer: 5000,
-          width: "80%",
-          maxWidth: "350px",
+          width: "60%",
         });
       }
     } catch (error) {
@@ -164,7 +166,6 @@ export default function LoginPage() {
       setIsLoading(false);
     }
   };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-10 md:p-18">
       <div className="max-w-md w-full space-y-8">
@@ -209,6 +210,9 @@ export default function LoginPage() {
                   type="text"
                   value={formData.username}
                   onChange={handleInputChange}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleSubmit(e);
+                  }}
                   className={`block w-full pl-10 pr-1.5 sm:pr-3 py-2 sm:py-3 text-xs sm:text-sm border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors ${
                     errors.username ? "border-red-300" : "border-gray-300"
                   }`}
@@ -240,6 +244,9 @@ export default function LoginPage() {
                   type={showPassword ? "text" : "password"}
                   value={formData.password}
                   onChange={handleInputChange}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleSubmit(e);
+                  }}
                   className={`block w-full pl-10 pr-1.5 sm:pr-3 py-2 sm:py-3 text-xs sm:text-sm border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors ${
                     errors.password ? "border-red-300" : "border-gray-300"
                   }`}

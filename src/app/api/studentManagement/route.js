@@ -2,19 +2,19 @@ import { connectDB } from "../../../../lib/mongodb";
 import { NextResponse } from "next/server";
 import Student from "../../../../models/Student";
 import { getToken } from "next-auth/jwt";
+import crypto from "crypto";
 import bcrypt from "bcrypt";
-import { encrypt } from "../../../../lib/crypto";
-import { decrypt } from "../../../../lib/crypto";
-// helper mask
-function maskCard(card) {
-  if (!card) return "";
-  // แสดงแค่ 6 ตัวแรกและ 2 ตัวสุดท้าย ตัวกลางเป็น *
-  const start = card.slice(0, 6);
-  const end = card.slice(-2);
-  const maskedMiddle = "*".repeat(
-    Math.max(0, card.length - start.length - end.length)
-  );
-  return `${start}${maskedMiddle}${end}`;
+
+// generatePassword
+async function genPassword(lenght) {
+  const number = "1234567890";
+  let password = "PKW_";
+
+  const bytes = crypto.randomBytes(lenght);
+  for (let i = 0; i < lenght; i++) {
+    password += number[bytes[i] % number.length];
+  }
+  return password;
 }
 export async function GET(req) {
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
@@ -25,27 +25,36 @@ export async function GET(req) {
       { status: 401 }
     );
   }
-
   try {
     await connectDB();
     const data = await Student.find({}).limit(200);
-    let decrypted = null;
 
+    if (token?.role === "teacher" && token?.isAdmin) {
+      const payload = data.map((index) => {
+        return {
+          id: index._id,
+          studentId: index.studentId,
+          name: index.name,
+          classes: index.classes,
+          phone: index.phone,
+          parentPhone: index.parentPhone,
+          status: index.status,
+          plantData: index.plantData,
+        };
+      });
+      return NextResponse.json(
+        { success: true, message: payload },
+        { status: 200 }
+      );
+    }
     const payload = data.map((index) => {
-      try {
-        decrypted = index.cardId ? decrypt(index.cardId) : null;
-      } catch (err) {
-        decrypted = null;
-      }
       return {
         id: index._id,
         studentId: index.studentId,
         name: index.name,
-        cardId: decrypted ? maskCard(decrypted) : null,
-        classes: index.Class,
+        classes: index.classes,
         phone: index.phone,
         parentPhone: index.parentPhone,
-        address: index.address,
         status: index.status,
       };
     });
@@ -69,30 +78,26 @@ export async function POST(req) {
       { success: false, message: "Unauthorization" },
       { status: 401 }
     );
-  console.log(req);
   try {
     const body = await req.json();
-    const { studentId, name, password, Class, phone, parentPhone, address } =
-      body;
-    const hashPassword = await bcrypt.hash(password, 10);
-    const cardIdHash = await password ? encrypt(password) : undefined;
-    console.log(cardIdHash);
+    const { studentId, name, classes, phone, parentPhone } = body;
+    const plantData = await genPassword(5);
+    const password = await bcrypt.hash(plantData, 10);
     const checkId = await Student.findOne({ studentId: studentId });
     if (checkId)
       return NextResponse.json(
-        { success: false, message: "มีข้อมูลในระบบแล้ว" },
-        { status: 405 }
+        { success: false, message: { studentId: "มีข้อมูลในระบบแล้ว" } },
+        { status: 400 }
       );
     else {
       const doc = await Student.create({
         studentId,
         name,
-        password: hashPassword,
-        Class,
+        password,
+        classes,
         phone,
         parentPhone,
-        address,
-        cardId: cardIdHash,
+        plantData,
       });
       console.log(doc);
       await doc.save();

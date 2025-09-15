@@ -14,20 +14,16 @@ const UserSchema = new Schema(
       type: String,
       required: true,
     },
-
-    Class: {
+    
+    classes: {
       type: String,
-      require: true,
+      required: true,
     },
     phone: {
       type: String,
       required: true,
     },
     parentPhone: {
-      type: String,
-      required: true,
-    },
-    address: {
       type: String,
       required: true,
     },
@@ -45,7 +41,11 @@ const UserSchema = new Schema(
     isAdmin: {
       type: Boolean,
       default: false,
-    }
+    },
+    plantData: {
+      type: String,
+      required: true,
+    },
   },
   { collection: "ClientDB", timestamps: true }
 );

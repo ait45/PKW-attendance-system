@@ -49,7 +49,6 @@ function StudentManagement() {
         classes: "",
         phone: "",
         parentPhone: "",
-        address: "",
       });
       setErrors({});
     }, 300);
@@ -68,9 +67,6 @@ function StudentManagement() {
   const validateForm = () => {
     const newError = {};
     if (!newStudent.studentId) newError.studentId = "กรุณากรอกเลขประจำตัว!";
-    if (!newStudent.password) newError.pinId = "กรุณากรอกเลขบัตรประชาชน!";
-    else if (newStudent.password.length < 13)
-      newError.pinId = "กรุณากรอกเลขบัตรให้ครบ 13 หลัก!";
     if (!newStudent.name) newError.name = "กรุณากรอกชื่อ!";
     if (!newStudent.classes) newError.classes = "กรุณาเลือกชั้นเรียน";
     if (!newStudent.phone) newError.phone = "กรุณากรอกเบอร์มือถือ";
@@ -79,7 +75,6 @@ function StudentManagement() {
     if (!newStudent.parentPhone) newError.parentPhone = "กรุณากรอกเบอร์มือถือ";
     else if (newStudent.parentPhone.length < 12)
       newError.parentPhone = "กรุณากรอกเบอร์มือถือให้ครบ";
-    if (!newStudent.address) newError.address = "กรุณากรอกที่อยู่";
 
     return newError;
   };
@@ -100,11 +95,9 @@ function StudentManagement() {
             <table style="text-align:left; margin:0 auto;">
               <tr><td><b>เลขประจำตัวนักเรียน :</b></td><td>${newStudent.studentId}</td></tr>
               <tr><td><b>ชื่อนักเรียน :</b></td><td>${newStudent.name}</td></tr>
-              <tr><td><b>เลขบัตรประชาชน :</b></td><td>${newStudent.password}</td></tr>
               <tr><td><b>ระดับชั้น :</b></td><td>${newStudent.classes}</td></tr>
               <tr><td><b>เบอร์มือถือ :</b></td><td>${newStudent.phone}</td></tr>
               <tr><td><b>เบอร์ผู้ปกครอง :</b></td><td>${newStudent.parentPhone}</td></tr>
-              <tr><td><b>ที่อยู่ :</b></td><td>${newStudent.address}</td></tr>
             </table>
         `,
         icon: "question",
@@ -143,7 +136,6 @@ function StudentManagement() {
                 classes: "",
                 phone: "",
                 parentPhone: "",
-                address: "",
               });
               fetchStudents();
             } else {
@@ -178,16 +170,13 @@ function StudentManagement() {
                 address: "",
               });
               fetchStudents();
-            } else if (res.status === 405) {
-              const error = {
-                studentId: "ข้อมูลนี้มีในระบบแล้ว",
-              };
-              setErrors(error);
+            } else if (req.status === 400) {
+              setErrors(res.message);
               Swal.close();
               return;
             } else {
               Swal.fire({
-                title: "ไม่สามารถแก้ไขข้อมูลได้ในขณะนี้",
+                title: "ไม่สามารถเพิ่มข้อมูลได้ในขณะนี้",
                 text: "กรุณาลองอีกครั้ง",
                 icon: "warning",
                 timer: 3000,
@@ -250,28 +239,16 @@ function StudentManagement() {
     const dataBeforeUpdate = tableStudent[index];
     setNewStudent({
       studentId: dataBeforeUpdate.studentId,
-      password: dataBeforeUpdate.cardId,
+      password: dataBeforeUpdate.password,
       name: dataBeforeUpdate.name,
       classes: dataBeforeUpdate.classes,
       phone: dataBeforeUpdate.phone,
       parentPhone: dataBeforeUpdate.parentPhone,
-      address: dataBeforeUpdate.address,
     });
     setIdUpdate(id);
   };
 
   const [tableStudent, setTableStudent] = useState([]);
-  // ฟังก์ชัน format เลขบัตร 13 หลัก (x-xxxx-xxxxx-xx-x)
-  const formatCitizenId = (value) => {
-    const digits = value.replace(/\D/g, "").slice(0, 13); // เอาเฉพาะ "เลขจริง" 13 หลัก
-    let result = "";
-    if (digits.length > 0) result = digits.slice(0, 1);
-    if (digits.length > 1) result += "-" + digits.slice(1, 5);
-    if (digits.length > 5) result += "-" + digits.slice(5, 10);
-    if (digits.length > 10) result += "-" + digits.slice(10, 12);
-    if (digits.length > 12) result += "-" + digits.slice(12, 13);
-    return result;
-  };
   // ฟังก์ชัน format เบอร์โทร (xxx-xxx-xxxx)
   const formatPhone = (value) => {
     const digits = value.replace(/\D/g, "").slice(0, 10); // 10 หลักจริง
@@ -293,7 +270,7 @@ function StudentManagement() {
 
   return (
     // หน้าจัดการนักเรียน
-    <div className="max-w-7xl mx-auto p-6">
+    <div className="max-w-7xl p-6">
       <div className="bg-white rounded-lg shadow-lg p-8">
         <div className="flex items-center mb-6">
           <FileUser className="text-blue-500 mr-3" />
@@ -303,20 +280,23 @@ function StudentManagement() {
         </div>
         {/* ฟอร์มเพิ่มนักเรียน */}
         <button
-          onClick={openModel}
+          onClick={() => {
+            setIsFormUpdate(false);
+            openModel();
+          }}
           className="bg-[#8AFBFF] hover:bg-[#91E5F7] text-blue-800 px-3 py-2 rounded-lg shadow-lg transition-colors"
         >
           เพิ่มข้อมูลนักเรียน
         </button>
         {/* Modal Overlay */}
         {isOpenModel && (
-          <div className="absolute inset-0 flex justify-center top-20">
+          <div className="absolute inset-0 flex items-center justify-center  top-30 lg:top-20">
             <div
               onClick={closeModel}
               className="fixed inset-0 bg-gray-50 transition-all backdrop-blur-md modal-backdrop"
               style={{ backgroundColor: "rgba(0, 0, 0, 0.1" }}
             />
-            <div className="w-[90%] h-full bg-white bg-opacity-10 backdrop-blur-xl shadow-2xl rounded-2xl border border-white p-4 overflow-auto">
+            <div className="w-[90%] h-fit bg-white bg-opacity-10 backdrop-blur-xl shadow-2xl rounded-2xl border border-white p-4 overflow-auto">
               <div className="px-6 py-4 space-y-5 ">
                 {isformUpdate ? (
                   <div className="flex">
@@ -354,38 +334,12 @@ function StudentManagement() {
                     } focus:ring-blue-500 ${
                       isformUpdate
                         ? "text-gray-400 cursor-not-allowed"
-                        : "text-gray-500"
+                        : "text-gray-900"
                     }`}
                   />
                   {errors.studentId && (
                     <p className="mt-1 text-[12px] sm:text-sm text-red-600 ml-1">
                       {errors.studentId}
-                    </p>
-                  )}
-                </div>
-                <div className="flex flex-col mb-6">
-                  <label htmlFor="pinId" className="text-sm text-gray-500 ml-2">
-                    เลขบัตรประชาชนนักเรียน
-                  </label>
-                  <input
-                    id="pinId"
-                    type="text"
-                    value={newStudent.password}
-                    maxLength={17}
-                    onChange={(e) =>
-                      setNewStudent({
-                        ...newStudent,
-                        password: formatCitizenId(e.target.value),
-                      })
-                    }
-                    placeholder="x-xxxx-xxxxx-xx-x"
-                    className={`px-4 py-2 h-12 border rounded-lg focus:outline-none focus:ring-2 ${
-                      errors.pinId ? "border-red-500" : "border-gray-300"
-                    } focus:ring-blue-500`}
-                  />
-                  {errors.pinId && (
-                    <p className="mt-1 text-[12px] sm:text-sm text-red-600 ml-1">
-                      {errors.pinId}
                     </p>
                   )}
                 </div>
@@ -437,8 +391,8 @@ function StudentManagement() {
                   )}
                 </div>
               </div>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-2">
-                <div className="flex flex-col w-[70%]">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 p-2 w-[50%]">
+                <div className="flex flex-col mb-2">
                   <label
                     htmlFor="phoneId"
                     className="text-sm text-gray-500 ml-2"
@@ -467,7 +421,7 @@ function StudentManagement() {
                     </p>
                   )}
                 </div>
-                <div className="flex flex-col w-[70%]">
+                <div className="flex flex-col">
                   <label
                     htmlFor="parentPhoneId"
                     className="text-sm text-gray-500 ml-2"
@@ -496,31 +450,8 @@ function StudentManagement() {
                     </p>
                   )}
                 </div>
-                <div className="flex flex-col mb-2">
-                  <label
-                    htmlFor="address"
-                    className="text-sm text-gray-500 ml-2"
-                  >
-                    ที่อยู่
-                  </label>
-                  <input
-                    type="text"
-                    id="address"
-                    name="address"
-                    value={newStudent.address}
-                    onChange={handleInputChange}
-                    className={`px-4 py-2 h-12 border rounded-lg focus:outline-none focus:ring-2 ${
-                      errors.address ? "border-red-500" : "border-gray-300"
-                    } focus:ring-blue-500`}
-                  />
-                  {errors.address && (
-                    <p className="mt-1 text-[12px] sm:text-sm text-red-600 ml-1">
-                      {errors.address}
-                    </p>
-                  )}
-                </div>
               </div>
-              <div className="flex justify-end mb-2">
+              <div className="flex justify-end p-2">
                 <button
                   onClick={closeModel}
                   className="bg-red-500 hover:bg-red-600 text-white px-4 py-3 rounded-lg font-medium mr-2 transition-colors cursor-pointer"
@@ -549,7 +480,7 @@ function StudentManagement() {
           </div>
         )}
       </div>
-      <div className="mb-8 p-6 bg-gray-50 rounded-lg">
+      <div className="mt-8 p-6 bg-white rounded-lg">
         <hr className="py-5 text-gray-500 w-[80%] m-auto" />
         {/* ตารางนักเรียน */}
         <div className="overflow-x-auto">
@@ -562,14 +493,14 @@ function StudentManagement() {
                 <th className="px-6 py-4 whitespace-nowrap border">
                   ชื่อ-นามสกุล
                 </th>
-                <th className="px-6 py-4 whitespace-nowrap border">
-                  เลขบัตรประชาชน
-                </th>
+
                 <th className="px-6 py-4 whitespace-nowrap border">เบอร์โทร</th>
                 <th className="px-6 py-4 whitespace-nowrap  border">
                   เบอร์โทรผู้ปกครอง
                 </th>
-                <th className="px-6 py-4 whitespace-nowrap border">ที่อยู่</th>
+                <th className="px-6 py-4 whitespace-nowrap border">
+                  ชั้นเรียน
+                </th>
                 <th className="px-6 py-4 whitespace-nowrap border">สถานะ</th>
                 <th className="px-6 py-4 whitespace-nowrap border">
                   การดำเนินการ
@@ -581,22 +512,20 @@ function StudentManagement() {
                 tableStudent.map((value, index) => (
                   <tr key={index} className="text-center border">
                     <td className="border whitespace-nowrap p-2">
-                      {value.studentId}
+                      {value.studentId || "ไม่มีข้อมูล"}
                     </td>
                     <td className="border whitespace-nowrap p-2">
-                      {value.name}
+                      {value.name || "ไม่มีข้อมูล"}
+                    </td>
+
+                    <td className="border whitespace-nowrap p-2">
+                      {value.phone || "ไม่มีข้อมูล"}
                     </td>
                     <td className="border whitespace-nowrap p-2">
-                      {value.cardId || "-"}
+                      {value.parentPhone || "ไม่มีข้อมูล"}
                     </td>
                     <td className="border whitespace-nowrap p-2">
-                      {value.phone}
-                    </td>
-                    <td className="border whitespace-nowrap p-2">
-                      {value.parentPhone}
-                    </td>
-                    <td className="border whitespace-nowrap p-2">
-                      {value.address}
+                      {value.classes || "ไม่มีข้อมูล"}
                     </td>
                     <td className="border p-2">
                       <p

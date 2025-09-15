@@ -34,7 +34,6 @@ const handler = NextAuth({
               name: user.name,
               role: user.role,
               isAdmin: user.isAdmin,
-              test: true,
             };
           } else {
             const user = await Student.findOne({ studentId: username });
@@ -57,15 +56,16 @@ const handler = NextAuth({
   ],
   session: {
     strategy: "jwt",
-    maxAge: 60 * 60 * 24,
+    maxAge: 60 * 30,
   },
   jwt: {
-    maxAge: 60 * 60 * 24,
+    maxAge: 60 * 30,
   },
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
         token.username = user.username;
+        token.name = user.name;
         token.role = user.role;
         token.isAdmin = user.isAdmin;
       }
@@ -79,6 +79,7 @@ const handler = NextAuth({
     },
     async session({ session, token }) {
       session.user.username = token.username;
+      session.user.name = token.name;
       session.user.role = token.role;
       session.user.isAdmin = token.isAdmin;
       return session;

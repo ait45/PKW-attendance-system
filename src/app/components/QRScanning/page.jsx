@@ -10,23 +10,59 @@ function QRScanning({ onScan, label = "Scan QR" }) {
   const [scanning, IsScanning] = useState(false);
   const html5QrCodeRef = useRef(null);
   const canvasRef = useRef(null);
-
+  let nextPage = false;
   useEffect(() => {
     if (!html5QrCodeRef.current) {
       html5QrCodeRef.current = new Html5Qrcode("reader");
     }
+    return async () => {
+      if (nextPage) {
+        nextPage = true;
+        await Toast.fire({
+          title: "กล้องจะปิดใช้งานเมื่อเปลี่ยนหน้า!",
+          icon: "warning",
+          timer: 2000,
+        });
+        stopScanning();
+      }
+    };
   }, []);
   const handleScan = (data) => {
-    if (onScan) onScan(data);
+    const json = {
+      id: data,
+    };
+    if (onScan) onScan(json);
   };
+
+  const Toast = Swal.mixin({
+    toast: true,
+    position: "top",
+    showConfirmButton: false,
+  });
+
   // ฟังก์ชันหยุดสแกน
   const stopScanning = async () => {
-    if (!scanning || !html5QrCodeRef) return;
     try {
-      await html5QrCodeRef.current.stop().then(() => {
-        html5QrCodeRef.current.clear();
-        IsScanning(false);
+      Toast.fire({
+        title: "กล้องกำลังปิด กรุณารอสักครู่",
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        },
       });
+      await html5QrCodeRef.current
+        .stop()
+        .then(() => {
+          Toast.close();
+          html5QrCodeRef.current.clear();
+          IsScanning(false);
+        })
+        .catch(() => {
+          Toast.close();
+          html5QrCodeRef.current.clear();
+          IsScanning(false);
+        });
+      Toast.close();
     } catch (error) {
       Swal.fire({
         title: "ไม่สามารถปิดกล้องได้!",
@@ -45,7 +81,15 @@ function QRScanning({ onScan, label = "Scan QR" }) {
   };
   const startScanning = async () => {
     if (!html5QrCodeRef.current) return;
+    Toast.fire({
+      title: "กล้องกำลังเปิด กรุณารอสักครู่",
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading();
+      },
+    });
     try {
+      nextPage = true;
       const cameras = await Html5Qrcode.getCameras();
       const config = {
         fps: 25,
@@ -53,8 +97,10 @@ function QRScanning({ onScan, label = "Scan QR" }) {
         aspectRetio: 1.0,
         showTorchButtonIfSupported: true,
       };
+
       if (cameras && cameras.length) {
         IsScanning(true);
+        Swal.close();
         await html5QrCodeRef.current
           .start(
             { facingMode: "environment" },
@@ -85,7 +131,7 @@ function QRScanning({ onScan, label = "Scan QR" }) {
               setResult(decodedText);
               handleScan(decodedText);
               setTimeout(() => {
-                setResult('');
+                setResult("");
               }, 500);
             }
           )
@@ -98,6 +144,7 @@ function QRScanning({ onScan, label = "Scan QR" }) {
               title: "เริ่มสแกนไม่ได้!",
               text: err,
               timer: 3000,
+              icon: "error",
               showConfirmButton: true,
             });
           });
@@ -107,6 +154,7 @@ function QRScanning({ onScan, label = "Scan QR" }) {
         title: "เริ่มสแกนไม่ได้!",
         text: error,
         timer: 3000,
+        icon: 'error',
         showConfirmButton: true,
       });
     }
@@ -118,7 +166,7 @@ function QRScanning({ onScan, label = "Scan QR" }) {
         {/* Header */}
         <div className="bg-white rounded-t-2xl shadow-lg p-6">
           <h1 className=" flex items-center justify-center text-2xl font-bold text-center text-gray-800 mb-2">
-            <Camera className="text-blue-500 mr-2"/>
+            <Camera className="text-blue-500 mr-2" />
             ตัวสแกน QR Code
           </h1>
           <p className="text-center text-gray-600">กรุณาวาง QRcode ภายในกรอบ</p>

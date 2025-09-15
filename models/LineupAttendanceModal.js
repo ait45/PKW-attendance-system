@@ -10,14 +10,15 @@ const Attendance = Schema(
       type: String,
       required: true,
     },
-    Class: {
+    classes: {
       type: String,
       required: true,
     },
-    grade: {
+    status : {
       type: String,
       required: true,
-    },
+      default: "ยังไม่เช็คชื่อ",
+    }
   },
   {
     collection: "LineupAttendance",

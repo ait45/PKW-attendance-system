@@ -32,11 +32,6 @@ export async function PUT(req, { params }) {
     await connectDB();
     const body = await req.json();
     const update = { ...body };
-    // เข้ารหัสเลขบัตร
-    if (body.password) {
-      update.encryptedCard = encrypt(body.password);
-      update.password = await bcrypt.hash(body.password, 10);
-    }
     const { id } = await params;
     const res = await Student.findByIdAndUpdate(id, update, {
       new: true,
