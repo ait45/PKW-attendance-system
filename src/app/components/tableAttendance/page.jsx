@@ -3,11 +3,13 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { BookUser } from "lucide-react";
 import Swal from "sweetalert2";
+
 function tableAttendance() {
   const currentDate = useState(new Date().toLocaleDateString("th-TH"));
   const [DataStudentAttendance, setDataStudentAttendance] = useState([]);
   const [DataStudent, setDataStudent] = useState([]);
   const [tableData, setTableData] = useState([]);
+  const [DataSetting, setDataSetting] = useState([]);
 
   const [selectClasses, setSelectClasses] = useState("");
   const classes = [
@@ -23,7 +25,6 @@ function tableAttendance() {
     { label: "ยังไม่เช็คชื่อ", val: "ยังไม่เช็คชื่อ" },
     { label: "มา", val: "มา" },
     { label: "ลา", val: "ลา" },
-    { label: "สาย", val: "สาย" },
   ];
 
   useEffect(() => {
@@ -32,6 +33,7 @@ function tableAttendance() {
         const req = await fetch("/api/studentManagement");
         const data = await req.json();
         setDataStudent(data.message);
+        //console.log(DataStudent);
       } catch (error) {
         console.log(error);
         Swal.fire("เกิดข้อผิดพลาด", "", "error");
@@ -42,26 +44,43 @@ function tableAttendance() {
         const req = await fetch("/api/scanAttendance");
         const data = await req.json();
         setDataStudentAttendance(data.message);
+        //console.log(DataStudentAttendance);
       } catch (error) {
         console.log(error);
         Swal.fire("เกิดข้อผิดพลาด", "", "error");
       }
     };
+    const settingConfig = async () => {
+      try {
+        const req = await fetch("/api/setting");
+        const setting = await req.json();
+        setDataSetting(setting.data);
+        //console.log(DataSetting);
+      } catch (error) {
+        console.error(error);
+        Swal.fire("เกิดข้อผิดพลาด", "", "error");
+      }
+    };
     fetchDataAttendance();
     fetchDataStudent();
+    settingConfig();
   }, []);
-  const Today = new Date().toLocaleDateString("th-TH");
-  const convertToday = (date) => {
-    return new Date(date);
-  };
+
+  const handleUpdate = async (id) => {};
+
   const filteredStudentSelected = useMemo(() => {
     if (selectClasses === "ทั้งหมด") return DataStudent;
-    return DataStudent.filter((s) => s.classes === selectClasses);
+    const filter = DataStudent.filter((s) => s.classes === selectClasses);
+    filter.forEach((student) => {
+      const record = DataStudentAttendance.find(
+        (s) => s.studentId === student.studentId
+      );
+      if (record) DataStudent[student.status] = record.status;
+      else DataStudent[student.status] = "ยังไม่เช็คชื่อ";
+    });
+    return filter;
   }, [DataStudent, selectClasses]);
-
-  const showDataAtttendanceToday = async () => {
-    
-  };
+  const handleChange = (studentId, value) => {};
   const handleSubmitSelectClasses = () => {};
   return (
     <main className="bg-white h-auto max-w-5xl mx-auto p-4 rounded-md">
@@ -75,7 +94,6 @@ function tableAttendance() {
           <div className="p-2 flex items-center">
             <p className="text-gray-700 p-2">กรุณาเลือกชั้นเรียน</p>
             <select
-              id="classesSelect"
               className="px-5 outline-none border-b border-[#009EA3]"
               value={selectClasses}
               onChange={(e) => setSelectClasses(e.target.value)}
@@ -86,8 +104,6 @@ function tableAttendance() {
                 </option>
               ))}
             </select>
-
-            
           </div>
         </header>
         <div className="overflow-x-auto">
@@ -109,7 +125,7 @@ function tableAttendance() {
             <tbody>
               {filteredStudentSelected.length > 0 ? (
                 filteredStudentSelected.map((value) => (
-                  <tr className="bg-gray-50 text-center" key={value.studentId}>
+                  <tr className="bg-gray-50 text-center">
                     <td className="border border-gray-300 px-4 py-3">
                       {value.studentId}
                     </td>
@@ -120,12 +136,12 @@ function tableAttendance() {
                       {value.classes}
                     </td>
                     <td className="border border-gray-300 px-4 py-3">
-                      <select className="px-2 border-b border-gray-500 outline-none">
-                        {choiceAttendance.map((index) => (
-                          <option value={index.val} key={index.val}>
-                            {index.label}
-                          </option>
-                        ))}
+                      <select
+                        className="px-2 border-b border-gray-500 outline-none"
+                        value={value.status}
+                        onChange={handleChange(value.studentId, value.status)}
+                      >
+                        <option value="">มา</option>
                       </select>
                     </td>
                   </tr>

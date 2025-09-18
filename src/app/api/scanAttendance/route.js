@@ -3,20 +3,27 @@ import { NextResponse } from "next/server";
 import LineupAttendanceModal from "../../../../models/LineupAttendanceModal";
 import Student from "../../../../models/Student";
 import { getToken } from "next-auth/jwt";
-import { getServerSession } from "next-auth";
-import jwt, { decode } from "jsonwebtoken";
+import { cutoff } from "../../scripts/checkCutoff";
+
+
+const startOfDay = new Date();
+startOfDay.setHours(0, 0, 0, 0);
+const endOfDay = new Date();
+endOfDay.setHours(23, 59, 59, 999);
+
+const now = new Date();
 
 export async function POST(req) {
   const token = getToken({ req, secret: process.env.AUTH_SECRET });
   if (!token)
     return NextResponse.json(
-      { success: false, message: "Unauthrization" },
+      {
+        error: "Unauthorized",
+        message: "คุณไม่ได้รับอนุญาต",
+        code: "UNAUTHORIZED",
+      },
       { status: 401 }
     );
-  const startOfDay = new Date();
-  startOfDay.setHours(0, 0, 0, 0);
-  const endOfDay = new Date();
-  endOfDay.setHours(23, 59, 59, 999);
   try {
     const post = await req.json();
     await connectDB();
@@ -37,16 +44,15 @@ export async function POST(req) {
           { status: 400 }
         );
       }
+      const status = await cutoff();
       const doc = await LineupAttendanceModal.create({
         studentId,
         name,
         classes,
+        status: status,
       });
       await doc.save();
-      return NextResponse.json(
-        { success: true, data: "success" },
-        { status: 201 }
-      );
+      return NextResponse.json({ success: true }, { status: 200 });
     }
     return NextResponse.json(
       { success: false, message: "ไม่มีข้อมูลนักเรียน!" },
@@ -72,19 +78,8 @@ export async function GET(req) {
       { status: 401 }
     );
   }
-  if (token.role !== "teacher" || !token.isAdmin) {
-    return NextResponse.json(
-      {
-        error: "Forbidden",
-        message: "คุณไม่มีสิทธิ์ในการเข้าถึงข้อมูลนี้",
-        code: "FORBIDDEN",
-      },
-      { status: 403 }
-    );
-  }
   try {
     await connectDB();
-
     const data = await LineupAttendanceModal.find({
       createdAt: { $gte: startOfDay, $lte: endOfDay },
     }).limit(200);
@@ -94,9 +89,11 @@ export async function GET(req) {
 
     const payload = data.map((index) => {
       return {
+        _id: index._id,
         studentId: index.studentId,
         name: index.name,
         classes: index.classes,
+        status: index.status,
         createdAt: index.createdAt,
       };
     });
@@ -105,9 +102,10 @@ export async function GET(req) {
       { status: 200 }
     );
   } catch (error) {
+    console.log(error);
     return NextResponse.json(
       { success: false, message: "Failed to Request!" },
-      { status: 403 }
+      { status: 500 }
     );
   }
 }

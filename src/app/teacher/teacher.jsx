@@ -35,7 +35,6 @@ function TeacherPage() {
 
   const { data: session, status } = useSession();
   Swal.close();
-  console.log(session);
   if (!session?.user?.role === "teacher" && status === "unauthenticated")
     redirect("/login");
   if (session?.user?.role === "teacher" && session?.user?.isAdmin)
@@ -152,7 +151,7 @@ function TeacherPage() {
       <Nav session={session} />
       {/* Navigation */}
       <nav className="bg-white shadow-lg">
-        <div className="max-w-7xl mx-auto px-4">
+        <div className="w-full mx-auto px-4">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center gap-3">
               <GraduationCap size={32} className="text-blue-600" />

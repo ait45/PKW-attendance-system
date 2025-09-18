@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import {
   Plus,
   FileUser,
@@ -64,6 +64,8 @@ function StudentManagement() {
       }));
     }
   };
+
+  // ฟังก์ชั่นเช็คการกรอกข้อมูลต่าง ๆ
   const validateForm = () => {
     const newError = {};
     if (!newStudent.studentId) newError.studentId = "กรุณากรอกเลขประจำตัว!";
@@ -78,6 +80,8 @@ function StudentManagement() {
 
     return newError;
   };
+
+  // ฟังก์ชั่นเพิ่มข้อมูลนักเรียน
   const handleSubmit = async (e) => {
     e.preventDefault();
     const error = validateForm();
@@ -189,6 +193,8 @@ function StudentManagement() {
       console.log(error);
     }
   };
+
+  // ฟังก์ชั่นลบข้อมูลนักเรียน
   const handleDelete = async (id, name) => {
     Swal.fire({
       title: "ยืนยันการลบข้อมูล",
@@ -233,6 +239,8 @@ function StudentManagement() {
       }
     });
   };
+
+  //อัพเดตข้อมูลนักเรียน
   const handleUpdate = async (id, index) => {
     setIsOpenModel(true);
     setIsFormUpdate(true);
@@ -258,6 +266,7 @@ function StudentManagement() {
     if (digits.length > 6) result += "-" + digits.slice(6, 10);
     return result;
   };
+  // ดึงข้อมูลจาก api
   const fetchStudents = async () => {
     const res = await fetch("/api/studentManagement");
     const data = await res.json();
@@ -267,6 +276,24 @@ function StudentManagement() {
   useEffect(() => {
     fetchStudents();
   }, []);
+
+  // แยกข้อมูลของแต่ละชั้น
+
+  const [selectClasses, setSelectClasses] = useState("ทั้งหมด");
+  const classesList = [
+    { label: "มัธยมศึกษาปีที่ 1", val: 0 },
+    { label: "มัธยมศึกษาปีที่ 2", val: 1 },
+    { label: "มัธยมศึกษาปีที่ 3", val: 2 },
+    { label: "มัธยมศึกษาปีที่ 4", val: 3 },
+    { label: "มัธยมศึกษาปีที่ 5", val: 4 },
+    { label: "มัธยมศึกษาปีที่ 6", val: 5 },
+    { label: "ทั้งหมด", val: 6 },
+  ];
+  // แยกข้อมูลแต่ละชั้น
+  const filteredStudentSelected = useMemo(() => {
+    if (selectClasses === "ทั้งหมด") return tableStudent;
+    return tableStudent.filter((s) => s.classes === selectClasses);
+  }, [tableStudent, selectClasses]);
 
   return (
     // หน้าจัดการนักเรียน
@@ -288,6 +315,7 @@ function StudentManagement() {
         >
           เพิ่มข้อมูลนักเรียน
         </button>
+
         {/* Modal Overlay */}
         {isOpenModel && (
           <div className="absolute inset-0 flex items-center justify-center  top-30 lg:top-20">
@@ -481,6 +509,20 @@ function StudentManagement() {
         )}
       </div>
       <div className="mt-8 p-6 bg-white rounded-lg">
+        <div className="p-2 mb-4 flex">
+          <h1 className="text-lg font-bold mr-4">ข้อมูลแต่ละชั้นเรียน</h1>
+          <select
+            value={selectClasses}
+            onChange={(e) => setSelectClasses(e.target.value)}
+            className="px-4 border-b border-[#009EA3] outline-none"
+          >
+            {classesList.map((val) => (
+              <option value={val.label} key={val.label}>
+                {val.label}
+              </option>
+            ))}
+          </select>
+        </div>
         <hr className="py-5 text-gray-500 w-[80%] m-auto" />
         {/* ตารางนักเรียน */}
         <div className="overflow-x-auto">
@@ -508,8 +550,8 @@ function StudentManagement() {
               </tr>
             </thead>
             <tbody>
-              {tableStudent.length > 0 ? (
-                tableStudent.map((value, index) => (
+              {filteredStudentSelected.length > 0 ? (
+                filteredStudentSelected.map((value, index) => (
                   <tr key={index} className="text-center border">
                     <td className="border whitespace-nowrap p-2">
                       {value.studentId || "ไม่มีข้อมูล"}

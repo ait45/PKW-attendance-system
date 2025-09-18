@@ -17,7 +17,6 @@ const Attendance = Schema(
     status : {
       type: String,
       required: true,
-      default: "ยังไม่เช็คชื่อ",
     }
   },
   {

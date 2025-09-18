@@ -3,7 +3,11 @@ import React, { useRef, useState, useEffect } from "react";
 import { Camera, QrCode, BarChart3, RotateCcw, PowerOff } from "lucide-react";
 import Swal from "sweetalert2";
 import { Html5Qrcode } from "html5-qrcode";
+import { resolve } from "path";
 
+function DelayScan() {
+  return new Promise((resolve) => setTimeout(resolve, 5000));
+}
 function QRScanning({ onScan, label = "Scan QR" }) {
   const scannerRef = useRef(null);
   const [result, setResult] = useState("");
@@ -154,7 +158,7 @@ function QRScanning({ onScan, label = "Scan QR" }) {
         title: "เริ่มสแกนไม่ได้!",
         text: error,
         timer: 3000,
-        icon: 'error',
+        icon: "error",
         showConfirmButton: true,
       });
     }
@@ -204,7 +208,7 @@ function QRScanning({ onScan, label = "Scan QR" }) {
         </div>
 
         <div className="bg-white mt-2 p-4 m-auto">
-          <p className="font-semibold text-center">สถานะการเช็คชื่อ</p>
+          <p className="font-semibold text-center">ข้อมูลการสแกน</p>
           <hr className="text-gray-400 w-[80%] m-auto py-2" />
           <p className="break-words text-blue-600 text-center">
             {result || "ไม่มีข้อมูล"}

@@ -2,13 +2,13 @@ import { connectDB } from "../../../../lib/mongodb";
 import { NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
+import { getToken } from "next-auth/jwt";
 
 const configPath = path.join(process.cwd(), "config", "settings.json");
 export async function GET(req) {
-  const authHeader = req.headers.get("authorization");
-  console.log(req);
-  if (!authHeader)
-    return NextResponse.json(
+  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+  if (!token)
+    return NextResponse(
       {
         error: "Unauthorized",
         message: "คุณไม่ได้รับอนุญาต",
@@ -16,18 +16,12 @@ export async function GET(req) {
       },
       { status: 401 }
     );
-
-  const token = authHeader.split(" ")[1];
-
-  const decoded = jwt.verify(token, process.env.NEXTAUTH_SECRET);
-  if (decoded.role !== "teacher" || !decoded.isAdmin)
-    return NextResponse.json(null, { status: 403 });
-
   try {
     const data = fs.readFileSync(configPath, "utf-8");
     const settings = JSON.parse(data);
     return NextResponse.json({ data: settings }, { status: 200 });
   } catch (error) {
+    console.log(error);
     return NextResponse.json(
       {
         error: "Internal Server Error",
@@ -40,9 +34,8 @@ export async function GET(req) {
 }
 
 export async function POST(req) {
-  const authHeader = req.headers.get("authorization");
-
-  if (!authHeader)
+  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+  if (!token)
     return NextResponse.json(
       {
         error: "Unauthorized",
@@ -51,10 +44,13 @@ export async function POST(req) {
       },
       { status: 401 }
     );
-
-  const token = authHeader.split(" ")[1];
-
-  const decoded = jwt.verify(token, process.env.NEXTAUTH_SECRET);
-  if (decoded.role !== "teacher" || !decoded.isAdmin)
-    return NextResponse.json(null, { status: 403 });
+  if (token.role !== "teacher" && !token.isAdmin)
+    return NextResponse.json(
+      {
+        error: "Forbidden",
+        message: "คุณไม่มีสิทธิ์ในการเข้าถึงข้อมูลนี้",
+        code: "FORBIDDEN",
+      },
+      { status: 403 }
+    );
 }

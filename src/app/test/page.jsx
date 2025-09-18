@@ -3,7 +3,6 @@
 import { Html5QrcodeScanner } from 'html5-qrcode';
 import { useEffect, useRef } from 'react';
 
-
 export default function QRScannerWithBeep() {
   const scannerRef = useRef(null);
   const audioContextRef = useRef(null);
@@ -129,6 +128,12 @@ export default function QRScannerWithBeep() {
           * หากไม่ได้ยินเสียง ให้ตรวจสอบว่าเบราว์เซอร์อนุญาตให้เล่นเสียงหรือไม่
         </p>
       </div>
+
+      <button onClick={async () => {
+        const req = await fetch("/api/test");
+        const data = await req.json();
+        console.log(data);
+      }}>ยิง script</button>
     </div>
   );
 }

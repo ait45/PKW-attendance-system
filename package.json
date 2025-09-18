@@ -16,6 +16,7 @@
     "cookie": "^1.0.2",
     "crypto-js": "^4.2.0",
     "dayjs": "^1.11.18",
+    "fs": "^0.0.1-security",
     "html5-qrcode": "^2.3.8",
     "jsonwebtoken": "^9.0.2",
     "jsqr": "^1.4.0",
