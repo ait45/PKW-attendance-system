@@ -84,7 +84,7 @@ export async function GET(req) {
       createdAt: { $gte: startOfDay, $lte: endOfDay },
     }).limit(200);
     if (data.length === 0) {
-      return new NextResponse(null, { status: 204 });
+      return new NextResponse(null, { status: 200 });
     }
 
     const payload = data.map((index) => {
@@ -108,4 +108,35 @@ export async function GET(req) {
       { status: 500 }
     );
   }
+}
+export async function PUT(req) {
+  const token = getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+
+  if (!token) {
+    return NextResponse(
+      {
+        error: "Unauthorized",
+        message: "คุณไม่ได้รับอนุญาต",
+        code: "UNAUTHORIZED",
+      },
+      { status: 401 }
+    );
+  }
+
+  const { _id, status } = await req.json();
+  const res = LineupAttendanceModal.findByIdAndUpdate(
+    _id,
+    {
+      status: status,
+    },
+    {
+      new: true,
+    }
+  );
+  if (res)
+    return NextResponse.json(
+      { success: true, message: "แก้ไขข้อมูลเสร็จสิ้น" },
+      { status: 200 }
+    );
+  else return NextResponse.json({ success: false }, { status: 400 });
 }

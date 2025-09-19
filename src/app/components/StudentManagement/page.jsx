@@ -324,7 +324,7 @@ function StudentManagement() {
               className="fixed inset-0 bg-gray-50 transition-all backdrop-blur-md modal-backdrop"
               style={{ backgroundColor: "rgba(0, 0, 0, 0.1" }}
             />
-            <div className="w-[90%] h-fit bg-white bg-opacity-10 backdrop-blur-xl shadow-2xl rounded-2xl border border-white p-4 overflow-auto">
+            <div className="w-[90%] h-fit bg-white bg-opacity-10 backdrop-blur-2xl shadow-2xl rounded-2xl border border-white p-4 overflow-auto">
               <div className="px-6 py-4 space-y-5 ">
                 {isformUpdate ? (
                   <div className="flex">

@@ -66,22 +66,58 @@ function tableAttendance() {
     settingConfig();
   }, []);
 
-  const handleUpdate = async (id) => {};
-
   const filteredStudentSelected = useMemo(() => {
-    if (selectClasses === "ทั้งหมด") return DataStudent;
-    const filter = DataStudent.filter((s) => s.classes === selectClasses);
-    filter.forEach((student) => {
-      const record = DataStudentAttendance.find(
-        (s) => s.studentId === student.studentId
+    const students =
+      selectClasses === "ทั้งหมด"
+        ? DataStudent
+        : DataStudent.filter((s) => s.classes === selectClasses);
+
+    return students.map((student) => {
+      const attendance = DataStudentAttendance.find(
+        (a) => a.studentId === student.studentId
       );
-      if (record) DataStudent[student.status] = record.status;
-      else DataStudent[student.status] = "ยังไม่เช็คชื่อ";
+
+      return {
+        ...student,
+        status: attendance ? attendance.status : "ยังไม่เช็คชื่อ",
+      };
     });
-    return filter;
-  }, [DataStudent, selectClasses]);
-  const handleChange = (studentId, value) => {};
-  const handleSubmitSelectClasses = () => {};
+  }, [DataStudent, selectClasses, DataStudentAttendance]);
+  const [attendance, setAttendance] = useState(DataStudentAttendance || []);
+  const [dataUpdate, setDataUpdate] = useState([]);
+  function handleStatusChange(_id, newStatus) {
+    setDataUpdate((prev) => ({
+      ...prev,
+      [_id]: newStatus,
+    }));
+
+    setAttendance((prev) => {
+      const exists = prev.find((a) => a._id === _id);
+      if (exists) {
+        // ถ้ามีแล้ว → แก้ค่า status
+        return prev.map((a) => (a._id === _id ? { ...a, status: value } : a));
+      } else {
+        // ถ้ายังไม่มี → เพิ่มใหม่
+        return [...prev, { _id, status: value }];
+      }
+    });
+  }
+  const handleUpdate = async () => {
+    try {
+      if (!dataUpdate) return;
+      const req = await fetch("/api/scanAttendance", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(dataUpdate),
+      });
+      if (req.ok) {
+        Swal.fire("อัพเดตข้อมูลสำเร็จ", "", "success");
+      }
+    } catch (error) {
+      console.error(error);
+      Swal.fire("เกิดข้อผิดพลาด", error, "error");
+    }
+  };
   return (
     <main className="bg-white h-auto max-w-5xl mx-auto p-4 rounded-md">
       <div className="bg-gary-50 rounded-lg p-4 shadow-md">
@@ -104,6 +140,14 @@ function tableAttendance() {
                 </option>
               ))}
             </select>
+            <div className="m-2">
+              <button
+                className="bg-green-600 hover:bg-green-700 transition-colors text-white rounded-lg px-2 py-1"
+                onClick={handleUpdate}
+              >
+                บันทึกการเปลี่ยนแปลง
+              </button>
+            </div>
           </div>
         </header>
         <div className="overflow-x-auto">
@@ -125,7 +169,7 @@ function tableAttendance() {
             <tbody>
               {filteredStudentSelected.length > 0 ? (
                 filteredStudentSelected.map((value) => (
-                  <tr className="bg-gray-50 text-center">
+                  <tr className="bg-gray-50 text-center" key={value.studentId}>
                     <td className="border border-gray-300 px-4 py-3">
                       {value.studentId}
                     </td>
@@ -139,9 +183,15 @@ function tableAttendance() {
                       <select
                         className="px-2 border-b border-gray-500 outline-none"
                         value={value.status}
-                        onChange={handleChange(value.studentId, value.status)}
+                        onChange={(e) =>
+                          handleStatusChange(value._id, e.target.value)
+                        }
                       >
-                        <option value="">มา</option>
+                        <option value="มา">มา</option>
+                        <option value="ลา">ลา</option>
+                        <option value="สาย">สาย</option>
+                        <option value="ขาด">ขาด</option>
+                        <option value="ยังไม่เช็คชื่อ">ยังไม่เช็คชื่อ</option>
                       </select>
                     </td>
                   </tr>

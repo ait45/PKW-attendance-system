@@ -32,7 +32,7 @@ export async function GET(req) {
     if (token?.role === "teacher" && token?.isAdmin) {
       const payload = data.map((index) => {
         return {
-          id: index._id,
+          _id: index._id,
           studentId: index.studentId,
           name: index.name,
           classes: index.classes,

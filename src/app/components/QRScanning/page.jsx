@@ -3,7 +3,7 @@ import React, { useRef, useState, useEffect } from "react";
 import { Camera, QrCode, BarChart3, RotateCcw, PowerOff } from "lucide-react";
 import Swal from "sweetalert2";
 import { Html5Qrcode } from "html5-qrcode";
-import { resolve } from "path";
+import next from "next";
 
 function DelayScan() {
   return new Promise((resolve) => setTimeout(resolve, 5000));
@@ -20,8 +20,8 @@ function QRScanning({ onScan, label = "Scan QR" }) {
       html5QrCodeRef.current = new Html5Qrcode("reader");
     }
     return async () => {
+      alert(nextPage);
       if (nextPage) {
-        nextPage = true;
         await Toast.fire({
           title: "กล้องจะปิดใช้งานเมื่อเปลี่ยนหน้า!",
           icon: "warning",
@@ -46,10 +46,12 @@ function QRScanning({ onScan, label = "Scan QR" }) {
 
   // ฟังก์ชันหยุดสแกน
   const stopScanning = async () => {
+    nextPage = false;
     try {
       Toast.fire({
         title: "กล้องกำลังปิด กรุณารอสักครู่",
         allowOutsideClick: false,
+        timer: 2000,
         didOpen: () => {
           Swal.showLoading();
         },
@@ -85,6 +87,7 @@ function QRScanning({ onScan, label = "Scan QR" }) {
   };
   const startScanning = async () => {
     if (!html5QrCodeRef.current) return;
+    nextPage = true;
     Toast.fire({
       title: "กล้องกำลังเปิด กรุณารอสักครู่",
       allowOutsideClick: false,
@@ -92,8 +95,8 @@ function QRScanning({ onScan, label = "Scan QR" }) {
         Swal.showLoading();
       },
     });
+    alert(nextPage);
     try {
-      nextPage = true;
       const cameras = await Html5Qrcode.getCameras();
       const config = {
         fps: 25,
