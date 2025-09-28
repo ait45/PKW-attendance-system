@@ -1,6 +1,6 @@
 "use client";
 import { signIn, useSession } from "next-auth/react";
-import { redirect, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { Eye, EyeOff, User, Lock, LogIn } from "lucide-react";
 import Image from "next/image";
@@ -8,9 +8,9 @@ import logo from "../assets/logo.png";
 import Footer from "../components/Footer/page";
 import Swal from "sweetalert2";
 
-
 export default function LoginPage() {
   const { data: session, status } = useSession();
+
   const router = useRouter();
   const [formData, setFormData] = useState({
     username: "",
@@ -18,26 +18,14 @@ export default function LoginPage() {
   });
   useEffect(() => {
     if (session && status === "authenticated") {
+      const id = session?.id;
       const role = session?.user?.role;
-      if (role === "teacher") {
-        Swal.fire({
-          width: "75%",
-          didOpen: () => {
-            Swal.showLoading();
-          },
-        });
-        router.replace("/teacher");
-      } else if (role === "student") {
-        router.replace("/dashboard");
-        Swal.fire({
-          width: "75%",
-          didOpen: () => {
-            Swal.showLoading();
-          },
-        });
-      } else {
-        router.replace("/login");
-      }
+      const isAdmin = session?.user?.isAdmin;
+      if (role === "teacher") router.replace(`/teacher/${id}`);
+      else if (role === "student") router.replace(`/student/${id}`);
+      else if (role === "teacher" && isAdmin) router.replace(`/teacher/admin/${id}`);
+      else if (role === "student" && isAdmin) router.replace(`/student/admin/${id}`);
+      else router.replace("/login");
     }
   }, [status, session, router]);
 
@@ -100,17 +88,17 @@ export default function LoginPage() {
       if (res.ok) {
         const sessionRes = await fetch("/api/auth/session");
         const session = await sessionRes.json();
-        if (session?.user?.role === "teacher" && !session?.user?.isAdmin) {
+        if (session?.user?.role === "teacher" && session?.user?.isAdmin === false) {
           Swal.fire({
             title: "เข้าสู่ระบบสำเร็จ",
             icon: "success",
             timer: 5000,
             width: "60%",
           });
-          router.push("/teacher");
+          router.push(`/teacher/${session?.id}`);
         } else if (
           session?.user?.role === "student" &&
-          !session?.user?.isAdmin
+          session?.user?.isAdmin === false
         ) {
           Swal.fire({
             title: "เข้าสู่ระบบสำเร็จ",
@@ -118,10 +106,10 @@ export default function LoginPage() {
             timer: 5000,
             width: "60%",
           });
-          router.push("/dashboard");
+          router.push(`/student/${session?.id}`);
         } else if (
           session?.user?.role === "teacher" &&
-          session?.user?.isAdmin
+          session?.user?.isAdmin === true
         ) {
           Swal.fire({
             title: "เข้าสู่ระบบสำเร็จ",
@@ -129,10 +117,10 @@ export default function LoginPage() {
             timer: 5000,
             width: "60%",
           });
-          router.push("/teacher/admin");
+          router.push(`/teacher/admin/${session?.id}`);
         } else if (
           session?.user?.role === "student" &&
-          session?.user?.isAdmin
+          session?.user?.isAdmin === true
         ) {
           Swal.fire({
             title: "เข้าสู่ระบบสำเร็จ",
@@ -140,7 +128,7 @@ export default function LoginPage() {
             timer: 5000,
             width: "60%",
           });
-          router.push("/dashboard/admin");
+          router.push(`/student/admin/${session?.id}`);
         } else {
           Swal.fire({
             title: "เข้าสู่ระบบไม่สำเร็จ",
@@ -190,7 +178,7 @@ export default function LoginPage() {
         </div>
 
         {/* Login Form */}
-        <div className="bg-white  sm:py-8 py-4 sm:px-6 px-3 shadow-lg rounded-lg">
+        <div className="bg-white  sm:py-8 py-6 sm:px-6 px-4 shadow-lg rounded-lg">
           <div className="space-y-4 sm:space-y-6">
             {/* Username Field */}
             <div>

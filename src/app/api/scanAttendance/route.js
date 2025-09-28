@@ -3,8 +3,8 @@ import { NextResponse } from "next/server";
 import LineupAttendanceModal from "../../../../models/LineupAttendanceModal";
 import Student from "../../../../models/Student";
 import { getToken } from "next-auth/jwt";
-import { cutoff } from "../../scripts/checkCutoff";
-
+import { cutoff } from "../../../../scripts/checkCutoff";
+import { Calculate_behaviorScore } from "../../../../scripts/behaviorScore-deduction";
 
 const startOfDay = new Date();
 startOfDay.setHours(0, 0, 0, 0);
@@ -84,7 +84,7 @@ export async function GET(req) {
       createdAt: { $gte: startOfDay, $lte: endOfDay },
     }).limit(200);
     if (data.length === 0) {
-      return new NextResponse(null, { status: 200 });
+      return new NextResponse(null, { status: 204 });
     }
 
     const payload = data.map((index) => {
@@ -123,20 +123,33 @@ export async function PUT(req) {
     );
   }
 
-  const { _id, status } = await req.json();
-  const res = LineupAttendanceModal.findByIdAndUpdate(
-    _id,
-    {
-      status: status,
-    },
-    {
-      new: true,
+  const list = await req.json();
+  if (!Array.isArray(list)) {
+    return NextResponse.json(
+      { message: "Data ต้องเป็น list" },
+      { status: 400 }
+    );
+  }
+  try {
+    for (const item of list) {
+      const { _id, status } = item;
+      const res = await LineupAttendanceModal.findByIdAndUpdate(
+        _id,
+        {
+          status: status,
+        },
+        {
+          new: true,
+        }
+      );
     }
-  );
-  if (res)
+    await Calculate_behaviorScore();
     return NextResponse.json(
       { success: true, message: "แก้ไขข้อมูลเสร็จสิ้น" },
       { status: 200 }
     );
-  else return NextResponse.json({ success: false }, { status: 400 });
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json({ success: false }, { status: 400 });
+  }
 }

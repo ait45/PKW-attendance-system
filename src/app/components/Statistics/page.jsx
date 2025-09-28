@@ -1,32 +1,48 @@
-import React from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import Day from "../date-time/day";
 
-
-function StatisticsPage() {
+function StatisticsPage({ data }) {
   // หน้าสถิติ
-  const totalStudents = 18;
-  const todayRecords = 10;
-  const presentToday = 10;
-  const lateToday = 10;
-  const absentToday = 10;
-  const classes = ["ม.1", "ม.2", "ม.3", "ม.4", "ม.5", "ม.6"];
-  const date = new Date();
-  const day = date.getDay();
-  const months = [
-    "มกราคม",
-    "กุมภาพันธ์",
-    "มีนาคม",
-    "เมษายน",
-    "พฤษภาคม",
-    "มิถุนายน",
-    "กรกฎาคม",
-    "สิงหาคม",
-    "กันยายน",
-    "ตุลาคม",
-    "พฤศจิกายน",
-    "ธันวาคม",
-  ];
-  const year = date.getFullYear() + 543;
+  const [DataStudent, setDataStudent] = useState({});
+  const [loading, setLoading] = useState(true);
 
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const req_students = await fetch("/api/studentManagement");
+      const data_student = await req_students.json();
+      setDataStudent({ student: [data_student.message] });
+      console.log("ข้อมูลที่ได้จาก API:", data_student.message); // 2
+      console.log("result.message:", DataStudent.student); // 3
+      const req_attendance = await fetch("/api/scanAttendance");
+      if (req_attendance.status === 204) return;
+      const data_attendance = await req_attendance.json();
+      console.log("ข้อมูลที่ได้จาก API:", data_attendance.message);
+      const attendance = {
+        comeDays: 0,
+        lateDays: 0,
+        leaveDays: 0,
+        absentDays: 0,
+      };
+      for (const value of data_attendance.message) {
+        if (value.status === "มา") attendance.comeDays += 1;
+        else if (value.status === "ลา") attendance.leaveDays += 1;
+        else if (value.status === "สาย") attendance.lateDays += 1;
+        else if (value.status === "ขาด") attendance.absentDays += 1;
+      }
+      setDataStudent((prev) => ({ ...prev, attendance }));
+      console.log("result.message:", DataStudent.attendance); // 3
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  useEffect(() => {
+    fetchData();
+  }, []);
+  console.log(DataStudent);
+  if (loading) return <p>กำลังโหลด...</p>;
   return (
     // หน้าสถิติ
 
@@ -34,10 +50,10 @@ function StatisticsPage() {
       <div className="bg-white rounded-lg shadow-lg p-8">
         <div className="mb-6">
           <h2 className="text-2xl font-bold text-gray-800">
-            สถิติการเข้าเรียน
+            สถิติการเข้าร่วมกิจกรรมหน้าเสาธง
           </h2>
           <p className="text-blue-500">
-            วันที่ {day} {months[date.getMonth()]} พ.ศ. {year}
+            <Day />
           </p>
         </div>
 
@@ -45,25 +61,25 @@ function StatisticsPage() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <div className="bg-blue-50 p-6 rounded-lg text-center">
             <div className="text-3xl font-bold text-blue-600 mb-2">
-              {totalStudents}
+              {DataStudent.attendance ? DataStudent.attendance.comeDays : "กำลังโหลด"}
             </div>
             <div className="text-blue-700 font-medium">นักเรียนทั้งหมด</div>
           </div>
           <div className="bg-green-50 p-6 rounded-lg text-center">
             <div className="text-3xl font-bold text-green-600 mb-2">
-              {presentToday}
+              {loading ? "กำลังโหลด" : DataStudent.attendance.comeDays}
             </div>
             <div className="text-green-700 font-medium">มาเรียนวันนี้</div>
           </div>
           <div className="bg-yellow-50 p-6 rounded-lg text-center">
             <div className="text-3xl font-bold text-yellow-600 mb-2">
-              {lateToday}
+              {loading ? "กำลังโหลด" : DataStudent.attendance.lateDays}
             </div>
             <div className="text-yellow-700 font-medium">มาสายวันนี้</div>
           </div>
           <div className="bg-red-50 p-6 rounded-lg text-center">
             <div className="text-3xl font-bold text-red-600 mb-2">
-              {absentToday}
+              {loading ? "กำลังโหลด" : DataStudent.attendance.absentDays}
             </div>
             <div className="text-red-700 font-medium">ขาดเรียนวันนี้</div>
           </div>

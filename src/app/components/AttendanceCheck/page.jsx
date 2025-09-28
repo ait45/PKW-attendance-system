@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import QRScanning from "../QRScanning/page";
 import { UserRoundCheck } from "lucide-react";
-import { NextResponse } from "next/server";
 import Swal from "sweetalert2";
 
+
+
 // หน้าเช็คชื่อ
-function AttendanceCheckPage() {
+function AttendanceCheckPage({ session }) {
   const [qrData, setQrdata] = useState("");
 
   const attendance = async (id) => {

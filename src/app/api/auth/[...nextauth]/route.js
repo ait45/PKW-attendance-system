@@ -1,20 +1,23 @@
-import NextAuth from "next-auth";
-import CredentialsProvider from "next-auth/providers/credentials";
+import NextAuthPkg from "next-auth/next";
+import CredentialsPkg from "next-auth/providers/credentials";
 import { connectDB } from "../../../../../lib/mongodb";
 import Student from "../../../../../models/Student";
 import Teacher from "../../../../../models/Teacher";
 import bcrypt from "bcrypt";
 
+const NextAuth = NextAuthPkg.default || NextAuthPkg;
+const Credentials = CredentialsPkg.default || CredentialsPkg;
+
 const handler = NextAuth({
   providers: [
-    CredentialsProvider({
+    Credentials({
       name: "Credentials",
       credentials: {
         username: { label: "Username", type: "text" },
         password: { labal: "Password", type: "password" },
       },
-      async authorize(Credentials) {
-        const { username, password } = Credentials;
+      async authorize(credentials) {
+        const { username, password } = credentials;
         if (!username || !password) {
           throw new Error("Missing credentials");
         }
@@ -23,11 +26,10 @@ const handler = NextAuth({
           await connectDB();
           if (username.startsWith("T")) {
             const user = await Teacher.findOne({ teacherId: username });
-            
+
             if (!user) return null;
             const passwordmatch = await bcrypt.compare(password, user.password);
             if (!passwordmatch) return null;
-
             return {
               id: user._id.toString(),
               username: user.teacherId,
@@ -64,9 +66,9 @@ const handler = NextAuth({
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
+        token.id = user.id,
         token.username = user.username;
         token.name = user.name;
-        token.role = user.role;
         token.isAdmin = user.isAdmin;
       }
 
@@ -78,6 +80,7 @@ const handler = NextAuth({
       return token;
     },
     async session({ session, token }) {
+      session.id = token.id,
       session.user.username = token.username;
       session.user.name = token.name;
       session.user.role = token.role;

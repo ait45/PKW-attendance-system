@@ -1,14 +1,12 @@
 import { connectDB } from "../../../../lib/mongodb";
 import { NextResponse } from "next/server";
-import fs from "fs";
-import path from "path";
+import readConfig from "../../../../scripts/readConfig";
 import { getToken } from "next-auth/jwt";
 
-const configPath = path.join(process.cwd(), "config", "settings.json");
 export async function GET(req) {
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
   if (!token)
-    return NextResponse(
+    return NextResponse.json(
       {
         error: "Unauthorized",
         message: "คุณไม่ได้รับอนุญาต",
@@ -17,8 +15,8 @@ export async function GET(req) {
       { status: 401 }
     );
   try {
-    const data = fs.readFileSync(configPath, "utf-8");
-    const settings = JSON.parse(data);
+    
+    const settings = await readConfig();
     return NextResponse.json({ data: settings }, { status: 200 });
   } catch (error) {
     console.log(error);

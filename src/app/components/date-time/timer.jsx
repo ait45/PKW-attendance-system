@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 
-function Clock() {
+export default function Timer() {
     const [currentTime, setCurrentTime] = useState(new Date().toLocaleTimeString('th-TH', {
         hour: '2-digit',
         minute: '2-digit',
@@ -17,4 +17,4 @@ function Clock() {
     }, []);
     return <span>{currentTime}</span>
 }
-export default Clock
+

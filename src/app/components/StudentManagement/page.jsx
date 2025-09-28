@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import Swal from "sweetalert2";
 
-function StudentManagement() {
+function StudentManagement({ session }) {
   const classes = [
     "มัธยมศึกษาปีที่ 1",
     "มัธยมศึกษาปีที่ 2",
@@ -29,7 +29,8 @@ function StudentManagement() {
     classes: "",
     phone: "",
     parentPhone: "",
-    address: "",
+    Number: "",
+    plantData: "",
   });
   const [isformUpdate, setIsFormUpdate] = useState(false);
   const [idUpdate, setIdUpdate] = useState("");
@@ -49,6 +50,8 @@ function StudentManagement() {
         classes: "",
         phone: "",
         parentPhone: "",
+        Number: "",
+        plantData: "",
       });
       setErrors({});
     }, 300);
@@ -71,6 +74,7 @@ function StudentManagement() {
     if (!newStudent.studentId) newError.studentId = "กรุณากรอกเลขประจำตัว!";
     if (!newStudent.name) newError.name = "กรุณากรอกชื่อ!";
     if (!newStudent.classes) newError.classes = "กรุณาเลือกชั้นเรียน";
+    if (!newStudent.Number) newError.Number = "กรุณากรอกเลขที่";
     if (!newStudent.phone) newError.phone = "กรุณากรอกเบอร์มือถือ";
     else if (newStudent.phone.length < 12)
       newError.phone = "กรุณากรอกเบอร์มือถือให้ครบ";
@@ -100,8 +104,10 @@ function StudentManagement() {
               <tr><td><b>เลขประจำตัวนักเรียน :</b></td><td>${newStudent.studentId}</td></tr>
               <tr><td><b>ชื่อนักเรียน :</b></td><td>${newStudent.name}</td></tr>
               <tr><td><b>ระดับชั้น :</b></td><td>${newStudent.classes}</td></tr>
+               <tr><td><b>เลขที่ :</b></td><td>${newStudent.Number}</td></tr>
               <tr><td><b>เบอร์มือถือ :</b></td><td>${newStudent.phone}</td></tr>
               <tr><td><b>เบอร์ผู้ปกครอง :</b></td><td>${newStudent.parentPhone}</td></tr>
+              
             </table>
         `,
         icon: "question",
@@ -140,6 +146,8 @@ function StudentManagement() {
                 classes: "",
                 phone: "",
                 parentPhone: "",
+                Number: "",
+                plantData: "",
               });
               fetchStudents();
             } else {
@@ -171,7 +179,7 @@ function StudentManagement() {
                 classes: "",
                 phone: "",
                 parentPhone: "",
-                address: "",
+                Number: "",
               });
               fetchStudents();
             } else if (req.status === 400) {
@@ -252,6 +260,8 @@ function StudentManagement() {
       classes: dataBeforeUpdate.classes,
       phone: dataBeforeUpdate.phone,
       parentPhone: dataBeforeUpdate.parentPhone,
+      Number: dataBeforeUpdate.Number,
+      plantData: dataBeforeUpdate.plantData,
     });
     setIdUpdate(id);
   };
@@ -294,7 +304,6 @@ function StudentManagement() {
     if (selectClasses === "ทั้งหมด") return tableStudent;
     return tableStudent.filter((s) => s.classes === selectClasses);
   }, [tableStudent, selectClasses]);
-
   return (
     // หน้าจัดการนักเรียน
     <div className="max-w-7xl p-6">
@@ -327,23 +336,24 @@ function StudentManagement() {
             <div className="w-[90%] h-fit bg-white bg-opacity-10 backdrop-blur-2xl shadow-2xl rounded-2xl border border-white p-4 overflow-auto">
               <div className="px-6 py-4 space-y-5 ">
                 {isformUpdate ? (
-                  <div className="flex">
+                  <div className="flex items-center">
                     <UserPen className="text-yellow-500 mr-2" />
-                    <h1 className="text-lg font-semibold">
+                    <h1 className="text-2xl font-bold">
                       แก้ไขข้อมูลนักเรียน
                     </h1>
                   </div>
                 ) : (
-                  <div className="flex">
+                  <div className="flex items-center">
                     <UserPlus className="text-green-500 mr-2" />
-                    <h1 className="text-lg font-semibold">เพิ่มนักเรียนใหม่</h1>
+                    <h1 className="text-2xl font-bold">เพิ่มนักเรียนใหม่</h1>
                   </div>
                 )}
                 <p>กรุณากรอกข้อมูลให้ครบ เพื่อบันทึกลงระบบ</p>
               </div>
               <hr className="mb-5 text-[#8AFBFF]" />
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-2">
-                <div className="flex flex-col mb-6">
+
+                <div className="flex flex-col mb-3">
                   <label
                     htmlFor="studentId"
                     className="text-sm text-gray-500 ml-2"
@@ -352,12 +362,13 @@ function StudentManagement() {
                   </label>
                   <input
                     id="studentId"
-                    type="text"
+                    type="number"
                     name="studentId"
+                    min="0"
                     value={newStudent.studentId}
                     onChange={handleInputChange}
                     disabled={isformUpdate}
-                    className={`px-4 py-2 h-12 border rounded-lg focus:outline-none focus:ring-2 ${
+                    className={`px-4 py-2 h-12 w-[70%] border rounded-lg focus:outline-none focus:ring-2 ${
                       errors.studentId ? "border-red-500" : "border-gray-300"
                     } focus:ring-blue-500 ${
                       isformUpdate
@@ -372,7 +383,7 @@ function StudentManagement() {
                   )}
                 </div>
 
-                <div className="flex flex-col mb-6">
+                <div className="flex flex-col mb-3">
                   <label htmlFor="name" className="text-sm text-gray-500 ml-2">
                     ชื่อ-นามสกุล
                   </label>
@@ -392,14 +403,14 @@ function StudentManagement() {
                     </p>
                   )}
                 </div>
-                <div className="flex flex-col mb-6">
+                <div className="flex flex-col mb-3">
                   <label htmlFor="classes" className="text-sm text-gray-500">
                     ชั้นเรียน
                   </label>
                   <select
                     className={`px-4 py-2 h-12 border rounded-lg focus:outline-none focus:ring-2 ${
                       errors.classes ? "border-red-500" : "border-gray-300"
-                    } focus:ring-blue-500 cursor-pointer`}
+                    } focus:ring-blue-500 cursor-pointer w-[60%]`}
                     id="classes"
                     name="classes"
                     value={newStudent.classes}
@@ -415,6 +426,27 @@ function StudentManagement() {
                   {errors.classes && (
                     <p className="mt-1 text-[12px] sm:text-sm text-red-600 ml-1">
                       {errors.classes}
+                    </p>
+                  )}
+                </div>
+                <div className="flex flex-col mb-3">
+                  <label htmlFor="Number" className="text-sm text-gray-500 ml-2">
+                    เลขที่
+                  </label>
+                  <input
+                    type="text"
+                    id="Number"
+                    name="Number"
+                    min="0"
+                    value={newStudent.Number}
+                    onChange={handleInputChange}
+                    className={`px-4 py-2 h-12 border rounded-lg w-[100px] focus:outline-none focus:ring-2 ${
+                      errors.Number ? "border-red-500" : "border-gray-300"
+                    } focus:ring-blue-500`}
+                  />
+                  {errors.Number && (
+                    <p className="mt-1 text-[12px] sm:text-sm text-red-600 ml-1">
+                      {errors.Number}
                     </p>
                   )}
                 </div>
@@ -478,6 +510,21 @@ function StudentManagement() {
                     </p>
                   )}
                 </div>
+                { session?.user?.role === "teacher" && isformUpdate && (
+                  <div><label htmlFor="plantData" className="text-sm text-gray-500 ml-2">
+                    รหัสการเข้าสู่ระบบ
+                  </label>
+                  <input
+                    type="text"
+                    id="plantData"
+                    name="plantData"
+                    value={newStudent.plantData}
+                    readOnly={true}
+        
+                    className={`px-4 py-2 h-12 border rounded-lg outline-none border-gray-300`}
+                  />
+                  </div>
+                )}
               </div>
               <div className="flex justify-end p-2">
                 <button
@@ -514,7 +561,7 @@ function StudentManagement() {
           <select
             value={selectClasses}
             onChange={(e) => setSelectClasses(e.target.value)}
-            className="px-4 border-b border-[#009EA3] outline-none"
+            className="px-4 border-b border-[#009EA3] outline-none w-[40%] max-w-[160px]"
           >
             {classesList.map((val) => (
               <option value={val.label} key={val.label}>
@@ -581,14 +628,14 @@ function StudentManagement() {
                     <td className="flex justify-center-safe ml-2">
                       <button
                         className="text-yellow-500 hover:text-yellow-600 cursor-pointer flex items-center transition-colors p-2"
-                        onClick={() => handleUpdate(value.id, index)}
+                        onClick={() => handleUpdate(value._id, index)}
                       >
                         <UserPen />
                         <p className="text-gray-800">แก้ไข</p>
                       </button>
                       <button
                         className="text-red-500 hover:text-red-600 cursor-pointer flex items-center transition-colors p-2"
-                        onClick={() => handleDelete(value.id, value.name)}
+                        onClick={() => handleDelete(value._id, value.name)}
                       >
                         <Trash2 />
                         <p className="text-gray-800">ลบ</p>

@@ -40,6 +40,7 @@ export async function GET(req) {
           parentPhone: index.parentPhone,
           status: index.status,
           plantData: index.plantData,
+          Number: index.Number,
         };
       });
       return NextResponse.json(
@@ -56,6 +57,7 @@ export async function GET(req) {
         phone: index.phone,
         parentPhone: index.parentPhone,
         status: index.status,
+        Number: index.Number,
       };
     });
     return NextResponse.json(
@@ -80,7 +82,7 @@ export async function POST(req) {
     );
   try {
     const body = await req.json();
-    const { studentId, name, classes, phone, parentPhone } = body;
+    const { studentId, name, classes, phone, parentPhone, Number } = body;
     const plantData = await genPassword(5);
     const password = await bcrypt.hash(plantData, 10);
     const checkId = await Student.findOne({ studentId: studentId });
@@ -98,6 +100,7 @@ export async function POST(req) {
         phone,
         parentPhone,
         plantData,
+        Number,
       });
       console.log(doc);
       await doc.save();

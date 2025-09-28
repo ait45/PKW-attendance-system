@@ -1,15 +1,17 @@
 'use client'
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
 import Image from 'next/image';
 import logo from '../../assets/logo.png';
 import Link from 'next/link';
 import { Clock, Calendar, LogIn, LogOut, CircleUserRound } from 'lucide-react';
 import { signOut } from 'next-auth/react';
-import Timer from '../Clock/page';
+import Timer from '../date-time/timer';
+import Day from '../date-time/day';
+
 
 
 function navBar({ session }) {
-  const [currentDate] = useState(new Date().toLocaleDateString('th-TH'));
+  const [currentDate] = useState(Day());
   return (
     <header className='flex items-center bg-white w-auto max-h-50 border-b-2 border-[#009EA3]'>
       <Image
@@ -24,7 +26,7 @@ function navBar({ session }) {
         <Calendar width={12} height={12} />
         <p className='text-xs font-bold cursor-context-menu'>{currentDate}</p>
         <Clock width={12} height={12} />
-        <p className='text-xs font-bold cursor-context-menu'><Timer/></p>
+        <p className='text-xs font-bold cursor-context-menu'><Timer /></p>
         {!session ? (
           <Link
             href='/login'
@@ -42,6 +44,7 @@ function navBar({ session }) {
           <a
             onClick={() => signOut()}
             className='flex items-center text-sm text-red-500 hover:text-red-700 hover:transition-colors cursor-pointer'
+            title='ออกจากระบบ'
           >
             <LogOut width={15} height={15} className='mr-1' />
             <p className='hidden sm:inline'>ออกจากระบบ</p>

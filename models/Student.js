@@ -14,7 +14,7 @@ const UserSchema = new Schema(
       type: String,
       required: true,
     },
-    
+
     classes: {
       type: String,
       required: true,
@@ -46,6 +46,35 @@ const UserSchema = new Schema(
       type: String,
       required: true,
     },
+    behaviorScore: {
+      type: Number,
+      required: true,
+      default: 100,
+    },
+    comeDays: {
+      type: Number,
+      required: true,
+      default: 0,
+    },
+    leaveDays: {
+      type: Number,
+      required: true,
+      default: 0,
+    },
+    absentDays: {
+      type: Number,
+      required: true,
+      default: 0,
+    },
+    lateDays: {
+      type: Number,
+      requried: true,
+      default: 0,
+    },
+    Number: {
+      type: Number,
+      requried : true,
+    }
   },
   { collection: "ClientDB", timestamps: true }
 );

@@ -1,4 +1,4 @@
-import { autoCutoff } from "@/app/scripts/checkCutoff";
+import { autoCutoff } from "../../../../scripts/checkCutoff";
 import { NextResponse } from "next/server";
 
 export async function GET(req) {

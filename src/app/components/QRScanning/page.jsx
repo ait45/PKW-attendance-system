@@ -3,34 +3,20 @@ import React, { useRef, useState, useEffect } from "react";
 import { Camera, QrCode, BarChart3, RotateCcw, PowerOff } from "lucide-react";
 import Swal from "sweetalert2";
 import { Html5Qrcode } from "html5-qrcode";
-import next from "next";
 
-function DelayScan() {
-  return new Promise((resolve) => setTimeout(resolve, 5000));
-}
 function QRScanning({ onScan, label = "Scan QR" }) {
   const scannerRef = useRef(null);
   const [result, setResult] = useState("");
-  const [scanning, IsScanning] = useState(false);
+  const [scanning, setScanning] = useState(false);
   const html5QrCodeRef = useRef(null);
   const canvasRef = useRef(null);
-  let nextPage = false;
-  useEffect(() => {
-    if (!html5QrCodeRef.current) {
-      html5QrCodeRef.current = new Html5Qrcode("reader");
-    }
-    return async () => {
-      alert(nextPage);
-      if (nextPage) {
-        await Toast.fire({
-          title: "กล้องจะปิดใช้งานเมื่อเปลี่ยนหน้า!",
-          icon: "warning",
-          timer: 2000,
-        });
-        stopScanning();
-      }
-    };
-  }, []);
+
+  const nextPage = useRef(false);
+  const togglePageBeforeStop = () => {
+    nextPage.current = !nextPage.current;
+  }
+  const [loading, setLoading] = useState(false);
+
   const handleScan = (data) => {
     const json = {
       id: data,
@@ -44,29 +30,46 @@ function QRScanning({ onScan, label = "Scan QR" }) {
     showConfirmButton: false,
   });
 
+  useEffect(() => {
+    if (!html5QrCodeRef.current) {
+      html5QrCodeRef.current = new Html5Qrcode("reader");
+    }
+    return async () => {
+      if (nextPage.current) {
+        await Toast.fire({
+          title: "กล้องจะปิดใช้งานเมื่อเปลี่ยนหน้า!",
+          icon: "warning",
+          timer: 2000,
+        });
+        stopScanning();
+      }
+    };
+  }, []);
+
   // ฟังก์ชันหยุดสแกน
   const stopScanning = async () => {
-    nextPage = false;
+    togglePageBeforeStop();
     try {
-      Toast.fire({
+      await Toast.fire({
         title: "กล้องกำลังปิด กรุณารอสักครู่",
-        allowOutsideClick: false,
         timer: 2000,
         didOpen: () => {
           Swal.showLoading();
         },
       });
+      setScanning(false);
+      
       await html5QrCodeRef.current
         .stop()
         .then(() => {
           Toast.close();
           html5QrCodeRef.current.clear();
-          IsScanning(false);
+   
         })
         .catch(() => {
           Toast.close();
           html5QrCodeRef.current.clear();
-          IsScanning(false);
+    
         });
       Toast.close();
     } catch (error) {
@@ -78,7 +81,7 @@ function QRScanning({ onScan, label = "Scan QR" }) {
         showCloseButton: true,
       });
     }
-    IsScanning(false);
+    setScanning(false);
 
     if (canvasRef.current) {
       const ctx = canvasRef.current.getContext("2d");
@@ -86,16 +89,15 @@ function QRScanning({ onScan, label = "Scan QR" }) {
     }
   };
   const startScanning = async () => {
+    togglePageBeforeStop();
+    setLoading(true);
     if (!html5QrCodeRef.current) return;
-    nextPage = true;
     Toast.fire({
       title: "กล้องกำลังเปิด กรุณารอสักครู่",
-      allowOutsideClick: false,
       didOpen: () => {
         Swal.showLoading();
       },
     });
-    alert(nextPage);
     try {
       const cameras = await Html5Qrcode.getCameras();
       const config = {
@@ -106,8 +108,9 @@ function QRScanning({ onScan, label = "Scan QR" }) {
       };
 
       if (cameras && cameras.length) {
-        IsScanning(true);
+        setScanning(true);
         Swal.close();
+        setLoading(false);
         await html5QrCodeRef.current
           .start(
             { facingMode: "environment" },
@@ -144,7 +147,7 @@ function QRScanning({ onScan, label = "Scan QR" }) {
           )
           .then(() => {
             scannerRef.current = html5QrCodeRef;
-            IsScanning(true);
+            setScanning(true);
           })
           .catch((err) => {
             Swal.fire({
@@ -168,7 +171,7 @@ function QRScanning({ onScan, label = "Scan QR" }) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8 px-4">
+    <div className={`min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8 px-4 ${loading ? 'cursor-wait pointer-events-none': ''}`}>
       <div className="max-w-md mx-auto">
         {/* Header */}
         <div className="bg-white rounded-t-2xl shadow-lg p-6">

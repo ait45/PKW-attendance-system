@@ -9,11 +9,7 @@ import Link from 'next/link';
 
 
 
-
 function Index() {
-
-
-
   return (
     <main className='bg-white'>
       {/* Header */}
