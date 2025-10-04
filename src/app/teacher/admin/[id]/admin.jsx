@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
-import Nav from "../../../components/Navbar/page";
-import Footer from "../../../components/Footer/page";
+import Nav from "@/app/components/Navbar/page";
+import Footer from "@/app/components/Footer/page";
 import { useSession } from "next-auth/react";
 import Swal from "sweetalert2";
 import {
@@ -23,19 +23,37 @@ import {
   BarChart3,
 } from "lucide-react";
 import SideBar from "@/app/components/SideBar/page";
-import StatisticsPage from "../../../components/Statistics/page";
-import SchedulePage from "../../../components/Schedule/page";
-import StudentManagement from "../../../components/StudentManagement/page";
-import AttendanceCheckPage from "../../../components/AttendanceCheck/page";
-import TableAttendance from "../../../components/tableAttendance/page";
+import StatisticsPage from "@/app/components/Statistics/page";
+import SchedulePage from "@/app/components/Schedule/page";
+import StudentManagement from "@/app/components/StudentManagement/page";
+import AttendanceCheckPage from "@/app/components/AttendanceCheck/page";
+import TableAttendance from "@/app/components/tableAttendance/page";
+import Dashboard from "@/app/components/Dashboard/page";
 import { redirect, useRouter } from "next/navigation";
+import ReportPage from "@/app/components/Report/page";
+import QRDownload from "@/app/components/QRDownload/page";
 
 function adminPage() {
-  const [currentPage, setCurrentPage] = useState("dashboard");
-  const router = useRouter();
-
   const { data: session, status } = useSession();
+  const router = useRouter();
   Swal.close();
+  
+  const [currentPage, setCurrentPage] = useState("dashboard");
+  const [sideBarOpen, setSideBarOpen] = useState({
+    isCollapsed: false,
+    isMobile: false,
+  });
+
+  const handleSideBarState = (state) => {
+    setSideBarOpen(state);
+  };
+
+  useEffect(() => {
+    if (currentPage === "settings") {
+      router.push("/settings");
+    }
+  }, [currentPage, router]);
+
   if (!session?.user?.role === "teacher" && status === "unauthenticated")
     redirect("/login");
   if (session?.user?.role === "teacher" && !session?.user?.isAdmin)
@@ -61,15 +79,18 @@ function adminPage() {
               </div>
             </div>
             <div className="flex space-x-2">
-              <div className="flex items-center text-gray-600 hover:text-gray-900 transition-colors rounded-md">
+              <div
+                className="flex items-center text-gray-600 hover:text-gray-900 transition-colors rounded-md"
+                title={currentPage}
+              >
                 <QrCode size={20} />
                 <select
-                  className="outline-none w-[120px] text-sm focus:text-gray-900"
+                  className="outline-none w-[20px] sm:w-[120px] text-sm focus:text-gray-900"
                   value={currentPage}
                   onChange={(e) => setCurrentPage(e.target.value)}
                   id="attendance"
                 >
-                  <option value="">หน้าแรก</option>
+                  <option value="dashboard">หน้าแรก</option>
                   <option value="scan">เช็คชื่อ</option>
                   <option value="tableAttendance">ตารางการเช็คชื่อ</option>
                 </select>
@@ -126,13 +147,19 @@ function adminPage() {
           </div>
         </div>
       </nav>
-      <main className="flex h-screen mb-4">
+      <main className="flex h-screen bg-gradient-to-br from-blue-50 to-indigo-100 mb-4">
         <SideBar
           activeMenu={currentPage}
           setActiveMenu={setCurrentPage}
           session={session}
+          onOpen={handleSideBarState}
         />
-        <main className="flex-1 py-4 w-full overflow-auto">
+        <main
+          className={`flex-1 py-4 w-full overflow-auto ${
+            sideBarOpen.isCollapsed ? `${!sideBarOpen.isMobile && 'inline'}`:`${sideBarOpen.isMobile && 'hidden'}`
+          }`}
+        >
+          {currentPage === "dashboard" && <Dashboard session={session} />}
           {currentPage === "scan" && <AttendanceCheckPage session={session} />}
           {currentPage === "tableAttendance" && (
             <TableAttendance session={session} />
@@ -140,8 +167,10 @@ function adminPage() {
           {currentPage === "students" && (
             <StudentManagement session={session} />
           )}
+          {currentPage === "PDFDownload" && <QRDownload session={session} />}
           {currentPage === "schedule" && <SchedulePage session={session} />}
           {currentPage === "statistics" && <StatisticsPage session={session} />}
+          {currentPage === "reports" && <ReportPage session={session} />}
         </main>
       </main>
       <Footer />

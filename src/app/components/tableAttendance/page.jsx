@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { BookUser, RefreshCcw } from "lucide-react";
 import Swal from "sweetalert2";
-import CurrentDay from '../date-time/day';
+import CurrentDay from "../date-time/day";
 
 function tableAttendance({ session }) {
   const now = new Date();
@@ -84,7 +84,12 @@ function tableAttendance({ session }) {
         : DataStudent.filter((s) => s.classes === selectClasses);
 
     if (DataStudentAttendance.length < 1) {
-      setStateSelectDisable(true);
+      if (session?.user?.role && session?.user?.isAdmin === true) {
+        setStateSelectDisable(false);
+      } else {
+        setStateSelectDisable(true);
+      }
+
       return students.map((student) => {
         const { studentId, name, classes } = student;
         return {
@@ -113,7 +118,10 @@ function tableAttendance({ session }) {
   function handleStatusChange(inputId, newStatus) {
     setDataUpdate((prev) => {
       const data = DataStudentAttendance.find((d) => d.studentId === inputId);
-      return [...prev, { _id: data._id, status: newStatus }];
+      return [
+        ...prev,
+        { _id: data._id, studentId: inputId, status: newStatus },
+      ];
     });
     setDataStudentAttendance((prev) => {
       const exists = prev.find((d) => d.studentId === inputId);
@@ -147,27 +155,34 @@ function tableAttendance({ session }) {
     }
   };
   return (
-    <main className="bg-white h-auto  max-w-7xl mx-auto p-4 rounded-md">
-      <div className="bg-gary-50 rounded-lg p-4 shadow-md">
+    <main className=" h-auto  max-w-7xl mx-auto p-4 rounded-md">
+      <div className="bg-white rounded-lg p-4 shadow-md">
         <header>
-          <div className="flex">
-            <BookUser size={30} className="text-[#009EA3] mr-2" />
-            <h1 className="text-2xl font-bold">ตารางแสดงการเช็คชื่อgเข้ารวมกิจกรรมหน้าเสาธง</h1>
+          <div className="block sm:flex">
+            <div className="flex items-center">
+              <BookUser size={45} className="text-[#009EA3] mr-2" />
+              <h1 className="text-lg sm:text-2xl font-bold text-wrap">
+                ตารางแสดงการเช็คชื่อเข้ารวมกิจกรรมหน้าเสาธง
+              </h1>
+            </div>
             {overTimeEditState && (
-              <span className="text-red-500 text-sm flex items-end p-2 ">
-                * หมดเวลาการแก้ไขข้อมูล กรุณาผู้ดูแลเพื่อดำเนินการ
+              <span className="text-red-500 text-xs sm:text-sm text-wrap flex items-end p-2 ">
+                * หมดเวลาการแก้ไขข้อมูล กรุณาติดต่อผู้ดูแลเพื่อดำเนินการ
               </span>
             )}
           </div>
-          <div className="date flex m-4 text-[#009EA3]">
-            <p>ประจำวันที่ <CurrentDay /></p>
+          <div className="sm:flex m-4 text-sm md:text-base text-[#009EA3]">
+            <p>ประจำวันที่</p>
+            <CurrentDay />
           </div>
 
-          <div className="p-2 grid grid-cols-1 md:grid-cols-2">
+          <div className="p-2 grid grid-cols-1 md:grid-cols-2 m-1">
             <div className="flex">
-              <p className="text-gray-700 p-2 ">ชั้นเรียน</p>
+              <p className="text-sm sm:text-base text-gray-700 p-2 ">
+                ชั้นเรียน
+              </p>
               <select
-                className="px-5 outline-none border-b border-[#009EA3] cursor-pointer w-[40%]"
+                className="px-5 outline-none border-b border-[#009EA3] cursor-pointer text-sm sm:text-base"
                 value={selectClasses}
                 onChange={(e) => setSelectClasses(e.target.value)}
               >
@@ -180,11 +195,12 @@ function tableAttendance({ session }) {
             </div>
             <div className="m-2 flex">
               <button
-                className="bg-green-600 hover:bg-green-700 transition-colors text-white rounded-lg px-2 py-1 cursor-pointer disabled:cursor-not-allowed"
+                className="bg-green-600 hover:bg-green-700 disabled:bg-green-700 transition-colors text-white rounded-lg px-2 py-1 cursor-pointer disabled:cursor-not-allowed"
                 onClick={handleUpdate}
                 disabled={dataUpdate.length === 0 || overTimeEditState}
               >
-                บันทึกการเปลี่ยนแปลง
+                <p className="hidden sm:inline">บันทึกการเปลี่ยนแปลง</p>
+                <p className="sm:hidden">บันทึก</p>
               </button>
 
               <button
@@ -198,7 +214,7 @@ function tableAttendance({ session }) {
           </div>
         </header>
         <div className="overflow-x-auto">
-          <table className="w-full table-auto border border-collapse border-gray-300">
+          <table className="w-full table-auto border border-collapse border-gray-300 text-xs sm:text-lg">
             <thead>
               <tr className="bg-gray-100 text-nowrap">
                 <th className="border border-gray-300 px-4 py-3 w-[20%]">
@@ -236,9 +252,13 @@ function tableAttendance({ session }) {
                         onChange={(e) =>
                           handleStatusChange(value.studentId, e.target.value)
                         }
-                        disabled={stateSelectDisable || session?.user?.role === "teacher" && session?.user?.isAdmin === false}
+                        disabled={
+                          stateSelectDisable ||
+                          (session?.user?.role === "teacher" &&
+                            session?.user?.isAdmin === false)
+                        }
                       >
-                        <option value="มา">มา</option>
+                        <option value="เข้าร่วมกิจกรรม">เข้าร่วมกิจกรรม</option>
                         <option value="ลา">ลา</option>
                         <option value="สาย">สาย</option>
                         <option value="ขาด">ขาด</option>

@@ -2,6 +2,8 @@ import { connectDB } from "../../../../lib/mongodb";
 import { NextResponse } from "next/server";
 import readConfig from "../../../../scripts/readConfig";
 import { getToken } from "next-auth/jwt";
+import { promises as fs } from "fs";
+import path from "path";
 
 export async function GET(req) {
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
@@ -15,7 +17,6 @@ export async function GET(req) {
       { status: 401 }
     );
   try {
-    
     const settings = await readConfig();
     return NextResponse.json({ data: settings }, { status: 200 });
   } catch (error) {
@@ -51,4 +52,23 @@ export async function POST(req) {
       },
       { status: 403 }
     );
+
+  try {
+    const data = await req.json();
+
+    const filePath = path.join(process.cwd(), "config", "settings.json");
+    await fs.writeFile(filePath, JSON.stringify(data, null, 2), "utf-8");
+
+    return NextResponse.json({ success: true }, { status: 200 });
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json(
+      {
+        error: "Internal Server Error",
+        message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์",
+        code: "INTERNAL_ERROR",
+      },
+      { status: 500 }
+    );
+  }
 }

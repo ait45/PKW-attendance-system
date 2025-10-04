@@ -6,7 +6,7 @@ import { Eye, EyeOff, User, Lock, LogIn } from "lucide-react";
 import Image from "next/image";
 import logo from "../assets/logo.png";
 import Footer from "../components/Footer/page";
-import Swal from "sweetalert2";
+import ShowAlert from "../components/Sweetalert";
 
 export default function LoginPage() {
   const { data: session, status } = useSession();
@@ -23,8 +23,10 @@ export default function LoginPage() {
       const isAdmin = session?.user?.isAdmin;
       if (role === "teacher") router.replace(`/teacher/${id}`);
       else if (role === "student") router.replace(`/student/${id}`);
-      else if (role === "teacher" && isAdmin) router.replace(`/teacher/admin/${id}`);
-      else if (role === "student" && isAdmin) router.replace(`/student/admin/${id}`);
+      else if (role === "teacher" && isAdmin)
+        router.replace(`/teacher/admin/${id}`);
+      else if (role === "student" && isAdmin)
+        router.replace(`/student/admin/${id}`);
       else router.replace("/login");
     }
   }, [status, session, router]);
@@ -88,64 +90,43 @@ export default function LoginPage() {
       if (res.ok) {
         const sessionRes = await fetch("/api/auth/session");
         const session = await sessionRes.json();
-        if (session?.user?.role === "teacher" && session?.user?.isAdmin === false) {
-          Swal.fire({
-            title: "เข้าสู่ระบบสำเร็จ",
-            icon: "success",
-            timer: 5000,
-            width: "60%",
-          });
+        if (
+          session?.user?.role === "teacher" &&
+          session?.user?.isAdmin === false
+        ) {
+          ShowAlert({ title: "เข้าสู่ระบบสำเร็จ", icon: "success" });
           router.push(`/teacher/${session?.id}`);
         } else if (
           session?.user?.role === "student" &&
           session?.user?.isAdmin === false
         ) {
-          Swal.fire({
-            title: "เข้าสู่ระบบสำเร็จ",
-            icon: "success",
-            timer: 5000,
-            width: "60%",
-          });
+          ShowAlert({ title: "เข้าสู่ระบบสำเร็จ", icon: "success" });
           router.push(`/student/${session?.id}`);
         } else if (
           session?.user?.role === "teacher" &&
           session?.user?.isAdmin === true
         ) {
-          Swal.fire({
-            title: "เข้าสู่ระบบสำเร็จ",
-            icon: "success",
-            timer: 5000,
-            width: "60%",
-          });
+          ShowAlert({ title: "เข้าสู่ระบบสำเร็จ", icon: "success" });
           router.push(`/teacher/admin/${session?.id}`);
         } else if (
           session?.user?.role === "student" &&
           session?.user?.isAdmin === true
         ) {
-          Swal.fire({
-            title: "เข้าสู่ระบบสำเร็จ",
-            icon: "success",
-            timer: 5000,
-            width: "60%",
-          });
+          ShowAlert({ title: "เข้าสู่ระบบสำเร็จ", icon: "success" });
           router.push(`/student/admin/${session?.id}`);
         } else {
-          Swal.fire({
+          ShowAlert({
             title: "เข้าสู่ระบบไม่สำเร็จ",
-            text: "สถานะไม่ถูกต้อง",
+            text: "คุณไม่ได้รับอนุญาตให้เข้าใช้งาน",
             icon: "error",
-            timer: 5000,
-            width: "60%",
           });
           router.push("/");
         }
       } else {
-        Swal.fire({
+        ShowAlert({
           title: "เข้าสู่ระบบไม่สำเร็จ",
           text: "กรุณาตรวจสอบชื่อผู้ใช้\nและรหัสผ่าน.",
           icon: "error",
-          timer: 5000,
-          width: "60%",
         });
       }
     } catch (error) {

@@ -2,9 +2,9 @@
   "AttendanceStart": "08:00",
   "lateThreshold": "08:20",
   "absentThreshold": "08:40",
-  "timerStartEditAttendance" : "08:30",
-  "timerEndEditAttendance" : "12:00",
-  "Scorededucted_lateAttendance" : "5",
-  "Scorededucted_absentAttendance" : "7",
+  "timerStartEditAttendance": "09:00",
+  "timerEndEditAttendance": "12:00",
+  "Scorededucted_lateAttendance": "5",
+  "Scorededucted_absentAttendance": "7",
   "updatedAt": "2025-09-14T13:00:00Z"
 }

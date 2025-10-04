@@ -38,6 +38,7 @@ yarn-error.log*
 .env*.local
 .env
 
+
 =======
 .pnpm-debug.log*
 
@@ -51,3 +52,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+#config system
+config/settings.json

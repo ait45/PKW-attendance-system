@@ -3,8 +3,8 @@ import { NextResponse } from "next/server";
 import LineupAttendanceModal from "../../../../models/LineupAttendanceModal";
 import Student from "../../../../models/Student";
 import { getToken } from "next-auth/jwt";
-import { cutoff } from "../../../../scripts/checkCutoff";
-import { Calculate_behaviorScore } from "../../../../scripts/behaviorScore-deduction";
+import { cutoff, attendanceStart } from "../../../../scripts/checkCutoff";
+import { update_behaviorScore } from "../../../../scripts/behaviorScore-deduction";
 
 const startOfDay = new Date();
 startOfDay.setHours(0, 0, 0, 0);
@@ -12,7 +12,6 @@ const endOfDay = new Date();
 endOfDay.setHours(23, 59, 59, 999);
 
 const now = new Date();
-
 export async function POST(req) {
   const token = getToken({ req, secret: process.env.AUTH_SECRET });
   if (!token)
@@ -25,39 +24,44 @@ export async function POST(req) {
       { status: 401 }
     );
   try {
-    const post = await req.json();
-    await connectDB();
-    const data = await Student.findOne({ studentId: post.id });
-    if (data) {
-      const { studentId, name, classes } = data;
-      const existing = await LineupAttendanceModal.findOne({
-        studentId,
-        createdAt: { $gte: startOfDay, $lte: endOfDay },
-      });
+    if (attendanceStart) {
+      const post = await req.json();
+      await connectDB();
+      const data = await Student.findOne({ studentId: post.id });
+      if (data) {
+        const { studentId, name, classes } = data;
+        const existing = await LineupAttendanceModal.findOne({
+          studentId,
+          createdAt: { $gte: startOfDay, $lte: endOfDay },
+        });
 
-      if (existing) {
-        return NextResponse.json(
-          {
-            success: false,
-            message: "วันนี้นักเรียนคนนี้ได้ทำการเช็คชื่อไปแล้ว",
-          },
-          { status: 400 }
-        );
+        if (existing) {
+          return NextResponse.json(
+            {
+              success: false,
+              message: "วันนี้นักเรียนคนนี้ได้ทำการเช็คชื่อไปแล้ว",
+            },
+            { status: 400 }
+          );
+        }
+        const status = await cutoff();
+        const doc = await LineupAttendanceModal.create({
+          handler: post.handler,
+          studentId,
+          name,
+          classes,
+          status: status,
+        });
+        await doc.save();
+        return NextResponse.json({ success: true }, { status: 200 });
       }
-      const status = await cutoff();
-      const doc = await LineupAttendanceModal.create({
-        studentId,
-        name,
-        classes,
-        status: status,
-      });
-      await doc.save();
-      return NextResponse.json({ success: true }, { status: 200 });
+      return NextResponse.json(
+        { success: false, message: "ไม่มีข้อมูลนักเรียน!" },
+        { status: 500 }
+      );
+    } else {
+        return new NextResponse(null, { status: 400 });
     }
-    return NextResponse.json(
-      { success: false, message: "ไม่มีข้อมูลนักเรียน!" },
-      { status: 500 }
-    );
   } catch (error) {
     return NextResponse.json(
       { success: false, message: error.message },
@@ -131,19 +135,7 @@ export async function PUT(req) {
     );
   }
   try {
-    for (const item of list) {
-      const { _id, status } = item;
-      const res = await LineupAttendanceModal.findByIdAndUpdate(
-        _id,
-        {
-          status: status,
-        },
-        {
-          new: true,
-        }
-      );
-    }
-    await Calculate_behaviorScore();
+    await update_behaviorScore(list);
     return NextResponse.json(
       { success: true, message: "แก้ไขข้อมูลเสร็จสิ้น" },
       { status: 200 }

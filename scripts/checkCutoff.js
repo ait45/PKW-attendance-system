@@ -50,7 +50,6 @@ export async function autoCutoff() {
       const checked = await LineupAttendanceModal.find({
         createdAt: { $gte: startOfDay, $lte: endOfDay },
       });
-
       if (student.length === checked.length) {
         console.log("autocutoff is excited");
         return;
@@ -64,6 +63,7 @@ export async function autoCutoff() {
 
       for (const student of toMarkAbsent) {
         await LineupAttendanceModal.create({
+          handler: "system",
           studentId: student.studentId,
           name: student.name,
           classes: student.classes,
@@ -75,5 +75,18 @@ export async function autoCutoff() {
     } catch (error) {
       console.error(error);
     }
+  }
+}
+
+export async function attendanceStart() {
+  const setting = readConfig();
+  const [h, m] = setting.absentThreshold.split(":").map(Number);
+  const timeStart = new Date();
+  timeStart.setHours(h, m, 0, 0);
+  const now = new Date();
+  if (now > timeStart) {
+    return true;
+  } else {
+    return false;
   }
 }

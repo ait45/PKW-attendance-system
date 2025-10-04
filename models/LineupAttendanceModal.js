@@ -2,6 +2,10 @@ import mongoose, { Schema } from "mongoose";
 
 const Attendance = Schema(
   {
+    handler: {
+      type: String,
+      required: true,
+    },
     studentId: {
       type: String,
       required: true,

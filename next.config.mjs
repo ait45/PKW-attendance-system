@@ -5,6 +5,9 @@ const nextConfig = {
       ...config.resolve.fallback,
       fs: false,
     };
+    config.node = {
+      __dirname: true,
+    };
     return config;
   },
   turbopack: {
@@ -17,7 +20,7 @@ const nextConfig = {
     },
   },
   experimental: {
-    turbo: {},
+    serverExternalPackages: ["pdfkit"],
   },
 };
 

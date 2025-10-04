@@ -9,10 +9,12 @@ import {
   UserPen,
   Trash2,
   Upload,
+  BookOpen,
+  X,
 } from "lucide-react";
 import Swal from "sweetalert2";
 
-function StudentManagement({ session }) {
+function StudentManagement({ session, setMenu }) {
   const classes = [
     "มัธยมศึกษาปีที่ 1",
     "มัธยมศึกษาปีที่ 2",
@@ -21,7 +23,6 @@ function StudentManagement({ session }) {
     "มัธยมศึกษาปีที่ 5",
     "มัธยมศึกษาปีที่ 6",
   ];
-  const [isOpenModel, setIsOpenModel] = useState("");
   const [newStudent, setNewStudent] = useState({
     studentId: "",
     password: "",
@@ -32,9 +33,12 @@ function StudentManagement({ session }) {
     Number: "",
     plantData: "",
   });
+
+  const [isOpenModel, setIsOpenModel] = useState("");
   const [isformUpdate, setIsFormUpdate] = useState(false);
   const [idUpdate, setIdUpdate] = useState("");
   const [errors, setErrors] = useState({});
+
   const openModel = () => {
     setIsOpenModel(true);
   };
@@ -56,6 +60,7 @@ function StudentManagement({ session }) {
       setErrors({});
     }, 300);
   };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setNewStudent((prev) => ({ ...prev, [name]: value }));
@@ -111,6 +116,7 @@ function StudentManagement({ session }) {
             </table>
         `,
         icon: "question",
+        width: "80%",
         showConfirmButton: true,
         showCancelButton: true,
         cancelButtonText: "ยกเลิก",
@@ -276,6 +282,7 @@ function StudentManagement({ session }) {
     if (digits.length > 6) result += "-" + digits.slice(6, 10);
     return result;
   };
+
   // ดึงข้อมูลจาก api
   const fetchStudents = async () => {
     const res = await fetch("/api/studentManagement");
@@ -286,7 +293,6 @@ function StudentManagement({ session }) {
   useEffect(() => {
     fetchStudents();
   }, []);
-
   // แยกข้อมูลของแต่ละชั้น
 
   const [selectClasses, setSelectClasses] = useState("ทั้งหมด");
@@ -300,17 +306,19 @@ function StudentManagement({ session }) {
     { label: "ทั้งหมด", val: 6 },
   ];
   // แยกข้อมูลแต่ละชั้น
+
   const filteredStudentSelected = useMemo(() => {
     if (selectClasses === "ทั้งหมด") return tableStudent;
     return tableStudent.filter((s) => s.classes === selectClasses);
   }, [tableStudent, selectClasses]);
+
   return (
     // หน้าจัดการนักเรียน
     <div className="max-w-7xl p-6">
       <div className="bg-white rounded-lg shadow-lg p-8">
         <div className="flex items-center mb-6">
           <FileUser className="text-blue-500 mr-3" />
-          <h2 className="text-2xl font-bold text-gray-800">
+          <h2 className="text-lg sm:text-2xl font-bold text-gray-800">
             จัดการข้อมูลนักเรียน
           </h2>
         </div>
@@ -320,40 +328,51 @@ function StudentManagement({ session }) {
             setIsFormUpdate(false);
             openModel();
           }}
-          className="bg-[#8AFBFF] hover:bg-[#91E5F7] text-blue-800 px-3 py-2 rounded-lg shadow-lg transition-colors"
+          className="bg-[#8AFBFF] hover:bg-[#91E5F7] text-blue-800  px-3 py-2 rounded-lg shadow-lg transition-colors"
         >
           เพิ่มข้อมูลนักเรียน
         </button>
 
         {/* Modal Overlay */}
         {isOpenModel && (
-          <div className="absolute inset-0 flex items-center justify-center  top-30 lg:top-20">
+          <div className="absolute inset-0 flex items-center justify-center  top-80 lg:top-20 z-50">
             <div
               onClick={closeModel}
-              className="fixed inset-0 bg-gray-50 transition-all backdrop-blur-md modal-backdrop"
-              style={{ backgroundColor: "rgba(0, 0, 0, 0.1" }}
+              className="fixed inset-0 bg-gray-50 transition-all "
+              style={{ backgroundColor: "rgba(0, 0, 0, 0.4" }}
             />
-            <div className="w-[90%] h-fit bg-white bg-opacity-10 backdrop-blur-2xl shadow-2xl rounded-2xl border border-white p-4 overflow-auto">
+            <div className="w-[70%] h-fit bg-white bg-opacity-10 backdrop-blur-2xl shadow-2xl rounded-2xl p-4 overflow-auto">
               <div className="px-6 py-4 space-y-5 ">
-                {isformUpdate ? (
+                <div className="flex justify-between items-start">
                   <div className="flex items-center">
-                    <UserPen className="text-yellow-500 mr-2" />
+                    <UserPen
+                      className={`${
+                        isformUpdate ? "text-yellow-500" : "text-green-500"
+                      } mr-2`}
+                    />
                     <h1 className="text-2xl font-bold">
-                      แก้ไขข้อมูลนักเรียน
+                      {isformUpdate
+                        ? "แก้ไขข้อมูลนักเรียน"
+                        : "เพิ่มนักเรียนใหม่"}
                     </h1>
                   </div>
-                ) : (
-                  <div className="flex items-center">
-                    <UserPlus className="text-green-500 mr-2" />
-                    <h1 className="text-2xl font-bold">เพิ่มนักเรียนใหม่</h1>
+                  <div>
+                    <button
+                      onClick={() => closeModel()}
+                      className="p-2 hover:bg-gray-300 transition-all"
+                    >
+                      <X size={15} />
+                    </button>
                   </div>
-                )}
-                <p>กรุณากรอกข้อมูลให้ครบ เพื่อบันทึกลงระบบ</p>
+                </div>
+
+                <p className="text-sm text-blue-500">
+                  กรอกข้อมูลให้ครบ เพื่อบันทึกลงระบบ
+                </p>
               </div>
               <hr className="mb-5 text-[#8AFBFF]" />
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-2">
-
-                <div className="flex flex-col mb-3">
+              <div className="block gap-6 p-2">
+                <div className="flex flex-col">
                   <label
                     htmlFor="studentId"
                     className="text-sm text-gray-500 ml-2"
@@ -368,7 +387,7 @@ function StudentManagement({ session }) {
                     value={newStudent.studentId}
                     onChange={handleInputChange}
                     disabled={isformUpdate}
-                    className={`px-4 py-2 h-12 w-[70%] border rounded-lg focus:outline-none focus:ring-2 ${
+                    className={`px-4 py-2 h-10 sm:h-12 w-[40%] mb-2 border rounded-lg focus:outline-none focus:ring-2 ${
                       errors.studentId ? "border-red-500" : "border-gray-300"
                     } focus:ring-blue-500 ${
                       isformUpdate
@@ -383,7 +402,7 @@ function StudentManagement({ session }) {
                   )}
                 </div>
 
-                <div className="flex flex-col mb-3">
+                <div className="flex flex-col mb-2">
                   <label htmlFor="name" className="text-sm text-gray-500 ml-2">
                     ชื่อ-นามสกุล
                   </label>
@@ -393,7 +412,7 @@ function StudentManagement({ session }) {
                     name="name"
                     value={newStudent.name}
                     onChange={handleInputChange}
-                    className={`px-4 py-2 h-12 border rounded-lg focus:outline-none focus:ring-2 ${
+                    className={`px-4 py-2 h-10 md:h-12 border rounded-lg focus:outline-none focus:ring-2 ${
                       errors.name ? "border-red-500" : "border-gray-300"
                     } focus:ring-blue-500`}
                   />
@@ -403,136 +422,142 @@ function StudentManagement({ session }) {
                     </p>
                   )}
                 </div>
-                <div className="flex flex-col mb-3">
-                  <label htmlFor="classes" className="text-sm text-gray-500">
-                    ชั้นเรียน
-                  </label>
-                  <select
-                    className={`px-4 py-2 h-12 border rounded-lg focus:outline-none focus:ring-2 ${
-                      errors.classes ? "border-red-500" : "border-gray-300"
-                    } focus:ring-blue-500 cursor-pointer w-[60%]`}
-                    id="classes"
-                    name="classes"
-                    value={newStudent.classes}
-                    onChange={handleInputChange}
-                  >
-                    <option>เลือกชั้นเรียน</option>
-                    {classes.map((cls) => (
-                      <option key={cls} value={cls}>
-                        {cls}
-                      </option>
-                    ))}
-                  </select>
-                  {errors.classes && (
-                    <p className="mt-1 text-[12px] sm:text-sm text-red-600 ml-1">
-                      {errors.classes}
-                    </p>
-                  )}
-                </div>
-                <div className="flex flex-col mb-3">
-                  <label htmlFor="Number" className="text-sm text-gray-500 ml-2">
-                    เลขที่
-                  </label>
-                  <input
-                    type="text"
-                    id="Number"
-                    name="Number"
-                    min="0"
-                    value={newStudent.Number}
-                    onChange={handleInputChange}
-                    className={`px-4 py-2 h-12 border rounded-lg w-[100px] focus:outline-none focus:ring-2 ${
-                      errors.Number ? "border-red-500" : "border-gray-300"
-                    } focus:ring-blue-500`}
-                  />
-                  {errors.Number && (
-                    <p className="mt-1 text-[12px] sm:text-sm text-red-600 ml-1">
-                      {errors.Number}
-                    </p>
-                  )}
+                <div className="flex mb-2">
+                  <div className="flex flex-col w-[70%]">
+                    <label htmlFor="classes" className="text-sm text-gray-500">
+                      ชั้นเรียน
+                    </label>
+                    <select
+                      className={`px-4 py-2 h-10 md:h-12 border rounded-lg focus:outline-none focus:ring-2 ${
+                        errors.classes ? "border-red-500" : "border-gray-300"
+                      } focus:ring-blue-500 cursor-pointer w-[80%]`}
+                      id="classes"
+                      name="classes"
+                      value={newStudent.classes}
+                      onChange={handleInputChange}
+                    >
+                      <option>เลือกชั้นเรียน</option>
+                      {classes.map((cls) => (
+                        <option key={cls} value={cls}>
+                          {cls}
+                        </option>
+                      ))}
+                    </select>
+                    {errors.classes && (
+                      <p className="mt-1 text-[12px] sm:text-sm text-red-600 ml-1">
+                        {errors.classes}
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex flex-col">
+                    <label
+                      htmlFor="Number"
+                      className="text-sm text-gray-500 ml-2"
+                    >
+                      เลขที่
+                    </label>
+                    <input
+                      type="text"
+                      id="Number"
+                      name="Number"
+                      min="0"
+                      value={newStudent.Number}
+                      onChange={handleInputChange}
+                      className={`px-4 py-2 h-10 md:h-12 w-[80px] border rounded-lg  focus:outline-none focus:ring-2 ${
+                        errors.Number ? "border-red-500" : "border-gray-300"
+                      } focus:ring-blue-500`}
+                    />
+                    {errors.Number && (
+                      <p className="mt-1 text-[12px] sm:text-sm text-red-600 ml-1">
+                        {errors.Number}
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 p-2 w-[50%]">
-                <div className="flex flex-col mb-2">
-                  <label
-                    htmlFor="phoneId"
-                    className="text-sm text-gray-500 ml-2"
-                  >
-                    เบอร์โทรนักเรียน
-                  </label>
-                  <input
-                    id="phoneId"
-                    type="tel"
-                    value={newStudent.phone}
-                    maxLength={12}
-                    onChange={(e) =>
-                      setNewStudent({
-                        ...newStudent,
-                        phone: formatPhone(e.target.value),
-                      })
-                    }
-                    placeholder="xxx-xxx-xxxx"
-                    className={`px-4 py-2 h-12 border rounded-lg focus:outline-none focus:ring-2 ${
-                      errors.phone ? "border-red-500" : "border-gray-300"
-                    } focus:ring-blue-500`}
-                  />
-                  {errors.phone && (
-                    <p className="mt-1 text-[12px] sm:text-sm text-red-600 ml-1">
-                      {errors.phone}
-                    </p>
-                  )}
-                </div>
-                <div className="flex flex-col">
-                  <label
-                    htmlFor="parentPhoneId"
-                    className="text-sm text-gray-500 ml-2"
-                  >
-                    เบอร์โทรผู้ปกครอง
-                  </label>
-                  <input
-                    id="parentPhoneId"
-                    type="tel"
-                    value={newStudent.parentPhone}
-                    maxLength={12}
-                    placeholder="xxx-xxx-xxxx"
-                    onChange={(e) =>
-                      setNewStudent({
-                        ...newStudent,
-                        parentPhone: formatPhone(e.target.value),
-                      })
-                    }
-                    className={`px-4 py-2 h-12 border rounded-lg focus:outline-none focus:ring-2 ${
-                      errors.parentPhone ? "border-red-500" : "border-gray-300"
-                    } focus:ring-blue-500`}
-                  />
-                  {errors.parentPhone && (
-                    <p className="mt-1 text-[12px] sm:text-sm text-red-600 ml-1">
-                      {errors.parentPhone}
-                    </p>
-                  )}
-                </div>
-                { session?.user?.role === "teacher" && isformUpdate && (
-                  <div><label htmlFor="plantData" className="text-sm text-gray-500 ml-2">
-                    รหัสการเข้าสู่ระบบ
-                  </label>
-                  <input
-                    type="text"
-                    id="plantData"
-                    name="plantData"
-                    value={newStudent.plantData}
-                    readOnly={true}
-        
-                    className={`px-4 py-2 h-12 border rounded-lg outline-none border-gray-300`}
-                  />
+                <div className="md:flex">
+                  <div className="flex flex-col md:mr-4">
+                    <label
+                      htmlFor="phoneId"
+                      className="text-sm text-gray-500 ml-2"
+                    >
+                      เบอร์โทรนักเรียน
+                    </label>
+                    <input
+                      id="phoneId"
+                      type="tel"
+                      value={newStudent.phone}
+                      maxLength={12}
+                      onChange={(e) =>
+                        setNewStudent({
+                          ...newStudent,
+                          phone: formatPhone(e.target.value),
+                        })
+                      }
+                      placeholder="xxx-xxx-xxxx"
+                      className={`px-4 py-2 h-10 md:h-12 w-[150px] md:w-[160px] border rounded-lg focus:outline-none focus:ring-2 ${
+                        errors.phone ? "border-red-500" : "border-gray-300"
+                      } focus:ring-blue-500`}
+                    />
+                    {errors.phone && (
+                      <p className="mt-1 text-[12px] sm:text-sm text-red-600 ml-1">
+                        {errors.phone}
+                      </p>
+                    )}
                   </div>
-                )}
+                  <div className="flex flex-col">
+                    <label
+                      htmlFor="parentPhoneId"
+                      className="text-sm text-gray-500 ml-2"
+                    >
+                      เบอร์โทรผู้ปกครอง
+                    </label>
+                    <input
+                      id="parentPhoneId"
+                      type="tel"
+                      value={newStudent.parentPhone}
+                      maxLength={12}
+                      placeholder="xxx-xxx-xxxx"
+                      onChange={(e) =>
+                        setNewStudent({
+                          ...newStudent,
+                          parentPhone: formatPhone(e.target.value),
+                        })
+                      }
+                      className={`px-4 py-2 h-10 md:h-12 w-[150px] md:w-[160px] border rounded-lg focus:outline-none focus:ring-2 ${
+                        errors.parentPhone
+                          ? "border-red-500"
+                          : "border-gray-300"
+                      } focus:ring-blue-500`}
+                    />
+                    {errors.parentPhone && (
+                      <p className="mt-1 text-[12px] sm:text-sm text-red-600 ml-1">
+                        {errors.parentPhone}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                  {session?.user?.role === "teacher" && isformUpdate && (
+                    <div className="flex flex-col">
+                      <label
+                        htmlFor="plantData"
+                        className="text-sm text-gray-500 ml-2"
+                      >
+                        รหัสการเข้าสู่ระบบ
+                      </label>
+                      <input
+                        type="text"
+                        id="plantData"
+                        name="plantData"
+                        value={newStudent.plantData}
+                        readOnly={true}
+                        className={`px-4 py-2 h-10 md:h-12 w-[150px] border rounded-lg outline-none border-gray-300`}
+                      />
+                    </div>
+                  )}
               </div>
               <div className="flex justify-end p-2">
-                <button
-                  onClick={closeModel}
-                  className="bg-red-500 hover:bg-red-600 text-white px-4 py-3 rounded-lg font-medium mr-2 transition-colors cursor-pointer"
-                >
-                  ยกเลิก
-                </button>
                 {isformUpdate ? (
                   <button
                     className="bg-green-500 hover:bg-green-600 text-white px-4 py-3 rounded-lg font-medium transition-colors flex items-center cursor-pointer"
@@ -556,12 +581,14 @@ function StudentManagement({ session }) {
         )}
       </div>
       <div className="mt-8 p-6 bg-white rounded-lg">
-        <div className="p-2 mb-4 flex">
-          <h1 className="text-lg font-bold mr-4">ข้อมูลแต่ละชั้นเรียน</h1>
+        <div className="p-2 mb-4 block sm:flex sm:items-center">
+          <h1 className="text-md sm:text-lg font-bold mr-4 mb-3">
+            ข้อมูลแต่ละชั้นเรียน
+          </h1>
           <select
             value={selectClasses}
             onChange={(e) => setSelectClasses(e.target.value)}
-            className="px-4 border-b border-[#009EA3] outline-none w-[40%] max-w-[160px]"
+            className="text-sm px-4 border-b border-[#009EA3] outline-none  max-w-[160px]"
           >
             {classesList.map((val) => (
               <option value={val.label} key={val.label}>
@@ -573,7 +600,7 @@ function StudentManagement({ session }) {
         <hr className="py-5 text-gray-500 w-[80%] m-auto" />
         {/* ตารางนักเรียน */}
         <div className="overflow-x-auto">
-          <table className="table w-full border">
+          <table className="table w-full border text-sm sm:text-md">
             <thead>
               <tr className="bg-gray-100 text-center border p-4">
                 <th className="px-6 py-4 whitespace-nowrap border">
@@ -628,14 +655,14 @@ function StudentManagement({ session }) {
                     <td className="flex justify-center-safe ml-2">
                       <button
                         className="text-yellow-500 hover:text-yellow-600 cursor-pointer flex items-center transition-colors p-2"
-                        onClick={() => handleUpdate(value._id, index)}
+                        onClick={() => handleUpdate(value.id, index)}
                       >
                         <UserPen />
                         <p className="text-gray-800">แก้ไข</p>
                       </button>
                       <button
                         className="text-red-500 hover:text-red-600 cursor-pointer flex items-center transition-colors p-2"
-                        onClick={() => handleDelete(value._id, value.name)}
+                        onClick={() => handleDelete(value.id, value.name)}
                       >
                         <Trash2 />
                         <p className="text-gray-800">ลบ</p>
@@ -655,6 +682,15 @@ function StudentManagement({ session }) {
               )}
             </tbody>
           </table>
+        </div>
+        <div className="fixed bottom-6 right-6 flex flex-col space-y-3">
+          <button
+            title="ดาวน์โหลดข้อมูลนักเรียน"
+            onClick={() => setMenu("PDFStudent")}
+            className="bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-full shadow-lg transition-all duration-200 hover:scale-110"
+          >
+            <BookOpen className="w-6 h-6" />
+          </button>
         </div>
       </div>
     </div>

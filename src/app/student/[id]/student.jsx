@@ -1,8 +1,8 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 
-import Nav from "../../components/Navbar/page";
-import Footer from "../../components/Footer/page";
+import Nav from "@/app/components/Navbar/page";
+import Footer from "@/app/components/Footer/page";
 import Swal from "sweetalert2";
 import { useSession } from "next-auth/react";
 import { redirect } from "next/navigation";

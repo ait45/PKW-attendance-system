@@ -13,6 +13,7 @@ function stringToNegative(str) {
   const num = parseFloat(str);
   return isNaN(num) ? 0 : -Math.abs(num);
 }
+// ฟังก์ชั่นคำนวณคะแนนความประพฤติหลังจาก cutoff
 export async function Calculate_behaviorScore() {
   try {
     await connectDB();
@@ -32,13 +33,12 @@ export async function Calculate_behaviorScore() {
       const { studentId, status } = index;
 
       switch (status) {
-        case "มา":
+        case "เข้าร่วมกิจกรรม":
           await Student.findOneAndUpdate(
             { studentId: studentId },
             { $inc: { comeDays: 1 } },
             { new: true }
           );
-          console.log("successfully to process");
           break;
         case "สาย":
           await Student.findOneAndUpdate(
@@ -51,7 +51,6 @@ export async function Calculate_behaviorScore() {
             },
             { new: true }
           );
-          console.log("successfully to process");
           break;
         case "ลา":
           await Student.findOneAndUpdate(
@@ -59,7 +58,6 @@ export async function Calculate_behaviorScore() {
             { $inc: { leaveDays: 1 } },
             { new: true }
           );
-          console.log("successfully to process");
           break;
         case "ขาด":
           await Student.findOneAndUpdate(
@@ -72,11 +70,138 @@ export async function Calculate_behaviorScore() {
             },
             { new: true }
           );
-          console.log("successfully to process");
           break;
       }
     }
   } catch (error) {
     console.error(error);
+  }
+}
+
+// ฟังก์ชั่นคำนวณคะแนนความประพฤติหลังจากอัพเดตข้อมูล
+
+export async function update_behaviorScore(list) {
+  try {
+    console.log("start updata_begaviorScore");
+    await connectDB();
+    const setting = await readConfig();
+
+    for (const item of list) {
+      const { _id, studentId, status } = item;
+      const old_data_attendance = await LineupAttendanceModal.findById(_id);
+
+      if (!old_data_attendance) return;
+      const state = old_data_attendance.status;
+      
+      await LineupAttendanceModal.findByIdAndUpdate(
+        _id,
+        {
+          status: status,
+        },
+        {
+          new: true,
+        }
+      );
+
+      switch (state) {
+        case "เข้าร่วมกิจกรรม":
+          await Student.findOneAndUpdate(
+            { studentId: studentId },
+            { $inc: { comeDays: -1 } },
+            { new: true }
+          );
+          break;
+        case "ลา":
+          await Student.findOneAndUpdate(
+            { studentId: studentId },
+            {
+              $inc: {
+                leaveDays: -1,
+              },
+            },
+            { new: true }
+          );
+          break;
+        case "สาย":
+          await Student.findOneAndUpdate(
+            { studentId: studentId },
+            {
+              $inc: {
+                lateDays: -1,
+                behaviorScore: setting.Scorededucted_lateAttendance,
+              },
+            },
+            { new: true }
+          );
+          break;
+        case "ขาด":
+          await Student.findOneAndUpdate(
+            { studentId: studentId },
+            {
+              $inc: {
+                absentDays: -1,
+                behaviorScore: setting.Scorededucted_absentAttendance,
+              },
+            },
+            { new: true }
+          );
+          break;
+      }
+      switch (status) {
+        case "เข้าร่วมกิจกรรม":
+          await Student.findOneAndUpdate(
+            { studentId: studentId },
+            {
+              $inc: {
+                comeDays: 1,
+              },
+            },
+            { new: true }
+          );
+          break;
+        case "ลา":
+          await Student.findOneAndUpdate(
+            { studentId: studentId },
+            {
+              $nc: {
+                leaveDays: 1,
+              },
+            },
+            { new: true }
+          );
+          break;
+        case "สาย":
+          await Student.findOneAndUpdate(
+            { studentId: studentId },
+            {
+              $inc: {
+                lateDays: 1,
+                behaviorScore: stringToNegative(
+                  setting.Scorededucted_lateAttendance
+                ),
+              },
+            },
+            { new: true }
+          );
+          break;
+        case "ขาด":
+          await Student.findOneAndUpdate(
+            { studentId: studentId },
+            {
+              $inc: {
+                absentDays: 1,
+                behaviorScore: stringToNegative(
+                  setting.Scorededucted_absentAttendance
+                ),
+              },
+            },
+            { new: true }
+          );
+          break;
+      }
+    }
+  } catch (error) {
+    console.error(error);
+    return;
   }
 }

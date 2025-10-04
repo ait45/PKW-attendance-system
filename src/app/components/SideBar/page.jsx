@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Home,
   Mail,
@@ -9,8 +9,20 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
-const SideBar = ({ activeMenu, setActiveMenu, session }) => {
-  const [isCollapsed, setIsCollapsed] = useState(false);
+const SideBar = ({ activeMenu, setActiveMenu, session, onOpen }) => {
+  const [isCollapsed, setIsCollapsed] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const checkMobile = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      onOpen({ isCollapsed, isMobile: mobile });
+    };
+
+    checkMobile();
+    window.addEventListener("reset", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, [isCollapsed]);
   const menuItems = [
     { id: "dashboard", label: "Dashboard", icon: Home },
     { id: "messages", label: "Messages", icon: Mail },
@@ -18,7 +30,11 @@ const SideBar = ({ activeMenu, setActiveMenu, session }) => {
     { id: "settings", label: "ตั้งค่า", icon: Settings },
   ];
   const toggleSideBar = () => {
-    setIsCollapsed(!isCollapsed);
+    setIsCollapsed((prev) => {
+      const newState = !prev;
+      onOpen({ isCollapsed: newState, isMobile });
+      return newState;
+    });
   };
   const handleMenuClick = (itemId) => {
     setActiveMenu(itemId);
@@ -29,7 +45,7 @@ const SideBar = ({ activeMenu, setActiveMenu, session }) => {
       {/* Sidebar */}
       <div
         className={`relative bg-[#009EA3] text-white transition-all duration-300 ease-in shadow-2xl ${
-          isCollapsed ? "w-16" : "w-60"
+          isCollapsed ? `w-16` : `w-60`
         }`}
       >
         <div className="p-4 border-b border-white/10">
@@ -56,6 +72,7 @@ const SideBar = ({ activeMenu, setActiveMenu, session }) => {
             <button
               onClick={toggleSideBar}
               className="p-1.5 rounded-lg-white/10 hover:bg-white/20 transition-colors duration-200 cursor-pointer"
+              title={`${isCollapsed ? "เปิดเมนู" : "ปิดเมนู"}`}
             >
               {isCollapsed ? (
                 <ChevronRight className="w-5 h-5" />
@@ -77,7 +94,7 @@ const SideBar = ({ activeMenu, setActiveMenu, session }) => {
                 <li key={item.id}>
                   <button
                     onClick={() => handleMenuClick(item.id)}
-                    className={`w-full flex items-center px-3 py-3 rounded-xl transition-all duration-200 hover:bg-white/10 hover:translate-x-1 group relative ${
+                    className={`w-full flex items-center px-3 py-4 rounded-xl transition-all duration-200 hover:bg-white/10 hover:translate-x-1 group relative ${
                       isActive ? "bg-white/20 shadow-lg" : ""
                     } ${
                       isCollapsed ? "justify-center" : "justify-start space-x-3"

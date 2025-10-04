@@ -41,6 +41,11 @@ export async function GET(req) {
           status: index.status,
           plantData: index.plantData,
           Number: index.Number,
+          comeDays: index.comeDays,
+          leaveDays: index.leaveDays,
+          lateDays: index.lateDays,
+          absentDays: index.absentDays,
+          behaviorScore: index.behaviorScore,
         };
       });
       return NextResponse.json(
@@ -58,6 +63,11 @@ export async function GET(req) {
         parentPhone: index.parentPhone,
         status: index.status,
         Number: index.Number,
+        comeDays: index.comeDays,
+        leaveDays: index.leaveDays,
+        lateDays: index.lateDays,
+        absentDays: index.absentDays,
+        behaviorScore: index.behaviorScore,
       };
     });
     return NextResponse.json(

@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
-import Nav from "../../components/Navbar/page";
-import Footer from "../../components/Footer/page";
+import Nav from "@/app/components/Navbar/page";
+import Footer from "@/app/components/Footer/page";
 import { useSession } from "next-auth/react";
 import Swal from "sweetalert2";
 import {
@@ -22,13 +22,16 @@ import {
   Calendar,
   BarChart3,
 } from "lucide-react";
-import SideBar from "../../components/SideBar/page";
-import StatisticsPage from "../../components/Statistics/page";
-import SchedulePage from "../../components/Schedule/page";
-import StudentManagement from "../../components/StudentManagement/page";
-import AttendanceCheckPage from "../../components/AttendanceCheck/page";
-import TableAttendance from "../../components/tableAttendance/page";
+import SideBar from "@/app/components/SideBar/page";
+import StatisticsPage from "@/app/components/Statistics/page";
+import SchedulePage from "@/app/components/Schedule/page";
+import StudentManagement from "@/app/components/StudentManagement/page";
+import AttendanceCheckPage from "@/app/components/AttendanceCheck/page";
+import TableAttendance from "@/app/components/tableAttendance/page";
+import QRDownload from "@/app/components/QRDownload/page";
 import { redirect, useRouter } from "next/navigation";
+import Dashboard from "@/app/components/Dashboard/page";
+import ReportPage from "@/app/components/Report/page";
 
 function TeacherPage() {
   const [currentPage, setCurrentPage] = useState("dashboard");
@@ -64,12 +67,12 @@ function TeacherPage() {
               <div className="flex items-center text-gray-600 hover:text-gray-900 transition-colors rounded-md">
                 <QrCode size={20} />
                 <select
-                  className="outline-none w-[120px] text-sm focus:text-gray-900"
+                  className="outline-none w-[20px] sm:w-[120px] text-sm focus:text-gray-900"
                   value={currentPage}
                   onChange={(e) => setCurrentPage(e.target.value)}
                   id="attendance"
                 >
-                  <option value="">หน้าแรก</option>
+                  <option value="dashboard">หน้าแรก</option>
                   <option value="scan">เช็คชื่อ</option>
                   <option value="tableAttendance">ตารางการเช็คชื่อ</option>
                 </select>
@@ -133,15 +136,18 @@ function TeacherPage() {
           session={session}
         />
         <main className="flex-1 py-4 w-full overflow-auto">
+          {currentPage === "dashboard" && <Dashboard session={session} />}
           {currentPage === "scan" && <AttendanceCheckPage session={session} />}
           {currentPage === "tableAttendance" && (
             <TableAttendance session={session} />
           )}
           {currentPage === "students" && (
-            <StudentManagement session={session} />
+            <StudentManagement session={session} setMenu={setCurrentPage} />
           )}
           {currentPage === "schedule" && <SchedulePage session={session} />}
           {currentPage === "statistics" && <StatisticsPage session={session} />}
+          {currentPage === "PDFStudent" && <QRDownload setBack={setCurrentPage}/>}
+          {currentPage === "reports" && <ReportPage session={session} />}
         </main>
       </main>
       <Footer />
