@@ -14,20 +14,44 @@ export async function GET(req) {
     {
       $match: {
         createdAt: { $gte: start, $lte: end },
-        status: "เข้าร่วมกิจกรรม",
       },
     },
     {
       $group: {
         _id: { $dayOfWeek: "$createdAt" },
-        count: { $sum: 1 },
+        present: {
+          $sum: {
+            $cond: [{ $eq: ["$status", "เข้าร่วมกิจกรรม"] }, 1, 0],
+          },
+        },
+        leave: {
+          $sum: {
+            $cond: [{ $eq: ["$status", "ลา"]}, 1, 0],
+          },
+        },
+        late: {
+          $sum: {
+            $cond: [{ $eq: ["$status", "สาย"]}, 1, 0],
+          },
+        },
+        absent: {
+          $sum: {
+            $cond: [{ $eq: ["$status", "ขาด"]}, 1, 0],
+          }
+        }
       },
     },
   ]);
   const days = ["Mon", "Tue", "Wed", "Thu", "Fri"];
   const weeklyData = days.map((day, i) => {
     const d = data.find((x) => x._id === i + 2);
-    return { day, count: d ? d.count : 0 };
+    return { 
+      day, 
+      present: d ? d.present : 0,
+      leave: d ? d.leave : 0,
+      late: d ? d.late : 0,
+      absent: d ? d.absent : 0,
+    };
   });
   return NextResponse.json(
     {

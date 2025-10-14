@@ -258,7 +258,7 @@ export default function LoginPage() {
               </div>
               <div className="text-sm">
                 <a
-                  href="#"
+                  href="/forget-password"
                   className="font-medium text-[10px] sm:text-sm text-[#009EA3] hover:text-[#00CAD1] transition-colors"
                 >
                   ลืมรหัสผ่าน?

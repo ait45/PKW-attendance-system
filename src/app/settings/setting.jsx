@@ -12,9 +12,11 @@ import Swal from "sweetalert2";
 
 function Setting() {
   const { data: session, status } = useSession();
+  const [admin, setAdmin] = useState(false);
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [dataSetting, setDataSetting] = useState({});
+  const [isChange, setIsChange] = useState(false);
   const [error, setError] = useState({});
   const fetchSetting = async () => {
     try {
@@ -33,7 +35,6 @@ function Setting() {
   useEffect(() => {
     fetchSetting();
   }, []);
-
   useEffect(() => {
     const {
       AttendanceStart,
@@ -96,6 +97,7 @@ function Setting() {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setDataSetting((prev) => ({ ...prev, [name]: value }));
+    setIsChange(true);
     if (error[name]) {
       setError((prev) => ({
         ...prev,
@@ -111,10 +113,12 @@ function Setting() {
       setError(error);
       return;
     }
-    Swal.fire({
+    setIsChange(false);
+    await Swal.fire({
       title: "ยืนยันการบันทึกตั้งค่า",
       showConfirmButton: true,
       confirmButtonText: "บันทึก",
+      width: "60%",
     }).then(async (result) => {
       if (result.isConfirmed) {
         const req = await fetch("/api/setting", {
@@ -127,15 +131,13 @@ function Setting() {
             text: "กรุณาลองอีกครั้ง",
             icon: "error",
           });
-        ShowAlert({ title: "บันทึกการตั้งค่าสำเร็จ", icon: "success" });
+        await ShowAlert({ title: "บันทึกการตั้งค่าสำเร็จ", icon: "success" });
         fetchSetting();
       }
     });
   };
   if (!session?.user?.role === "teacher" && status === "unauthenticated")
     redirect("/login");
-  if (session?.user?.role === "teacher" && !session?.user?.isAdmin)
-    return redirect(`/teacher/${session?.id}`);
   if (session?.user?.role === "student" && !session?.user?.isAdmin)
     return redirect(`/student/${session?.id}`);
   if (session?.user?.role === "student" && session?.user?.isAdmin)
@@ -151,7 +153,12 @@ function Setting() {
         <div className="bg-white rounded-xl shadow-2xl w-[90%] sm:w-[70%] p-6 ">
           <Link
             href="#"
-            onClick={() => router.back()}
+            onClick={async (e) => {
+              if (isChange) {
+                await handleSubmit(e);
+              }
+              router.back();
+            }}
             title="ย้อนกลับ"
             className="flex items-center text-gray-500 hover:text-gray-700 transition-colors"
           >
@@ -159,7 +166,12 @@ function Setting() {
             <p className="text-sm hidden sm:inline">ย้อนกลับ</p>
           </Link>
           <header className="pt-3 mb-2 flex justify-between items-center">
-            <h1 className="font-bold text-xl sm:text-2xl">ตั้งค่าระบบ</h1>
+            <div>
+              <h1 className="font-bold text-xl sm:text-2xl">ตั้งค่าระบบ</h1>
+              {isChange && (
+                <p className="text-xs text-red-500">* ข้อมูลมีการเปลี่ยนแปลง</p>
+              )}
+            </div>
             <div className="">
               <button className="mr-2 px-3 py-2 outline-2 outline-blue-500 text-blue-500  hover:bg-blue-700 hover:text-white  transition-colors rounded-md cursor-pointer">
                 ส่งออก

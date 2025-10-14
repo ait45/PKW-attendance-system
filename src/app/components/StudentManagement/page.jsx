@@ -359,7 +359,8 @@ function StudentManagement({ session, setMenu }) {
                   <div>
                     <button
                       onClick={() => closeModel()}
-                      className="p-2 hover:bg-gray-300 transition-all"
+                      title="ปิด"
+                      className=" hover:bg-gray-300 transition-all"
                     >
                       <X size={15} />
                     </button>
@@ -370,7 +371,7 @@ function StudentManagement({ session, setMenu }) {
                   กรอกข้อมูลให้ครบ เพื่อบันทึกลงระบบ
                 </p>
               </div>
-              <hr className="mb-5 text-[#8AFBFF]" />
+              <hr className="mb-5 text-[#8AFBFF] m-auto w-[80%]" />
               <div className="block gap-6 p-2">
                 <div className="flex flex-col">
                   <label
@@ -477,7 +478,7 @@ function StudentManagement({ session, setMenu }) {
               </div>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 p-2 w-[50%]">
                 <div className="md:flex">
-                  <div className="flex flex-col md:mr-4">
+                  <div className="flex flex-col mb-1 md:mr-4">
                     <label
                       htmlFor="phoneId"
                       className="text-sm text-gray-500 ml-2"
@@ -506,7 +507,7 @@ function StudentManagement({ session, setMenu }) {
                       </p>
                     )}
                   </div>
-                  <div className="flex flex-col">
+                  <div className="flex flex-col mb-1 md:mr-4">
                     <label
                       htmlFor="parentPhoneId"
                       className="text-sm text-gray-500 ml-2"
@@ -537,7 +538,6 @@ function StudentManagement({ session, setMenu }) {
                       </p>
                     )}
                   </div>
-                </div>
                   {session?.user?.role === "teacher" && isformUpdate && (
                     <div className="flex flex-col">
                       <label
@@ -556,6 +556,7 @@ function StudentManagement({ session, setMenu }) {
                       />
                     </div>
                   )}
+                </div>
               </div>
               <div className="flex justify-end p-2">
                 {isformUpdate ? (
@@ -564,7 +565,7 @@ function StudentManagement({ session, setMenu }) {
                     onClick={handleSubmit}
                   >
                     <Upload size={20} className="mr-2" />
-                    แก้ไขนักเรียน
+                    แก้ไขข้อมูล
                   </button>
                 ) : (
                   <button
@@ -572,7 +573,7 @@ function StudentManagement({ session, setMenu }) {
                     onClick={handleSubmit}
                   >
                     <Plus size={20} className="mr-2" />
-                    เพิ่มนักเรียน
+                    เพิ่มข้อมูล
                   </button>
                 )}
               </div>
@@ -686,7 +687,7 @@ function StudentManagement({ session, setMenu }) {
         <div className="fixed bottom-6 right-6 flex flex-col space-y-3">
           <button
             title="ดาวน์โหลดข้อมูลนักเรียน"
-            onClick={() => setMenu("PDFStudent")}
+            onClick={() => setMenu("PDFDownload")}
             className="bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-full shadow-lg transition-all duration-200 hover:scale-110"
           >
             <BookOpen className="w-6 h-6" />

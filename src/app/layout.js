@@ -1,7 +1,12 @@
+// ตรวจสอบ Provider
 import { AuthProvider } from "./Provider";
 
+
+// font system
 import { Kanit } from "next/font/google";
 import "./globals.css";
+// Progress Action
+import ProgressBar from "./ProgressBar";
 
 const kanitSans = Kanit({
   weight: '400',
@@ -20,6 +25,7 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body className={kanitSans.className} >
         <AuthProvider>
+          <ProgressBar />
           {children}
         </AuthProvider>
       </body>

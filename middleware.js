@@ -25,5 +25,5 @@ export async function middleware(req) {
 }
 // ระบุ path ที่ให้ middleware ทำ
 export const config = {
-  matcher: ["/teacher/:path*", "/dashboard/:path*",],
+  matcher: ["/teacher/:path*", "/dashboard/:path*"],
 };

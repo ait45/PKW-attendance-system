@@ -59,6 +59,8 @@ export default function DownloadPdf({ setBack }) {
             {isMobile ? (
               <a
                 href="/api/generate-pdf/qr-student"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="px-4 py-2 bg-green-500 text-white rounded-lg  hover:bg-green-600 transition-colors active:bg-green-600"
               >
                 เปิดไฟล์

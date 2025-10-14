@@ -1,22 +1,45 @@
-import NextAuthPkg from "next-auth/next";
-import CredentialsPkg from "next-auth/providers/credentials";
+import NextAuth from "next-auth/next";
+import CredentialsProvider from "next-auth/providers/credentials";
 import { connectDB } from "../../../../../lib/mongodb";
 import Student from "../../../../../models/Student";
 import Teacher from "../../../../../models/Teacher";
 import bcrypt from "bcrypt";
+import { LRUCache } from "lru-cache";
+import { NextResponse } from "next/server";
 
-const NextAuth = NextAuthPkg.default || NextAuthPkg;
-const Credentials = CredentialsPkg.default || CredentialsPkg;
+const ratelimit = new LRUCache({
+  max: 500,
+  ttl: 1000 * 60,
+});
+
+function checkRatelimit(ip) {
+  const count = ratelimit.get(ip) || 0;
+  if (count >= 5) return false;
+  ratelimit.set(ip, count + 1);
+  return true;
+}
 
 const handler = NextAuth({
   providers: [
-    Credentials({
+    CredentialsProvider({
       name: "Credentials",
       credentials: {
         username: { label: "Username", type: "text" },
-        password: { labal: "Password", type: "password" },
+        password: { label: "Password", type: "password" },
       },
-      async authorize(credentials) {
+      async authorize(credentials, req) {
+        const ip =
+          req.headers?.get?.("x-forwarded-for")?.split(",")[0] ||
+          req.headers?.get?.("x-real-ip") ||
+          "127.0.0.1";
+
+        console.log("Client IP:", ip);
+        if (!checkRatelimit(ip))
+          return NextResponse.json(
+            { error: "Too many requests" },
+            { status: 429 }
+          );
+        console.log(req.headers);
         const { username, password } = credentials;
         if (!username || !password) {
           throw new Error("Missing credentials");
@@ -30,6 +53,8 @@ const handler = NextAuth({
             if (!user) return null;
             const passwordmatch = await bcrypt.compare(password, user.password);
             if (!passwordmatch) return null;
+            //ratelimit.delete(ip);
+            //console.log(`[${ip}] login success -> reset count`);
             return {
               id: user._id.toString(),
               username: user.teacherId,
@@ -42,6 +67,8 @@ const handler = NextAuth({
             if (!user) return null;
             const passwordmatch = await bcrypt.compare(password, user.password);
             if (!passwordmatch) return null;
+            //ratelimit.delete(ip);
+            //console.log(`[${ip}] login success -> reset count`);
             return {
               id: user._id.toString(),
               username: user.studentId,
@@ -66,8 +93,7 @@ const handler = NextAuth({
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.id = user.id,
-        token.username = user.username;
+        (token.id = user.id), (token.username = user.username);
         token.name = user.name;
         token.isAdmin = user.isAdmin;
       }
@@ -80,8 +106,7 @@ const handler = NextAuth({
       return token;
     },
     async session({ session, token }) {
-      session.id = token.id,
-      session.user.username = token.username;
+      (session.id = token.id), (session.user.username = token.username);
       session.user.name = token.name;
       session.user.role = token.role;
       session.user.isAdmin = token.isAdmin;
@@ -100,4 +125,5 @@ const handler = NextAuth({
     signIn: "/login",
   },
 });
+
 export { handler as GET, handler as POST };
