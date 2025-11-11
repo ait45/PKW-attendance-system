@@ -58,7 +58,7 @@ function Dashboard({ session }) {
       <div className="bg-white rounded-lg shadow-lg p-8">
         <div className="mb-6">
           <header className="flex items-start sm:items-center mr-2">
-            <ChartColumnBig className="mr-2"/>
+            <ChartColumnBig className="mr-2" />
             <h2 className="text-md sm:text-2xl font-bold text-gray-800 text-wrep">
               กิจกรรมหน้าเสาธง
             </h2>
@@ -73,7 +73,8 @@ function Dashboard({ session }) {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mb-8">
           <div className="bg-blue-50 p-6 rounded-lg text-center">
             <div className="text-3xl font-bold text-blue-600 mb-2">
-              {Object.keys(DataStudent.student).length}
+              {DataStudent &&
+                (Object.keys(DataStudent.student).length || "กำลังโหลด")}
             </div>
             <div className="text-blue-700 font-medium">นักเรียนทั้งหมด</div>
           </div>
@@ -166,7 +167,6 @@ function Dashboard({ session }) {
             </table>
           </div>
         </div>
-        
       </div>
     </main>
   );

@@ -14,8 +14,10 @@ import {
   CircleAlert,
   FileBadge,
 } from "lucide-react";
+import { signOut } from "next-auth/react";
 
 const StudentDashboard = ({ session }) => {
+  // checkUser 
   const [DataUser, setDataUser] = useState({});
   const fetchDataUser = async () => {
     const req = await fetch(`/api/studentManagement/${session?.id}`);

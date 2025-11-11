@@ -3,6 +3,7 @@ import Student from "../models/Student.js";
 import LineupAttendanceModal from "../models/LineupAttendanceModal.js";
 import { Calculate_behaviorScore } from "./behaviorScore-deduction.js";
 import readConfig from "./readConfig.js";
+import { Holiday } from "./Holiday.js";
 
 const now = new Date();
 
@@ -40,12 +41,17 @@ export async function autoCutoff() {
   const timeCutoff = new Date();
   timeCutoff.setHours(h, m, 0, 0);
   const now = new Date();
+
   if (now > timeCutoff) {
     console.log("autoCutoff");
     try {
       await connectDB();
-      now.setHours(0, 0, 0, 0);
       console.log("start autoCutoff");
+      const holiday = Holiday(now);
+      if (holiday.isHoliday){
+        console.log("is Holiday");
+        return;
+      }
       const student = await Student.find();
       const checked = await LineupAttendanceModal.find({
         createdAt: { $gte: startOfDay, $lte: endOfDay },

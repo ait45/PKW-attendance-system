@@ -1,23 +1,24 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { ArrowLeft } from "lucide-react";
-import Nav from "../components/Navbar/page";
-import Footer from "../components/Footer/page";
+import { ArrowLeft, Power, AlertTriangle } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { redirect, useRouter } from "next/navigation";
 import Link from "next/link";
-import ShowAlert from "../components/Sweetalert";
+import ShowAlert from "../Sweetalert";
 import Swal from "sweetalert2";
+import ReactDOMServer from "react-dom/server";
 
-function Setting() {
+function SettingsPage() {
   const { data: session, status } = useSession();
-  const [admin, setAdmin] = useState(false);
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [dataSetting, setDataSetting] = useState({});
   const [isChange, setIsChange] = useState(false);
   const [error, setError] = useState({});
+  const [main_active, set_main_active] = useState(false);
+  const [teacher_Admin, setTeacher_Admin] = useState(false);
+
   const fetchSetting = async () => {
     try {
       setLoading(true);
@@ -28,12 +29,18 @@ function Setting() {
         setDataSetting(data.data);
         setLoading(false);
       }
+      const res_main_active = await fetch("/api/system/toggle");
+      const data_main_active = await res_main_active.json();
+      console.log(data_main_active);
+      set_main_active(data_main_active.main_active);
+      
     } catch (error) {
       console.error(error);
     }
   };
   useEffect(() => {
     fetchSetting();
+    if (session?.user?.role === "teacher" && session?.user?.isAdmin === true) setTeacher_Admin(true);
   }, []);
   useEffect(() => {
     const {
@@ -105,6 +112,28 @@ function Setting() {
       }));
     }
   };
+  const toggleMainSystem = async () => {
+    Swal.fire({
+      title: `${dataSetting.main_active ? "ยืนยันการปิดระบบ":"ยืนยันการเปิดระบบ"}`,
+      text: `${dataSetting.main_active ? "หน้าเว็บจะทำการปิดทุกหน้า..": ""}`,
+      iconHtml: ReactDOMServer.renderToString(
+        <AlertTriangle />
+      ),
+      showConfirmButton: true,
+      confirmButtonText: "ยืนยัน",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        const status = !main_active;
+        const req = await fetch("/api/system/toggle", {
+          method: "POST",
+          body: JSON.stringify({ main_active: status }),
+        });
+        if (req.ok) return ShowAlert({ title: "ปิดระบบสำเร็จ", icon: "success" });
+        ShowAlert({ title: "ปิดระบบไม่สำเร็จ", icon: "error" });
+        fetchSetting();
+      }
+    });
+  };
   const handleSubmit = async (e) => {
     e.preventDefault();
     const error = validateForm();
@@ -118,7 +147,7 @@ function Setting() {
       title: "ยืนยันการบันทึกตั้งค่า",
       showConfirmButton: true,
       confirmButtonText: "บันทึก",
-      width: "60%",
+      width: "80%",
     }).then(async (result) => {
       if (result.isConfirmed) {
         const req = await fetch("/api/setting", {
@@ -143,19 +172,19 @@ function Setting() {
   if (session?.user?.role === "student" && session?.user?.isAdmin)
     return redirect(`/student/admin/${session?.id}`);
   if (!session && status === "unauthenticated") return redirect("/login");
+  
   if (status === "loading") return null;
   if (loading) return null;
 
   return (
-    <main className="min-w-screen min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <Nav session={session} />
+    <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <div className="flex justify-center pt-2 mb-10">
         <div className="bg-white rounded-xl shadow-2xl w-[90%] sm:w-[70%] p-6 ">
           <Link
             href="#"
-            onClick={async (e) => {
+            onClick={async () => {
               if (isChange) {
-                await handleSubmit(e);
+                await handleSubmit();
               }
               router.back();
             }}
@@ -173,12 +202,13 @@ function Setting() {
               )}
             </div>
             <div className="">
-              <button className="mr-2 px-3 py-2 outline-2 outline-blue-500 text-blue-500  hover:bg-blue-700 hover:text-white  transition-colors rounded-md cursor-pointer">
+              <button className="mr-2 px-3 py-2 outline-2 outline-blue-500 text-blue-500  hover:bg-blue-700 hover:text-white  transition-colors rounded-md cursor-pointer" >
                 ส่งออก
               </button>
               <button
                 onClick={handleSubmit}
-                className="px-3 py-2 outline-2 outline-green-500 text-green-500 hover:bg-green-700 hover:text-white transition-colors rounded-md cursor-pointer"
+                disabled={!teacher_Admin}
+                className="px-3 py-2 outline-2 outline-green-500 text-green-500 hover:bg-green-700 hover:text-white transition-colors rounded-md cursor-pointer disabled:cursor-not-allowed"
               >
                 บันทึก
               </button>
@@ -198,12 +228,13 @@ function Setting() {
                     type="number"
                     className={`mx-2 px-3 py-1 w-[60px] border-b-2 border-gray-500 hover:border-blue-500 focus:border-blue-500 ${
                       error.Scorededucted_lateAttendance && "border-red-500"
-                    } transition-all outline-none`}
+                    } transition-all outline-none disabled:cursor-not-allowed disabled:text-gray-500 disabled:border-gray-500`}
                     maxLength={1}
                     min={0}
                     name="Scorededucted_lateAttendance"
                     value={dataSetting.Scorededucted_lateAttendance}
                     onChange={handleInputChange}
+                    disabled={!teacher_Admin}
                   />
                   คะแนน
                 </div>
@@ -222,12 +253,13 @@ function Setting() {
                     type="number"
                     className={`mx-2 px-3 py-1 w-[60px] border-b-2 border-gray-500 hover:border-blue-500 focus:border-blue-500 ${
                       error.Scorededucted_absentAttendance && "border-red-500"
-                    } transition-all outline-none`}
+                    } transition-all outline-none disabled:cursor-not-allowed disabled:text-gray-500 disabled:border-gray-500`}
                     min={0}
                     maxLength={1}
                     name="Scorededucted_absentAttendance"
                     value={dataSetting.Scorededucted_absentAttendance}
                     onChange={handleInputChange}
+                    disabled={!teacher_Admin}
                   />
                   คะแนน
                 </div>
@@ -252,9 +284,10 @@ function Setting() {
                     name="AttendanceStart"
                     value={dataSetting.AttendanceStart}
                     onChange={handleInputChange}
+                    disabled={!teacher_Admin}
                     className={`border-b-2 border-gray-500 focus:border-blue-500 ${
                       error.AttendanceStart && "border-red-500"
-                    } transition-all outline-none`}
+                    } transition-all outline-none disabled:cursor-not-allowed disabled:text-gray-500 disabled:border-gray-500`}
                   />
                 </div>
               </div>
@@ -271,9 +304,10 @@ function Setting() {
                     name="lateThreshold"
                     value={dataSetting.lateThreshold}
                     onChange={handleInputChange}
+                    disabled={!teacher_Admin}
                     className={`border-b-2 border-gray-500 focus:border-blue-500 ${
                       error.lateThreshold && "border-red-500"
-                    } transition-all outline-none`}
+                    } transition-all outline-none disabled:cursor-not-allowed disabled:text-gray-500 disabled:border-gray-500`}
                   />
                 </div>
               </div>
@@ -290,9 +324,10 @@ function Setting() {
                     name="absentThreshold"
                     value={dataSetting.absentThreshold}
                     onChange={handleInputChange}
+                    disabled={!teacher_Admin}
                     className={`border-b-2 border-gray-500 focus:border-blue-500 ${
                       error.absentThreshold && "border-red-500"
-                    } transition-all outline-none`}
+                    } transition-all outline-none disabled:cursor-not-allowed disabled:text-gray-500 disabled:border-gray-500`}
                   />
                 </div>
               </div>
@@ -309,9 +344,10 @@ function Setting() {
                     name="timerStartEditAttendance"
                     value={dataSetting.timerStartEditAttendance}
                     onChange={handleInputChange}
+                    disabled={!teacher_Admin}
                     className={`border-b-2 border-gray-500 focus:border-blue-500 ${
                       error.timerStartEditAttendance && "border-red-500"
-                    } transition-all outline-none`}
+                    } transition-all outline-none disabled:cursor-not-allowed disabled:text-gray-500 disabled:border-gray-500`}
                   />
                 </div>
               </div>
@@ -328,9 +364,10 @@ function Setting() {
                     name="timerEndEditAttendance"
                     value={dataSetting.timerEndEditAttendance}
                     onChange={handleInputChange}
+                    disabled={!teacher_Admin}
                     className={`border-b-2 border-gray-500 focus:border-blue-500 ${
                       error.timerEndEditAttendance && "border-red-500"
-                    } transition-all outline-none`}
+                    } transition-all outline-none disabled:cursor-not-allowed disabled:text-gray-500 disabled:border-gray-500`}
                   />
                 </div>
               </div>
@@ -341,7 +378,29 @@ function Setting() {
               )}
             </div>
           </div>
-          <div className="bg-white rounded-xl shadow-xl p-4 m-2">
+          <div className={`bg-white rounded-xl shadow-xl p-4 m-2 ${!teacher_Admin && "hidden"}`}>
+            <h1 className="font-bold text-blue-500">ควบคุม</h1>
+            <div className="flex justify-between">
+              <p className="font-bold">Main System</p>
+              <button
+                onClick={() => toggleMainSystem()}
+                className={`relative w-14 h-6 rounded-full transition-all duration-300 cursor-pointer ${
+                  main_active
+                    ? "bg-blue-500 shadow-md shadow-blue-500/30"
+                    : "bg-white shadow-md shadow-blue-500/30"
+                }`}
+              >
+                <div
+                  className={`absolute top-1 left-1 w-4 h-4 ${
+                    main_active ? "bg-white" : "bg-blue-500"
+                  } rounded-full shadow-md transition-all duration-300 ${
+                    main_active ? "translate-x-8" : "translate-x-0"
+                  }`}
+                />
+              </button>
+            </div>
+          </div>
+          <div className={`bg-white rounded-xl shadow-xl p-4 m-2 ${!teacher_Admin && "hidden"}`}>
             <h1 className="font-bold text-blue-500">รีเซ็ตระบบ</h1>
             <div className="ml-2 my-2">
               <button
@@ -368,9 +427,8 @@ function Setting() {
           </div>
         </div>
       </div>
-      <Footer />
     </main>
   );
 }
 
-export default Setting;
+export default SettingsPage;

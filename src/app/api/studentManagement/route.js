@@ -1,3 +1,5 @@
+export const runtime = "nodejs";
+
 import { connectDB } from "../../../../lib/mongodb";
 import { NextResponse } from "next/server";
 import Student from "../../../../models/Student";
@@ -19,15 +21,15 @@ async function genPassword(lenght) {
 export async function GET(req) {
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
 
-  if (!token) {
+  if (!token)
     return NextResponse.json(
       { success: false, message: "Unauthorization" },
       { status: 401 }
     );
-  }
+
   try {
     await connectDB();
-    const data = await Student.find({}).limit(200);
+    const data = await Student.find({});
 
     if (token?.role === "teacher" && token?.isAdmin) {
       const payload = data.map((index) => {
@@ -41,7 +43,7 @@ export async function GET(req) {
           status: index.status,
           plantData: index.plantData,
           Number: index.Number,
-          comeDays: index.comeDays,
+          joinDays: index.joinDays,
           leaveDays: index.leaveDays,
           lateDays: index.lateDays,
           absentDays: index.absentDays,
@@ -82,17 +84,13 @@ export async function GET(req) {
     );
   }
 }
-
 export async function POST(req) {
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
   if (!token)
-    return NextResponse.json(
-      { success: false, message: "Unauthorization" },
-      { status: 401 }
-    );
+    return NextResponse.json({ error: "Unauthrization" }, { status: 401 });
   try {
-    const body = await req.json();
-    const { studentId, name, classes, phone, parentPhone, Number } = body;
+    const { studentId, name, classes, phone, parentPhone, Number } =
+      await req.json();
     const plantData = await genPassword(5);
     const password = await bcrypt.hash(plantData, 10);
     const checkId = await Student.findOne({ studentId: studentId });
@@ -112,12 +110,11 @@ export async function POST(req) {
         plantData,
         Number,
       });
-      console.log(doc);
       await doc.save();
       return NextResponse.json({ success: true }, { status: 200 });
     }
   } catch (error) {
-    console.log("Error :", error);
+    console.error("Error :", error);
     return NextResponse.json(
       { success: false, message: error },
       { status: 500 }

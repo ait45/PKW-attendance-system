@@ -1,6 +1,6 @@
 "use client";
-import { signIn, useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { signIn, signOut, useSession } from "next-auth/react";
+import { redirect, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { Eye, EyeOff, User, Lock, LogIn } from "lucide-react";
 import Image from "next/image";
@@ -87,9 +87,11 @@ export default function LoginPage() {
         username,
         password,
       });
-      if (res.ok) {
+      console.log(res);
+      if (res.status === 200) {
         const sessionRes = await fetch("/api/auth/session");
         const session = await sessionRes.json();
+        if (!session?.id) signOut();
         if (
           session?.user?.role === "teacher" &&
           session?.user?.isAdmin === false
@@ -120,15 +122,13 @@ export default function LoginPage() {
             text: "คุณไม่ได้รับอนุญาตให้เข้าใช้งาน",
             icon: "error",
           });
-          router.push("/");
         }
-      } else {
-        ShowAlert({
+      } else if (res.status === 401)
+        return ShowAlert({
           title: "เข้าสู่ระบบไม่สำเร็จ",
-          text: "กรุณาตรวจสอบชื่อผู้ใช้\nและรหัสผ่าน.",
+          text: "กรุณาตรวจสอบชื่อผู้ใช้\nและรหัสผ่าน",
           icon: "error",
         });
-      }
     } catch (error) {
       setErrors({ submit: "เกิดข้อผิดพลาดในการเข้าสู่ระบบ กรุณาลองใหม่" });
     } finally {

@@ -2,11 +2,12 @@
 import { useEffect, useState } from "react";
 import Nav from "@/app/components/Navbar/page";
 import Footer from "@/app/components/Footer/page";
-import { useSession } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import Swal from "sweetalert2";
 import {
   Home,
   Users,
+  UserRound,
   Settings,
   FileText,
   Mail,
@@ -28,39 +29,55 @@ import StudentManagement from "@/app/components/StudentManagement/page";
 import AttendanceCheckPage from "@/app/components/AttendanceCheck/page";
 import TableAttendance from "@/app/components/tableAttendance/page";
 import QRDownload from "@/app/components/QRDownload/page";
-import { redirect, useRouter } from "next/navigation";
+import {
+  redirect,
+  useRouter,
+  usePathname,
+  useSearchParams,
+} from "next/navigation";
 import Dashboard from "@/app/components/Dashboard/page";
 import ReportPage from "@/app/components/Report/page";
+import Teacher_Management from "@/app/components/TeacherManagement/page";
+import SettingsPage from "@/app/components/settings/page";
 
 function TeacherPage() {
-  const [currentPage, setCurrentPage] = useState("dashboard");
   const router = useRouter();
   const { data: session, status } = useSession();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
 
-  useEffect(() => {
-    const checkMobile = () => {
-      const mobile = window.innerWidth < 768;
-      setIsMobile(mobile);
-    };
-
-    checkMobile();
-    window.addEventListener("reset", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
-  }, []);
-  useEffect(() => {
-    if (currentPage === "settings") {
-      router.push("/settings");
-    }
-  }, [currentPage, router]);
+  const currentPage = searchParams.get("page") || "dashboard";
+  const handleChangePage = (pageName) => {
+    router.push(`${pathname}?page=${pageName}`);
+  };
   
+
   const [isCollapsed, setIsCollapsed] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
+  const [screenWidth, setScreenWidth] = useState(0);
+
+  const checkScreenSize = () => {
+    setScreenWidth(window.innerWidth);
+  };
+  useEffect(() => {
+    checkScreenSize();
+  
+  }, [isCollapsed]);
+  useEffect(() => {
+    if (screenWidth < 768) setIsMobile(true)
+    else setIsMobile(false)
+  }, [screenWidth]);
+  
+  useEffect(() => {
+    window.addEventListener("resize", checkScreenSize);
+    return () => window.removeEventListener("resize", checkScreenSize);
+  }, []);
 
   const SideBar = ({ activeMenu, setActiveMenu, session }) => {
     const menuItems = [
       { id: "dashboard", label: "Dashboard", icon: Home },
       { id: "messages", label: "Messages", icon: Mail },
-      { id: "calendar", label: "Calendar", icon: Calendar },
+      { id: "teachers", label: "ข้อมูลครู", icon: UserRound },
       { id: "settings", label: "ตั้งค่า", icon: Settings },
     ];
 
@@ -74,13 +91,13 @@ function TeacherPage() {
     const handleMenuClick = (itemId) => {
       setActiveMenu(itemId);
     };
-
+    console.log(isMobile);
     return (
       <main className="flex min-h-screen bg-gray-100 w-auto">
         {/* Sidebar */}
         <div
-          className={`relative bg-[#009EA3] text-white transition-all duration-300 ease-in shadow-2xl ${
-            isCollapsed ? `w-16` : `w-60`
+          className={`relative bg-[#009EA3] text-white transition-all duration-300 ease-in-out shadow-2xl ${
+            isCollapsed ? "w-16" : "w-60"
           }`}
         >
           <div className="p-4 border-b border-white/10">
@@ -201,9 +218,9 @@ function TeacherPage() {
               <div className="flex items-center text-gray-600 hover:text-gray-900 transition-colors rounded-md">
                 <QrCode size={20} />
                 <select
-                  className="outline-none w-[20px] sm:w-[120px] text-sm focus:text-gray-900"
+                  className="outline-none w-[20px] sm:w-[120px] text-sm focus:text-gray-900 cursor-pointer"
                   value={currentPage}
-                  onChange={(e) => setCurrentPage(e.target.value)}
+                  onChange={(e) => handleChangePage(e.target.value)}
                   id="attendance"
                 >
                   <option value="dashboard">หน้าแรก</option>
@@ -212,7 +229,7 @@ function TeacherPage() {
                 </select>
               </div>
               <button
-                onClick={() => setCurrentPage("students")}
+                onClick={() => handleChangePage("students")}
                 className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors text-sm ${
                   currentPage === "students"
                     ? "bg-blue-500 text-white"
@@ -224,7 +241,7 @@ function TeacherPage() {
                 <p className="hidden md:inline">นักเรียน</p>
               </button>
               <button
-                onClick={() => setCurrentPage("schedule")}
+                onClick={() => handleChangePage("schedule")}
                 className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors text-sm ${
                   currentPage === "schedule"
                     ? "bg-blue-500 text-white"
@@ -236,7 +253,7 @@ function TeacherPage() {
                 <p className="hidden md:inline">ตารางเรียน</p>
               </button>
               <button
-                onClick={() => setCurrentPage("reports")}
+                onClick={() => handleChangePage("reports")}
                 className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors text-sm ${
                   currentPage === "reports"
                     ? "bg-blue-500 text-white"
@@ -248,7 +265,7 @@ function TeacherPage() {
                 <p className="hidden md:inline">รายงาน</p>
               </button>
               <button
-                onClick={() => setCurrentPage("statistics")}
+                onClick={() => handleChangePage("statistics")}
                 className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors text-sm ${
                   currentPage === "statistics"
                     ? "bg-blue-500 text-white"
@@ -266,13 +283,13 @@ function TeacherPage() {
       <main className="flex h-screen">
         <SideBar
           activeMenu={currentPage}
-          setActiveMenu={setCurrentPage}
+          setActiveMenu={handleChangePage}
           session={session}
         />
         <main
           className={`flex-1 py-4 w-full overflow-auto ${
-            isCollapsed ? "inline" : isMobile && "hidden"
-          }`}
+            isCollapsed && "inline"
+          } ${isMobile ? "hidden" : "inline"}`}
         >
           {currentPage === "dashboard" && <Dashboard session={session} />}
           {currentPage === "scan" && <AttendanceCheckPage session={session} />}
@@ -280,14 +297,16 @@ function TeacherPage() {
             <TableAttendance session={session} />
           )}
           {currentPage === "students" && (
-            <StudentManagement session={session} setMenu={setCurrentPage} />
+            <StudentManagement session={session} setMenu={handleChangePage} />
           )}
           {currentPage === "schedule" && <SchedulePage session={session} />}
           {currentPage === "statistics" && <StatisticsPage session={session} />}
           {currentPage === "PDFStudent" && (
-            <QRDownload setBack={setCurrentPage} />
+            <QRDownload setBack={handleChangePage} />
           )}
           {currentPage === "reports" && <ReportPage session={session} />}
+          {currentPage === "teachers" && <Teacher_Management />}
+          {currentPage === "settings" && <SettingsPage />}
         </main>
       </main>
       <Footer />

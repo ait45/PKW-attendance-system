@@ -38,7 +38,7 @@ function navBar({ session }) {
               }, 3000);
             }}
           />
-          <p className="hidden sm:inline text-xs font-bold cursor-context-menu">
+          <p className="hidden md:inline text-xs font-bold cursor-context-menu">
             {currentDate}
           </p>
           {component === "date" && (
@@ -59,7 +59,7 @@ function navBar({ session }) {
               }, 3000);
             }}
           />
-          <p className="hidden sm:inline text-xs font-bold cursor-context-menu">
+          <p className="hidden md:inline text-xs font-bold cursor-context-menu">
             <Timer />
           </p>
           {component === "time" && (
@@ -71,7 +71,7 @@ function navBar({ session }) {
         {!session ? (
           <Link
             href="/login"
-            className="flex items-center p-4 text-sm text-[#009EA3]  hover:text-[#8AFBFF] hover:transition-colors"
+            className="flex items-center p-4 text-sm text-[#009EA3]  hover:text-[#188F6D] hover:transition-colors"
             title="เข้าสู่ระบบ"
           >
             <LogIn width={15} height={15} className="mr-1" />
@@ -86,11 +86,13 @@ function navBar({ session }) {
             <a
               onClick={() => {
                 signOut();
-                ShowAlert({
-                  title: "ออกจากระบบเสร็จสิ้น.",
-                  icon: "success",
-                  timer: 5000,
-                });
+                setTimeout(() => {
+                  ShowAlert({
+                    title: "ออกจากระบบเสร็จสิ้น",
+                    icon: "success",
+                    timer: 5000,
+                  });
+                }, 1000);
               }}
               className="flex items-center text-sm text-red-500 hover:text-red-700 hover:transition-colors cursor-pointer mr-2"
               title="ออกจากระบบ"

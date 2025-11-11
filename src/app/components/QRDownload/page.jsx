@@ -26,10 +26,12 @@ export default function DownloadPdf({ setBack }) {
 
       const blob = await res.blob();
       const url = window.URL.createObjectURL(blob);
+      let filename = res.headers.get("Content-Disposition")?.split("filename=")[1];
+      if (filename) filename = filename.replace(/"/g, "");
 
       const link = document.createElement("a");
       link.href = url;
-      link.download = "qr-students.pdf";
+      link.download = `${filename}.pdf`;
       link.click();
       window.URL.revokeObjectURL(url);
     } catch (err) {

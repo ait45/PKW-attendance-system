@@ -1,24 +1,47 @@
-import PDFDocument from "pdfkit";
+import PDFDocument, { currentLineHeight, font } from "pdfkit";
 import QRCode from "qrcode";
 import { getToken } from "next-auth/jwt";
 import { NextResponse } from "next/server";
 import { connectDB } from "../../../../../lib/mongodb";
 import Student from "../../../../../models/Student";
+import pdfMake from "pdfmake/build/pdfmake";
+import pdfFonts from "pdfmake/build/vfs_fonts";
+import { Buffer } from "node:buffer";
 import fs from "fs";
 import path from "path";
 
-const fontPath = path.join(
-  process.cwd(),
-  "public",
-  "fonts",
-  "Sarabun-Medium.ttf"
-); // วางไฟล์ ttf ใน public/fonts
-function getFileName() {
-  const now = new Date();
-  const date = now.toISOString().split("T")[0];
-  const time = now.toTimeString().split(" ")[0].replace(/:/g, "");
-  return `report_behaviorScore-${date}_${time}.pdf`;
+const fonts = {
+  THSarabunNew: {
+    normal: path.join(process.cwd(), "public", "fonts", "THSarabunNew.ttf"),
+    bold: path.join(process.cwd(), "public", "fonts", "THSarabunNew Bold.ttf"),
+  },
+};
+
+function getFileName(base) {
+  const date = new Date().toISOString().replace(/[:.]/g, "-");
+  return `${base}-${date}.pdf`;
 }
+
+function getThaiDate() {
+  const now = new Date();
+  const year = now.getFullYear() + 543;
+  const monthNames = [
+    "มกราคม",
+    "กุมภาพันธ์",
+    "มีนาคม",
+    "เมษายน",
+    "พฤษภาคม",
+    "มิถุนายน",
+    "กรกฎาคม",
+    "สิงหาคม",
+    "กันยายน",
+    "ตุลาคม",
+    "พฤศจิกายน",
+    "ธันวาคม",
+  ];
+  return `${now.getDate()} ${monthNames[now.getMonth()]} ${year}`;
+}
+
 export async function GET(req, { params }) {
   const token = getToken({ req, secret: process.env.AUTH_SECRET });
   if (!token)
@@ -31,16 +54,16 @@ export async function GET(req, { params }) {
       { status: 401 }
     );
 
-  const awaitmethod = await params;
-  const method = awaitmethod.method;
+  const { method } = await params;
   if (method === "qr-student") {
     try {
       await connectDB();
+      const fileName = getFileName("PKW-QrCode-Student");
       const students = await Student.find();
       const doc = new PDFDocument({ size: "A4", margin: 30 });
-      if (fs.existsSync(fontPath)) {
-        doc.registerFont("SarabunMedium", fontPath);
-        doc.font("SarabunMedium");
+      if (fs.existsSync(fonts.THSarabunNew.normal)) {
+        doc.registerFont("THSarabunNew", fonts.THSarabunNew.normal);
+        doc.font("THSarabunNew");
       } else {
         console.log("Font not found, using default");
       }
@@ -52,9 +75,11 @@ export async function GET(req, { params }) {
           const pdfBuffer = Buffer.concat(buffers);
           resolve(
             new NextResponse(pdfBuffer, {
-              header: {
+              headers: {
                 "Content-Type": "application/pdf",
-                "Content-Disposition": "atteachment; filename=PKW-QrCode-Student.pdf",
+                "Content-Disposition": `inline; filename="${encodeURIComponent(
+                  fileName
+                )}"`,
               },
             })
           );
@@ -115,113 +140,176 @@ export async function GET(req, { params }) {
       );
     }
   }
-  if (method === "report_student-behaviorScore") {
+  if (method === "report_student-behaviorScore-all") {
     try {
-      const filename = getFileName();
-      const reportDir = path.join(process.cwd(), "pdf-historyFiles");
-      if (!fs.existsSync(reportDir)) {
-        fs.mkdirSync(reportDir, { recursive: true });
-      }
-      const filePath = path.join(reportDir, filename);
+      const filename = getFileName("behaviorScore-all");
+      const data_student = await Student.find();
+      pdfMake.vfs = pdfFonts.vfs;
 
-      const doc = new PDFDocument({ size: "A4", margin: 40 });
-      doc.pipe(fs.createWriteStream(filePath));
-      doc.registerFont("SarabunMedium", fontPath);
-      doc.font("SarabunMedium");
-      const buffers = [];
-      doc.on("data", (buffer) => buffers.push(buffer));
-
-      const pdfEndPromise = new Promise((resolve) => {
-        doc.on("end", () => resolve(Buffer.concat(buffers)));
-      });
-
-      doc.fontSize(20).text("รายงานคะแนนความประพฤติ", { align: "center" });
-      doc.moveDown(1);
-
-      const tableTop = 100;
-      const rowHeight = 25;
-
-      // Column positions
-      const columns = [
-        { header: "รหัสนักเรียน", x: 20, width: 60 },
-        { header: "ชื่อ", x: 80, width: 70 },
-        { header: "ชั้น", x: 150, width: 30 },
-        { header: "คะแนนความประพฤติ", x: 180, width: 90 },
-        { header: "วันที่เข้าร่วม", x: 270, width: 50 },
-        { header: "วันที่ลา", x: 320, width: 40 },
-        { header: "วันที่สาย", x: 360, width: 40 },
-        { header: "วันที่ขาด", x: 400, width: 40 },
-      ];
-
-      const data_history_raw = await Student.find();
-      const data_history = data_history_raw.map((value) => {
-        return {
-          studentId: value.studentId,
-          name: value.name,
-          classes: value.classes,
-          behaviorScore: value.behaviorScore,
-          comeDays: value.comeDays,
-          leaveDays: value.leaveDays,
-          lateDays: value.lateDays,
-          absentDays: value.absentDays,
-        };
-      });
-      doc.fontSize(10);
-      columns.forEach((col) => {
-        doc.text(col.header, col.x, tableTop, {
-          width: col.width,
-          align: "left",
-        });
-      });
-
-      // วาดเส้นกรอบ header
-      doc
-        .moveTo(20, tableTop - 2)
-        .lineTo(450, tableTop - 2)
-        .stroke();
-      doc
-        .moveTo(20, tableTop + rowHeight - 2)
-        .lineTo(450, tableTop + rowHeight - 2)
-        .stroke();
-
-      // วาดเส้นแบ่ง column
-      columns.forEach((col) => {
-        doc
-          .moveTo(col.x, tableTop - 2)
-          .lineTo(col.x, tableTop + rowHeight * (data_history.length + 1))
-          .stroke();
-      });
-
-      // เขียน row ข้อมูล
-      doc.fontSize(10);
-      data_history.forEach((stu, i) => {
-        const y = tableTop + rowHeight * (i + 1);
-        doc.text(stu.studentId, columns[0].x, y, { width: columns[0].width });
-        doc.text(stu.name, columns[1].x, y, { width: columns[1].width });
-        doc.text(stu.grade, columns[2].x, y, { width: columns[2].width });
-        doc.text(stu.behaviorScore.toString(), columns[3].x, y, {
-          width: columns[3].width,
-        });
-        doc.text(stu.present, columns[4].x, y, { width: columns[4].width });
-        doc.text(stu.leave, columns[5].x, y, { width: columns[5].width });
-        doc.text(stu.late, columns[6].x, y, { width: columns[6].width });
-        doc.text(stu.absent, columns[7].x, y, { width: columns[7].width });
-
-        // วาดเส้น row
-        doc
-          .moveTo(20, y + rowHeight - 2)
-          .lineTo(450, y + rowHeight - 2)
-          .stroke();
-      });
-      doc.end();
-
-      const pdfBuffer = await pdfEndPromise;
-      return new Response(pdfBuffer, {
-        status: 200,
-        headers: {
-          "Content-Type": "application/pdf",
-          "Content-Dispostion": `attachment; filename=${filename}`,
+      pdfMake.fonts = {
+        THSarabunNew: {
+          normal: "THSarabunNew.ttf",
+          bold: "THSarabunNew Bold.ttf",
+          italics: "THSarabunNew Italic.ttf",
+          bolditalics: "THSarabunNew BoldItalic.ttf",
         },
+      };
+      // == Helper Function == //
+
+      const logoPath = path.join(process.cwd(), "src", "app", "favicon.ico");
+      const logoBase64 = fs.existsSync(logoPath)
+        ? `data:image/png;base64,${fs
+            .readFileSync(logoPath)
+            .toString("base64")}`
+        : null;
+
+      const docDefinition = {
+        pageSize: "A4",
+        PageOrientation: "portrait",
+        PageMargins: [40, 100, 40, 60],
+        background: {
+          text: "PKW SERVICE TH OFFICIAL",
+          color: "gray",
+          opacity: 0.15,
+          fontSize: 60,
+          bold: true,
+          alignment: "center",
+          margin: [0, 300],
+        },
+
+        header: function () {
+          return {
+            margin: [20, 15, 20, 10],
+            stack: [
+              {
+                columns: [
+                  logoBase64
+                    ? {
+                        image: logoBase64,
+                        width: 50,
+                        height: 50,
+                        margin: [0, 0, 5, 0],
+                      }
+                    : { text: "" },
+                  {
+                    stack: [
+                      {
+                        text: "PKW SERVICE TH",
+                        fontSize: 16,
+                        bold: true,
+                        lineHeight: 1.1,
+                      },
+                      {
+                        text: "โรงเรียนพระแก้วอาสาวิทยา",
+                        fontSize: 12,
+                        lineHeight: 1.1,
+                      },
+                    ],
+                    margin: [0, 5, 0, 0],
+                  },
+
+                  // วันที่พิมพ์
+                  {
+                    text: `วันที่พิมพ์: ${getThaiDate()}`,
+                    alignment: "right",
+                    fontSize: 10,
+                    color: "blue",
+                    margin: [0, 15, 0, 0],
+                  },
+                ],
+              },
+            ],
+          };
+        },
+
+        footer: (currentPage, pageCount) => {
+          return {
+            margin: [20, 0, 20, 10],
+            fontSize: 8,
+            columns: [
+              {
+                text: "ผู้จัดทำรายงาน: ครูที่ปรึกษา / ระบบอัตโนมัติ PKW SERVICE",
+                alignment: "left",
+              },
+              {
+                text: `หน้า ${currentPage} จาก ${pageCount}`,
+                alignment: "right",
+              },
+            ],
+          };
+        },
+        content: [
+          {
+            margin: [0, 20],
+            stack: [
+              { text: "รายงานคะแนนความประพฤติ" },
+              {
+                table: {
+                  headerRows: 1,
+                  widths: [50, "*", 100, 60, 50, 40, 40, 40],
+                  body: [
+                    [
+                      { text: "รหัส", style: "tableHeader" },
+                      { text: "ชื่อ", style: "tableHeader" },
+                      { text: "ชั้น", style: "tableHeader" },
+                      { text: "คะแนน", style: "tableHeader" },
+                      { text: "เข้าร่วม", style: "tableHeader" },
+                      { text: "ลา", style: "tableHeader" },
+                      { text: "สาย", style: "tableHeader" },
+                      { text: "ขาด", style: "tableHeader" },
+                    ],
+                    ...data_student.map((index) => [
+                      index.studentId,
+                      index.name,
+                      index.classes,
+                      index.behaviorScore?.toString() || "-",
+                      index.joinDays || "0",
+                      index.leaveDays || "0",
+                      index.lateDays || "0",
+                      index.absentDays || "0",
+                    ]),
+                  ],
+                },
+                layout: {
+                  fillColor: (rowIndex) => (rowIndex === 0 ? "#444" : null),
+                  hLineColor: () => "#bbb",
+                  vLineColor: () => "#bbb",
+                },
+              },
+            ],
+          },
+        ],
+        styles: {
+          tableHeader: {
+            bold: true,
+            fontSize: 10,
+            color: "white",
+            alignment: "center",
+          },
+        },
+        defaultStyle: {
+          font: "THSarabunNew",
+          fontSize: 10,
+        },
+      };
+
+      // สร้าง pdf
+
+      return await new Promise((resolve) => {
+        pdfMake.createPdf(docDefinition).getBuffer((buffer) => {
+          const Disposition = `inline; filename="${encodeURIComponent(
+            filename
+          )}`;
+
+          resolve(
+            new NextResponse(Buffer.from(buffer), {
+              headers: {
+                "Content-Type": "application/pdf",
+                "Content-Disposition": Disposition,
+              },
+            })
+          );
+        });
       });
     } catch (error) {
       console.error(error);

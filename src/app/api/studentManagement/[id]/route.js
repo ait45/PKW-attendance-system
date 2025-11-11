@@ -21,7 +21,8 @@ export async function DELETE(req, { params }) {
 }
 
 export async function PUT(req, { params }) {
-  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+  const reqClone = req.clone();
+  const token = await getToken({ req: reqClone, secret: process.env.NEXTAUTH_SECRET });
   if (!token)
     return NextResponse.json(
       { success: false, message: "Unauthorization" },
@@ -69,7 +70,7 @@ export async function GET(req, { params }) {
       status: res.status,
       plantData: res.plantData,
       Number: res.Number,
-      comeDays: res.comeDays,
+      joinDays: res.joinDays,
       lateDays: res.lateDays,
       leaveDays: res.leaveDays,
       absentDays: res.absentDays,
@@ -86,3 +87,4 @@ export async function GET(req, { params }) {
     );
   }
 }
+

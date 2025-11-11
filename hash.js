@@ -1,12 +1,29 @@
-import crypto from "crypto";
+import fs from "fs";
+import path from "path";
 
-function generateSecret(length = 32) {
-  // สร้าง random bytes แล้วแปลงเป็น hex string
-  return crypto.randomBytes(length).toString("hex");
+// ---- CONFIG ----
+// ชื่อไฟล์ฟอนต์ต้นฉบับ
+const fontFile = "Sarabun-Medium.ttf";
+
+// โฟลเดอร์ที่เก็บฟอนต์
+const fontsDir = path.join(process.cwd(), "public", "fonts");
+
+// path เต็มของไฟล์
+const fontPath = path.join(fontsDir, fontFile);
+
+// ชื่อไฟล์ output base64
+const outputFile = path.join(fontsDir, fontFile.replace(".ttf", ".base64.txt"));
+
+// ---- อ่านไฟล์และแปลงเป็น base64 ----
+if (!fs.existsSync(fontPath)) {
+  console.error("❌ ไม่พบไฟล์ฟอนต์:", fontPath);
+  process.exit(1);
 }
 
-const accessSecret = generateSecret(32);   // 64 ตัวอักษร hex
-const refreshSecret = generateSecret(64);  // 128 ตัวอักษร hex
+const fontBuffer = fs.readFileSync(fontPath);
+const fontBase64 = fontBuffer.toString("base64");
 
-console.log("ACCESS_SECRET:", accessSecret);
-console.log("REFRESH_SECRET:", refreshSecret);
+// ---- เขียนไฟล์ base64 ----
+fs.writeFileSync(outputFile, fontBase64);
+
+console.log("✅ สร้างไฟล์ base64 เรียบร้อย:", outputFile);

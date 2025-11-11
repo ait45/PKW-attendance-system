@@ -11,7 +11,7 @@ import StudentDashboard from "@/app/components/StudentDashboard/page";
 
 function student() {
   const { data: session, status } = useSession();
-  const lastRequestTime = useRef(0);
+
   if (!session?.user?.role === "student" && status === "unauthenticated")
     redirect("/login");
   if (session?.user?.role === "teacher")

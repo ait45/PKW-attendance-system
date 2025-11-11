@@ -1,7 +1,7 @@
 import TeacherPage from './teacher';
 
 export const metadata = {
-    title: 'หน้าแรก',
+    title: 'PKW | หน้า Teacher',
 };
 
 export default function teacher() {

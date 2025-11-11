@@ -4,10 +4,14 @@ import { Camera, QrCode, BarChart3, RotateCcw, PowerOff } from "lucide-react";
 import Swal from "sweetalert2";
 import { Html5Qrcode } from "html5-qrcode";
 
-function QRScanning({ onScan, label = "Scan QR" }) {
+function QRScanning({ onScan, label = "Scan QR" , holiday}) {
   const scannerRef = useRef(null);
   const [result, setResult] = useState("");
   const [scanning, setScanning] = useState(false);
+
+  const lastScanTime = useRef(0);
+  const delay = 3000;
+
   const html5QrCodeRef = useRef(null);
   const canvasRef = useRef(null);
 
@@ -116,6 +120,10 @@ function QRScanning({ onScan, label = "Scan QR" }) {
             { facingMode: "environment" },
             config,
             async (decodedText, decodedResult) => {
+              const now = Date.now();
+              if (now - lastScanTime.current < delay) return;
+
+              lastScanTime.current = now;
               // วาดกรอบรอบ QR ที่เจอ
               if (decodedResult?.decodedResult?.points && canvasRef.current) {
                 const ctx = canvasRef.current.getContext("2d");
@@ -142,6 +150,7 @@ function QRScanning({ onScan, label = "Scan QR" }) {
               handleScan(decodedText);
               setTimeout(() => {
                 setResult("");
+                
               }, 500);
             }
           )
@@ -171,7 +180,7 @@ function QRScanning({ onScan, label = "Scan QR" }) {
   };
 
   return (
-    <div className={`min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8 px-4 ${loading ? 'cursor-wait pointer-events-none': ''}`}>
+    <div className={`min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8 px-4 ${loading && 'cursor-wait pointer-events-none'}`}>
       <div className="max-w-md mx-auto">
         {/* Header */}
         <div className="bg-white rounded-t-2xl shadow-lg p-6">
@@ -180,17 +189,17 @@ function QRScanning({ onScan, label = "Scan QR" }) {
             ตัวสแกน QR Code
           </h1>
           <p className="text-center text-gray-600">กรุณาวาง QRcode ภายในกรอบ</p>
-          <div className="flex rounded-lg mt-4">
+          <div className="flex mt-4">
             <div
               id="reader"
-              className="m-auto w-50 h-50 border-4 border-[#AFFDFF] rounded-2xl shadow-lg bg-black relative"
-            ></div>
+              className="m-auto w-50 h-50 border-4 border-[#AFFDFF] shadow-lg bg-black relative"
+            />
             {/* กรอบ Overlay */}
             <canvas
               ref={canvasRef}
               width={120}
               height={100}
-              className="absolute top-0 left-0 rounded-2xl"
+              className="absolute top-0 left-0"
             />
           </div>
         </div>
@@ -199,7 +208,8 @@ function QRScanning({ onScan, label = "Scan QR" }) {
           {!scanning ? (
             <button
               onClick={startScanning}
-              className="relative z-10 flex items-center px-4 py-2 bg-green-500 hover:bg-green-700 hover:transition-colors text-white rounded-lg shadow"
+              disabled={holiday}
+              className="relative z-10 flex items-center px-4 py-2 bg-green-500 hover:bg-green-700 hover:transition-colors text-white rounded-lg shadow disabled:cursor-not-allowed disabled:bg-green-700"
             >
               เริ่มสแกน <QrCode width={20} height={20} className="ml-2" />
             </button>

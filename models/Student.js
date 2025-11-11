@@ -51,7 +51,7 @@ const UserSchema = new Schema(
       required: true,
       default: 100,
     },
-    comeDays: {
+    joinDays: {
       type: Number,
       required: true,
       default: 0,

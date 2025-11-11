@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import Nav from "@/app/components/Navbar/page";
 import Footer from "@/app/components/Footer/page";
-import { useSession } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import Swal from "sweetalert2";
 import {
   Home,
@@ -21,6 +21,7 @@ import {
   UserRoundCheck,
   Calendar,
   BarChart3,
+  UserRound,
 } from "lucide-react";
 import StatisticsPage from "@/app/components/Statistics/page";
 import SchedulePage from "@/app/components/Schedule/page";
@@ -28,13 +29,17 @@ import StudentManagement from "@/app/components/StudentManagement/page";
 import AttendanceCheckPage from "@/app/components/AttendanceCheck/page";
 import TableAttendance from "@/app/components/tableAttendance/page";
 import Dashboard from "@/app/components/Dashboard/page";
-import { redirect, useRouter } from "next/navigation";
 import ReportPage from "@/app/components/Report/page";
 import QRDownload from "@/app/components/QRDownload/page";
+import Teacher_Management from "@/app/components/TeacherManagement/page";
+import SettingsPage from "@/app/components/settings/page";
+import { useSearchParams, usePathname, useRouter, redirect } from "next/navigation";
 
 function adminPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
   Swal.close();
 
   useEffect(() => {
@@ -47,7 +52,10 @@ function adminPage() {
     return () => window.addEventListener("resize", checkMobile);
   }, []);
 
-  const [currentPage, setCurrentPage] = useState("dashboard");
+  const currentPage = searchParams.get("page") || "dashboard";
+  const handleChangePage = (pageName) => {
+    router.push(`${pathname}?page=${pageName}`);
+  };
   const [isCollapsed, setIsCollapsed] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
 
@@ -64,7 +72,7 @@ function adminPage() {
     const menuItems = [
       { id: "dashboard", label: "Dashboard", icon: Home },
       { id: "messages", label: "Messages", icon: Mail },
-      { id: "calendar", label: "Calendar", icon: Calendar },
+      { id: "teachers", label: "ข้อมูลครู", icon: UserRound },
       { id: "settings", label: "ตั้งค่า", icon: Settings },
     ];
     const handleMenuClick = (itemId) => {
@@ -168,12 +176,6 @@ function adminPage() {
     );
   };
 
-  useEffect(() => {
-    if (currentPage === "settings") {
-      router.push("/settings");
-    }
-  }, [currentPage, router]);
-
   if (!session?.user?.role === "teacher" && status === "unauthenticated")
     redirect("/login");
   if (session?.user?.role === "teacher" && !session?.user?.isAdmin)
@@ -205,9 +207,9 @@ function adminPage() {
               >
                 <QrCode size={20} />
                 <select
-                  className="outline-none w-[20px] sm:w-[120px] text-sm focus:text-gray-900"
+                  className="outline-none w-[20px] sm:w-[120px] text-sm focus:text-gray-900 cursor-pointer"
                   value={currentPage}
-                  onChange={(e) => setCurrentPage(e.target.value)}
+                  onChange={(e) => handleChangePage(e.target.value)}
                   id="attendance"
                 >
                   <option value="dashboard">หน้าแรก</option>
@@ -216,7 +218,7 @@ function adminPage() {
                 </select>
               </div>
               <button
-                onClick={() => setCurrentPage("students")}
+                onClick={() => handleChangePage("students")}
                 className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors text-sm ${
                   currentPage === "students"
                     ? "bg-blue-500 text-white"
@@ -228,7 +230,7 @@ function adminPage() {
                 <p className="hidden md:inline">นักเรียน</p>
               </button>
               <button
-                onClick={() => setCurrentPage("schedule")}
+                onClick={() => handleChangePage("schedule")}
                 className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors text-sm ${
                   currentPage === "schedule"
                     ? "bg-blue-500 text-white"
@@ -240,7 +242,7 @@ function adminPage() {
                 <p className="hidden md:inline">ตารางเรียน</p>
               </button>
               <button
-                onClick={() => setCurrentPage("reports")}
+                onClick={() => handleChangePage("reports")}
                 className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors text-sm ${
                   currentPage === "reports"
                     ? "bg-blue-500 text-white"
@@ -252,7 +254,7 @@ function adminPage() {
                 <p className="hidden md:inline">รายงาน</p>
               </button>
               <button
-                onClick={() => setCurrentPage("statistics")}
+                onClick={() => handleChangePage("statistics")}
                 className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors text-sm ${
                   currentPage === "statistics"
                     ? "bg-blue-500 text-white"
@@ -270,11 +272,11 @@ function adminPage() {
       <main className="flex h-screen bg-gradient-to-br from-blue-50 to-indigo-100 mb-4">
         <SideBar
           activeMenu={currentPage}
-          setActiveMenu={setCurrentPage}
+          setActiveMenu={handleChangePage}
           session={session}
         />
         <main
-          className={`flex-1 py-4 w-full overflow-auto duration-300 ${
+          className={`flex-1 py-4 w-full overflow-y-scroll hide-scrollbar duration-300 ${
             isCollapsed ? ("inline") : (isMobile && "hidden")
           } `}
         >
@@ -284,12 +286,14 @@ function adminPage() {
             <TableAttendance session={session} />
           )}
           {currentPage === "students" && (
-            <StudentManagement session={session} setMenu={setCurrentPage} />
+            <StudentManagement session={session} setMenu={handleChangePage} />
           )}
-          {currentPage === "PDFDownload" && <QRDownload session={session} setBack={setCurrentPage}/>}
+          {currentPage === "PDFDownload" && <QRDownload session={session} setBack={handleChangePage}/>}
           {currentPage === "schedule" && <SchedulePage session={session} />}
           {currentPage === "statistics" && <StatisticsPage session={session} />}
           {currentPage === "reports" && <ReportPage session={session} />}
+          {currentPage === "teachers" && <Teacher_Management />}
+          {currentPage === "settings" && < SettingsPage />}
         </main>
       </main>
       <Footer />

@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  webpack: (config) => {
+  webpack: (config, { isServer }) => {
     config.resolve.fallback = {
       ...config.resolve.fallback,
       fs: false,
@@ -8,6 +8,14 @@ const nextConfig = {
     config.node = {
       __dirname: true,
     };
+    if (isServer) {
+      config.externals = [...(config.externals || []), "pdfmake"];
+    }
+    // 🔧 บังคับให้ Next รู้ตำแหน่งที่แท้จริงของ fontkit
+    config.resolve.alias["@foliojs-fork/fontkit"] = path.resolve(
+      __dirname,
+      "node_modules/@foliojs-fork/fontkit"
+    );
     return config;
   },
   turbopack: {
@@ -19,9 +27,7 @@ const nextConfig = {
       },
     },
   },
-  experimental: {
-    
-  },
+  experimental: {},
   serverExternalPackages: ["pdfkit"],
 };
 

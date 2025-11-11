@@ -11,8 +11,10 @@ import {
   Upload,
   BookOpen,
   X,
+  UserRoundPlus,
 } from "lucide-react";
 import Swal from "sweetalert2";
+import ShowAlert from "../Sweetalert";
 
 function StudentManagement({ session, setMenu }) {
   const classes = [
@@ -147,7 +149,6 @@ function StudentManagement({ session, setMenu }) {
               closeModel();
               setNewStudent({
                 studentId: "",
-                password: "",
                 name: "",
                 classes: "",
                 phone: "",
@@ -165,40 +166,48 @@ function StudentManagement({ session, setMenu }) {
               });
             }
           } else {
-            const req = await fetch("/api/studentManagement", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(newStudent),
-            });
+            try {
+              const req = await fetch("/api/studentManagement", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(newStudent),
+              });
 
-            const res = await req.json();
-            if (res.success) {
-              Swal.fire({
-                title: "เพิ่มข้อมูลสำเร็จ!",
-                icon: "success",
-                timer: 2000,
+              const res = await req.json();
+              if (res.success) {
+                ShowAlert({
+                  title: "เพิ่มข้อมูลสำเร็จ!",
+                  icon: "success",
+                  timer: 2000,
+                });
+                setNewStudent({
+                  studentId: "",
+                  name: "",
+                  classes: "",
+                  phone: "",
+                  parentPhone: "",
+                  Number: "",
+                });
+                fetchStudents();
+              } else if (req.status === 400) {
+                setErrors(res.message);
+                Swal.close();
+                return;
+              } else {
+                ShowAlert({
+                  title: "ไม่สามารถเพิ่มข้อมูลได้ในขณะนี้",
+                  text: "กรุณาลองอีกครั้ง",
+                  icon: "warning",
+                  timer: 3000,
+                });
+              }
+            } catch (error) {
+              ShowAlert({
+                title: "เกิดข้อผิดพลาด",
+                text: "กรุณาลองใหม่อีกครั้ง",
+                icon: "error",
               });
-              setNewStudent({
-                studentId: "",
-                password: "",
-                name: "",
-                classes: "",
-                phone: "",
-                parentPhone: "",
-                Number: "",
-              });
-              fetchStudents();
-            } else if (req.status === 400) {
-              setErrors(res.message);
-              Swal.close();
-              return;
-            } else {
-              Swal.fire({
-                title: "ไม่สามารถเพิ่มข้อมูลได้ในขณะนี้",
-                text: "กรุณาลองอีกครั้ง",
-                icon: "warning",
-                timer: 3000,
-              });
+              console.log("Error: ", error);
             }
           }
         }
@@ -328,20 +337,21 @@ function StudentManagement({ session, setMenu }) {
             setIsFormUpdate(false);
             openModel();
           }}
-          className="bg-[#8AFBFF] hover:bg-[#91E5F7] text-blue-800  px-3 py-2 rounded-lg shadow-lg transition-colors"
+          className="bg-blue-500 hover:bg-blue-700 text-white  px-3 py-2 rounded-lg shadow-lg transition-colors flex items-center"
         >
+          <UserRoundPlus size={20}/>
           เพิ่มข้อมูลนักเรียน
         </button>
 
         {/* Modal Overlay */}
         {isOpenModel && (
-          <div className="absolute inset-0 flex items-center justify-center  top-80 lg:top-20 z-50">
+          <div className="fixed inset-0 flex items-center justify-center top-10 lg:top-20 z-50">
             <div
               onClick={closeModel}
               className="fixed inset-0 bg-gray-50 transition-all "
               style={{ backgroundColor: "rgba(0, 0, 0, 0.4" }}
             />
-            <div className="w-[70%] h-fit bg-white bg-opacity-10 backdrop-blur-2xl shadow-2xl rounded-2xl p-4 overflow-auto">
+            <div className="w-[70%] h-[80vh] bg-white bg-opacity-10 backdrop-blur-2xl shadow-2xl rounded-2xl p-4 overflow-y-scroll hide-scrollbar">
               <div className="px-6 py-4 space-y-5 ">
                 <div className="flex justify-between items-start">
                   <div className="flex items-center">
@@ -388,7 +398,7 @@ function StudentManagement({ session, setMenu }) {
                     value={newStudent.studentId}
                     onChange={handleInputChange}
                     disabled={isformUpdate}
-                    className={`px-4 py-2 h-10 sm:h-12 w-[40%] mb-2 border rounded-lg focus:outline-none focus:ring-2 ${
+                    className={`px-4 py-2 h-10 sm:h-12 w-[40%] mb-1 border rounded-lg focus:outline-none focus:ring-2 ${
                       errors.studentId ? "border-red-500" : "border-gray-300"
                     } focus:ring-blue-500 ${
                       isformUpdate
@@ -397,7 +407,7 @@ function StudentManagement({ session, setMenu }) {
                     }`}
                   />
                   {errors.studentId && (
-                    <p className="mt-1 text-[12px] sm:text-sm text-red-600 ml-1">
+                    <p className=" text-[12px] sm:text-sm text-red-600 ml-1">
                       {errors.studentId}
                     </p>
                   )}
@@ -562,7 +572,7 @@ function StudentManagement({ session, setMenu }) {
                 {isformUpdate ? (
                   <button
                     className="bg-green-500 hover:bg-green-600 text-white px-4 py-3 rounded-lg font-medium transition-colors flex items-center cursor-pointer"
-                    onClick={handleSubmit}
+                    onClick={(e) => handleSubmit(e)}
                   >
                     <Upload size={20} className="mr-2" />
                     แก้ไขข้อมูล
@@ -570,7 +580,7 @@ function StudentManagement({ session, setMenu }) {
                 ) : (
                   <button
                     className="bg-green-500 hover:bg-green-600 text-white px-4 py-3 rounded-lg font-medium transition-colors flex items-center cursor-pointer"
-                    onClick={handleSubmit}
+                    onClick={(e) => handleSubmit(e)}
                   >
                     <Plus size={20} className="mr-2" />
                     เพิ่มข้อมูล
