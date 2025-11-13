@@ -101,6 +101,7 @@ function StudentManagement({ session, setMenu }) {
       return;
     }
     setErrors({});
+    document.body.classList.add("loading");
     try {
       Swal.fire({
         title: `${
@@ -167,6 +168,7 @@ function StudentManagement({ session, setMenu }) {
             }
           } else {
             try {
+              
               const req = await fetch("/api/studentManagement", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -214,6 +216,9 @@ function StudentManagement({ session, setMenu }) {
       });
     } catch (error) {
       console.log(error);
+      document.body.classList.remove("loading");
+    } finally {
+      document.body.classList.remove("loading");
     }
   };
 
@@ -249,12 +254,11 @@ function StudentManagement({ session, setMenu }) {
               showConfirmButton: true,
             });
           }
-          Swal.fire({
+          ShowAlert({
             title: "เกิดข้อผิดพลาด",
             text: "กรุณาลองใหม่อีกครั้ง",
             icon: "error",
             timer: 3000,
-            showLoaderOnConfirm: true,
           });
         } catch (error) {
           console.log(error);
@@ -339,7 +343,7 @@ function StudentManagement({ session, setMenu }) {
           }}
           className="bg-blue-500 hover:bg-blue-700 text-white  px-3 py-2 rounded-lg shadow-lg transition-colors flex items-center"
         >
-          <UserRoundPlus size={20}/>
+          <UserRoundPlus size={20} />
           เพิ่มข้อมูลนักเรียน
         </button>
 
@@ -398,13 +402,14 @@ function StudentManagement({ session, setMenu }) {
                     value={newStudent.studentId}
                     onChange={handleInputChange}
                     disabled={isformUpdate}
-                    className={`px-4 py-2 h-10 sm:h-12 w-[40%] mb-1 border rounded-lg focus:outline-none focus:ring-2 ${
+                    className={`px-4 py-2 h-10 sm:h-12 w-[40%] mb-2 border rounded-lg focus:outline-none focus:ring-2 ${
                       errors.studentId ? "border-red-500" : "border-gray-300"
                     } focus:ring-blue-500 ${
                       isformUpdate
                         ? "text-gray-400 cursor-not-allowed"
                         : "text-gray-900"
                     }`}
+                    placeholder="xxxx"
                   />
                   {errors.studentId && (
                     <p className=" text-[12px] sm:text-sm text-red-600 ml-1">
@@ -423,9 +428,10 @@ function StudentManagement({ session, setMenu }) {
                     name="name"
                     value={newStudent.name}
                     onChange={handleInputChange}
-                    className={`px-4 py-2 h-10 md:h-12 border rounded-lg focus:outline-none focus:ring-2 ${
+                    className={`px-4 py-2 h-10 md:h-12 mb-2 border rounded-lg focus:outline-none focus:ring-2 ${
                       errors.name ? "border-red-500" : "border-gray-300"
                     } focus:ring-blue-500`}
+                    placeholder="xxx xxxxxx xxxxxx"
                   />
                   {errors.name && (
                     <p className="mt-1 text-[12px] sm:text-sm text-red-600 ml-1">
@@ -477,6 +483,7 @@ function StudentManagement({ session, setMenu }) {
                       className={`px-4 py-2 h-10 md:h-12 w-[80px] border rounded-lg  focus:outline-none focus:ring-2 ${
                         errors.Number ? "border-red-500" : "border-gray-300"
                       } focus:ring-blue-500`}
+                      placeholder="xx"
                     />
                     {errors.Number && (
                       <p className="mt-1 text-[12px] sm:text-sm text-red-600 ml-1">

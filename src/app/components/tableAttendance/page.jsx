@@ -4,6 +4,7 @@ import React, { useEffect, useState, useMemo } from "react";
 import { BookUser, RefreshCcw } from "lucide-react";
 import Swal from "sweetalert2";
 import CurrentDay from "../date-time/day";
+import ShowAlert from "../Sweetalert";
 
 function tableAttendance({ session }) {
   const now = new Date();
@@ -99,7 +100,7 @@ function tableAttendance({ session }) {
         : DataStudent.filter((s) => s.classes === selectClasses);
 
     if (DataStudentAttendance.length < 1) {
-      if (session?.user?.role && session?.user?.isAdmin === true) {
+      if (session?.user?.role === "teacher" && session?.user?.isAdmin === true) {
         setStateSelectDisable(false);
       } else {
         setStateSelectDisable(true);
@@ -149,6 +150,8 @@ function tableAttendance({ session }) {
   }
   const handleUpdate = async () => {
     if (dataUpdate.length === 0) return;
+    document.body.classList.add("loading");
+    setLoading(true);
     try {
       const req = await fetch("/api/scanAttendance", {
         method: "PUT",
@@ -156,7 +159,7 @@ function tableAttendance({ session }) {
         body: JSON.stringify(dataUpdate),
       });
       if (req.ok) {
-        Swal.fire({
+        ShowAlert({
           title: "อัพเดตข้อมูลสำเร็จ",
           icon: "success",
           timer: 2000,
@@ -165,8 +168,13 @@ function tableAttendance({ session }) {
         fetchDataAttendance();
       }
     } catch (error) {
+      document.body.classList.remove("loading");
+      setLoading(false);
       console.error(error);
       Swal.fire("เกิดข้อผิดพลาด", error, "error");
+    } finally {
+      setLoading(false);
+      document.body.classList.remove("loading");
     }
   };
   
@@ -216,7 +224,7 @@ function tableAttendance({ session }) {
             </div>
             <div className="m-2 flex">
               <button
-                className="bg-green-600 hover:bg-green-700 disabled:bg-green-700 transition-colors text-white rounded-lg px-2 py-1 cursor-pointer disabled:cursor-not-allowed"
+                className={`bg-green-600 hover:bg-green-700 disabled:bg-green-700 transition-colors text-white rounded-lg px-2 py-1 ${loading ? "cursor-wait": "cursor-pointer"} disabled:cursor-not-allowed `}
                 onClick={handleUpdate}
                 disabled={dataUpdate.length === 0 || overTimeEditState}
               >

@@ -17,22 +17,26 @@ function AttendanceCheckPage({ session }) {
   };
   getHoliday();
   const attendance = async (id) => {
+    document.body.classList.add("loading");
     try {
       const req = await fetch("/api/scanAttendance", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id, handler: session?.user?.name }),
       });
-      if (req.status === 400)
-        return ShowAlert({ title: "ยังไม่ถึงเวลาเช็คชื่อ", icon: "error" });
       const res = await req.json();
+      if (req.status === 400)
+        return ShowAlert({ text: res.message, icon: "error" });
       if (res.success) {
         return ShowAlert({ title: "เช็คชื่อสำเร็จ", icon: "success" });
       }
       ShowAlert({ title: "เกิดข้อผิดพลาด", text: res.message, icon: "error" });
     } catch (error) {
+      document.body.classList.remove("loading");
       console.log(error);
       ShowAlert({ title: "เกิดข้อผิดพลาด", text: error, icon: "error" });
+    } finally {
+      document.body.classList.remove("loading");
     }
   };
   useEffect(() => {

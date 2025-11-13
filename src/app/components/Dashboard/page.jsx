@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import Day from "../date-time/day";
 import { ChartColumnBig, BookOpen } from "lucide-react";
 
-function Dashboard({ session }) {
+function Dashboard() {
   // หน้าสถิติ
   const [DataStudent, setDataStudent] = useState({});
   const [loading, setLoading] = useState(true);
@@ -11,7 +11,10 @@ function Dashboard({ session }) {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const req_students = await fetch("/api/studentManagement");
+      const req_students = await fetch("/api/studentManagement", {
+        method: "GET",
+        credentials: "include",
+      });
       const data_student = await req_students.json();
       setDataStudent({ student: data_student.message });
       const array_data_student = data_student.message;
@@ -19,7 +22,10 @@ function Dashboard({ session }) {
         (i) => i.behaviorScore < 65
       );
       setStudent_danger(data_student_danger);
-      const req_attendance = await fetch("/api/scanAttendance");
+      const req_attendance = await fetch("/api/scanAttendance", {
+        method: "GET",
+        credentials: "include",
+      });
       if (req_attendance.status === 204) return;
       const data_attendance = await req_attendance.json();
       const attendance = {

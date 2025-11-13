@@ -164,7 +164,7 @@ function Teacher_Management() {
                           } focus:ring-blue-500 cursor-pointer w-[80%]`}
                           id="department"
                           name="department"
-                          value={newStudent.department}
+                          value={data_teachers.department}
                           onChange={handleInputChange}
                         >
                           <option>เลือกวิชา</option>
@@ -192,7 +192,7 @@ function Teacher_Management() {
                           id="Number"
                           name="Number"
                           min="0"
-                          value={newStudent.Number}
+                          value={data_teachers.Number}
                           onChange={handleInputChange}
                           className={`px-4 py-2 h-10 md:h-12 w-[80px] border rounded-lg  focus:outline-none focus:ring-2 ${
                             errors.Number ? "border-red-500" : "border-gray-300"
@@ -218,11 +218,11 @@ function Teacher_Management() {
                         <input
                           id="phoneId"
                           type="tel"
-                          value={newStudent.phone}
+                          value={data_teachers.phone}
                           maxLength={12}
                           onChange={(e) =>
-                            setNewStudent({
-                              ...newStudent,
+                            setData_teachers({
+                              ...data_teachers,
                               phone: formatPhone(e.target.value),
                             })
                           }
@@ -237,37 +237,7 @@ function Teacher_Management() {
                           </p>
                         )}
                       </div>
-                      <div className="flex flex-col mb-1 md:mr-4">
-                        <label
-                          htmlFor="parentPhoneId"
-                          className="text-sm text-gray-500 ml-2"
-                        >
-                          เบอร์โทรผู้ปกครอง
-                        </label>
-                        <input
-                          id="parentPhoneId"
-                          type="tel"
-                          value={newStudent.parentPhone}
-                          maxLength={12}
-                          placeholder="xxx-xxx-xxxx"
-                          onChange={(e) =>
-                            setNewStudent({
-                              ...newStudent,
-                              parentPhone: formatPhone(e.target.value),
-                            })
-                          }
-                          className={`px-4 py-2 h-10 md:h-12 w-[150px] md:w-[160px] border rounded-lg focus:outline-none focus:ring-2 ${
-                            errors.parentPhone
-                              ? "border-red-500"
-                              : "border-gray-300"
-                          } focus:ring-blue-500`}
-                        />
-                        {errors.parentPhone && (
-                          <p className="mt-1 text-[12px] sm:text-sm text-red-600 ml-1">
-                            {errors.parentPhone}
-                          </p>
-                        )}
-                      </div>
+                      
                       {session?.user?.role === "teacher" && isformUpdate && (
                         <div className="flex flex-col">
                           <label

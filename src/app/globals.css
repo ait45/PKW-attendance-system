@@ -39,3 +39,7 @@
     scrollbar-width: thin;
     scrollbar-color: #9ca3af transparent;
 }
+
+body.loading {
+    cursor: wait !important;
+}

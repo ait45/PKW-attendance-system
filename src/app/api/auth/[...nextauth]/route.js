@@ -1,4 +1,4 @@
-import { handlers } from "../../../../../lib/auth";
+import { handlers } from "../../../../../lib/auth.config";
 import { limiter } from "../../../../../lib/ratelimit";
 // จำกัดการเข้าสู่ระบบ ภายใน 1 นาที 
 function checkRatelimit(ip) {
@@ -8,7 +8,7 @@ function checkRatelimit(ip) {
   return true;
 }
 export { handlers as GET };
-export async function POST(req, res) {
+export function POST(req, res) {
   const ip =
     req.headers?.get?.("x-forwarded-for")?.split(",")[0] ||
     req.headers?.get?.("x-real-ip") ||

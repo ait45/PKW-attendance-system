@@ -20,7 +20,6 @@ async function genPassword(lenght) {
 }
 export async function GET(req) {
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
-
   if (!token)
     return NextResponse.json(
       { success: false, message: "Unauthorization" },
