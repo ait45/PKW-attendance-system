@@ -1,19 +1,50 @@
+"use client";
 import React, { useState, useEffect } from "react";
 import { UserPen, X, Upload, Plus } from "lucide-react";
-function Teacher_Management() {
+import Swal from "sweetalert2";
+import SearchSelect from "../SearchSelect/page";
+
+function Teacher_Management({ session }) {
+  /* The above code snippet is written in JavaScript using React. It defines several state variables
+  using the `useState` hook. Here is a breakdown of each state variable: */
   const [data_teachers, setData_teachers] = useState([]);
   const [openModel, setOpenModel] = useState(false);
   const [isFormUpdate, setIsFormUpdate] = useState(false);
   const [errors, setErrors] = useState({});
+  const [department, setDepartment] = useState([]);
 
   useEffect(() => {
-    const fetch = async () => {
-      const req = await fetch("/api/data-teacher");
+    fetchData();
+    fetchDepartment();
+  }, []);
+  const fetchData = async () => {
+    try {
+      const req = await fetch("/api/teacherManagement");
       const data = await req.json();
       setData_teachers(data);
-    };
-  }, []);
-
+    } catch (error) {
+      Swal.fire({
+        title: "เกิดข้อผิดพลาดในการแสดงข้อมูล!",
+        icon: "warning",
+        iconColor: "red",
+      });
+      console.error("Failed To fetch Data Teacher: ", error);
+    }
+  };
+  const fetchDepartment = async () => {
+    try {
+      const req = await fetch("/api/system/department");
+      const data = await req.json();
+      setDepartment(data);
+    } catch (error) {
+      Swal.fire({
+        title: "เกิดข้อผืดพลาดในการแสดงข้อมูล!",
+        icon: "warning",
+        iconColor: "red",
+      });
+      console.error("Failed To Fetch Data deparment: ", error);
+    }
+  };
   const formData_teacher = {
     teacherId: "",
     name: "",
@@ -22,6 +53,10 @@ function Teacher_Management() {
   };
 
   const handleInputChange = (e) => {
+    /**
+     * The function `handleInputChange` updates the form data state with the new input value and clears
+     * any errors associated with that input field when the user starts typing.
+     */
     const { name, value } = e.target;
     formData_teacher((prev) => ({ ...prev, [name]: value }));
     // Clear error when user starts typing
@@ -32,9 +67,15 @@ function Teacher_Management() {
       }));
     }
   };
-  const handleModel = (status) => {
+  const handleModel = () => {
+    const status = !openModel;
     setOpenModel(status);
   };
+  const mockUpData = [
+    { value: "65001", label: "65001 - สมชาย ใจดี" },
+    { value: "65002", label: "65002 - สมหญิง ใจงาม" },
+    { value: "65003", label: "65003 - อนันต์ ทองแท้" },
+  ];
   return (
     <main className="max-w-7xl p-6">
       <div className="bg-white rounded-md p-2 shadow-2xl">
@@ -48,7 +89,7 @@ function Teacher_Management() {
               <h1>
                 <button
                   className="px-2 py-1.5 bg-blue-500 hover:bg-blue-700 text-white text-sm transition-colors rounded-md shadow-xl"
-                  onClick={handleModel(true)}
+                  onClick={handleModel}
                 >
                   เพิ่มข้อมูลครูผู้สอน
                 </button>
@@ -57,7 +98,7 @@ function Teacher_Management() {
             {openModel && (
               <div className="fixed inset-0 flex items-center justify-center top-10 lg:top-20 z-50">
                 <div
-                  onClick={handleModel(false)}
+                  onClick={handleModel}
                   className="fixed inset-0 bg-gray-50 transition-all "
                   style={{ backgroundColor: "rgba(0, 0, 0, 0.4" }}
                 />
@@ -78,7 +119,7 @@ function Teacher_Management() {
                       </div>
                       <div>
                         <button
-                          onClick={handleModel(false)}
+                          onClick={handleModel}
                           title="ปิด"
                           className=" hover:bg-gray-300 transition-all"
                         >
@@ -156,24 +197,7 @@ function Teacher_Management() {
                         >
                           วิชา
                         </label>
-                        <select
-                          className={`px-4 py-2 h-10 md:h-12 border rounded-lg focus:outline-none focus:ring-2 ${
-                            errors.department
-                              ? "border-red-500"
-                              : "border-gray-300"
-                          } focus:ring-blue-500 cursor-pointer w-[80%]`}
-                          id="department"
-                          name="department"
-                          value={data_teachers.department}
-                          onChange={handleInputChange}
-                        >
-                          <option>เลือกวิชา</option>
-                          {department.map((cls) => (
-                            <option key={cls} value={cls}>
-                              {cls}
-                            </option>
-                          ))}
-                        </select>
+                        <SearchSelect items={mockUpData} />
                         {errors.classes && (
                           <p className="mt-1 text-[12px] sm:text-sm text-red-600 ml-1">
                             {errors.classes}
@@ -237,8 +261,8 @@ function Teacher_Management() {
                           </p>
                         )}
                       </div>
-                      
-                      {session?.user?.role === "teacher" && isformUpdate && (
+
+                      {session?.user?.role === "teacher" && isFormUpdate && (
                         <div className="flex flex-col">
                           <label
                             htmlFor="plantData"
@@ -250,7 +274,7 @@ function Teacher_Management() {
                             type="text"
                             id="plantData"
                             name="plantData"
-                            value={newStudent.plantData}
+                            value={data_teachers.plantData}
                             readOnly={true}
                             className={`px-4 py-2 h-10 md:h-12 w-[150px] border rounded-lg outline-none border-gray-300`}
                           />

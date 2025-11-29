@@ -1,7 +1,5 @@
-"use client";
-
 import React, { useEffect, useState, useMemo } from "react";
-import { BookUser, RefreshCcw } from "lucide-react";
+import { BookUser, Calendar, RefreshCcw, SquarePen } from "lucide-react";
 import Swal from "sweetalert2";
 import CurrentDay from "../date-time/day";
 import ShowAlert from "../Sweetalert";
@@ -29,7 +27,7 @@ function tableAttendance({ session }) {
   const fetchDataAttendance = async () => {
     try {
       const req = await fetch("/api/scanAttendance");
-      if (req.status === 204) return null;
+      if (req.status === 204) return;
       const data = await req.json();
       setDataStudentAttendance(data.message);
       //console.log(DataStudentAttendance);
@@ -41,7 +39,7 @@ function tableAttendance({ session }) {
   const fetchDataSetting = async () => {
     try {
       const req = await fetch("/api/setting");
-      if (req.status === 204) return null;
+      if (req.status === 204) return;
       const data = await req.json();
       return data.data;
     } catch (error) {
@@ -52,8 +50,7 @@ function tableAttendance({ session }) {
   const holiday = async () => {
     try {
       const res = await fetch("/api/holidays");
-      const data = await res.json(); 
-      console.log(data);
+      const data = await res.json();
       setDataHolidays(data);
     } catch (error) {
       console.error(error);
@@ -98,13 +95,9 @@ function tableAttendance({ session }) {
       selectClasses === "ทั้งหมด"
         ? DataStudent
         : DataStudent.filter((s) => s.classes === selectClasses);
-
-    if (DataStudentAttendance.length < 1) {
-      if (session?.user?.role === "teacher" && session?.user?.isAdmin === true) {
-        setStateSelectDisable(false);
-      } else {
-        setStateSelectDisable(true);
-      }
+    console.log(DataStudentAttendance);
+    if (!DataStudentAttendance) {
+      //setStateSelectDisable(true);
 
       return students.map((student) => {
         const { studentId, name, classes } = student;
@@ -117,6 +110,7 @@ function tableAttendance({ session }) {
       });
     } else {
       setStateSelectDisable(false);
+      if (students.length === 0) return null;
       return students.map((student) => {
         const attendance = DataStudentAttendance.find(
           (a) => a.studentId === student.studentId
@@ -131,12 +125,34 @@ function tableAttendance({ session }) {
   }, [DataStudent, selectClasses, DataStudentAttendance]);
   const [dataUpdate, setDataUpdate] = useState([]);
 
+  /**
+   * The function `handleStatusChange` updates the status of a student in the DataStudentAttendance
+   * array based on the input student ID and new status.
+   */
   function handleStatusChange(inputId, newStatus) {
     setDataUpdate((prev) => {
       const data = DataStudentAttendance.find((d) => d.studentId === inputId);
+      if (data) {
+        return [
+          ...prev,
+          {
+            update: true,
+            _id: data._id,
+            studentId: inputId,
+            status: newStatus,
+          },
+        ];
+      }
+      const student = DataStudent.find((d) => d.studentId === inputId);
       return [
         ...prev,
-        { _id: data._id, studentId: inputId, status: newStatus },
+        {
+          update: false,
+          studentId: inputId,
+          status: newStatus,
+          name: student.name,
+          classes: student.classes,
+        },
       ];
     });
     setDataStudentAttendance((prev) => {
@@ -148,83 +164,160 @@ function tableAttendance({ session }) {
       }
     });
   }
+  /**
+   * The `handleUpdate` function is an asynchronous function that sends a PUT request to update
+   * attendance data, shows a success alert if the request is successful, and handles errors by
+   * displaying an error message.
+   * @returns If the `dataUpdate` array has a length of 0, the function `handleUpdate` will return
+   * early and not execute the rest of the code block.
+   */
   const handleUpdate = async () => {
     if (dataUpdate.length === 0) return;
     document.body.classList.add("loading");
     setLoading(true);
-    try {
-      const req = await fetch("/api/scanAttendance", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(dataUpdate),
-      });
-      if (req.ok) {
-        ShowAlert({
-          title: "อัพเดตข้อมูลสำเร็จ",
-          icon: "success",
-          timer: 2000,
-        });
-        setDataUpdate([]);
-        fetchDataAttendance();
+    Swal.fire({
+      text: "ยืนยันการบันทึกข้อมูล...",
+      confirmButtonText: "ตกลง",
+      showCancelButton: true,
+      cancelButtonText: "ยกเลิก",
+      icon: "question",
+      iconColor: "#009EA3",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          const req = await fetch("/api/scanAttendance", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(dataUpdate),
+          });
+          if (req.ok) {
+            ShowAlert({
+              text: "อัพเดตข้อมูลสำเร็จ",
+              icon: "success",
+              timer: 2000,
+            });
+            setDataUpdate([]);
+            fetchDataAttendance();
+          }
+        } catch (error) {
+          document.body.classList.remove("loading");
+          setLoading(false);
+          console.error(error);
+          Swal.fire("เกิดข้อผิดพลาด", error, "error");
+        } finally {
+          setLoading(false);
+          document.body.classList.remove("loading");
+        }
+      } else if (result.isDismissed) {
+        setLoading(false);
+        document.body.classList.remove("loading");
       }
-    } catch (error) {
-      document.body.classList.remove("loading");
-      setLoading(false);
-      console.error(error);
-      Swal.fire("เกิดข้อผิดพลาด", error, "error");
-    } finally {
-      setLoading(false);
-      document.body.classList.remove("loading");
-    }
+    });
   };
-  
+
+  // Pagination -----------------------------------
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [NumberPager, setNumberPager] = useState(1);
+
+  const totalPages = Math.ceil(
+    (filteredStudentSelected?.length ?? 0) / rowsPerPage
+  );
+  //
+  // slice data หน้าปัจจุบัน
+
+  const currentData =
+    filteredStudentSelected?.slice(
+      (NumberPager - 1) * rowsPerPage,
+      NumberPager * rowsPerPage
+    ) || [];
+  // เปลี่ยนจำนวน row
+  const handleRowChange = (e) => {
+    setRowsPerPage(Number(e.target.value));
+    setNumberPager(1);
+  };
+
   return (
-    <main className=" h-auto  max-w-7xl mx-auto p-4 rounded-md">
+    <main className=" h-auto  max-w-7xl mx-auto p-2 rounded-md">
       <div className="bg-white rounded-lg p-4 shadow-md">
         <header>
-          <div className="block sm:flex">
+          <div className="block">
             <div className="flex items-center">
-              <BookUser size={45} className="text-[#009EA3] mr-2" />
-              <h1 className="text-lg sm:text-2xl font-bold text-wrap">
-                ตารางแสดงการเช็คชื่อเข้ารวมกิจกรรมหน้าเสาธง
-              </h1>
+              <div className="bg-[#009EA3] text-slate-50 p-2 rounded-md">
+                <SquarePen size={35} />
+              </div>
+              <div className="ml-1">
+                <h1 className="text-lg sm:text-2xl font-bold text-wrap">
+                  ตารางแก้ไข
+                </h1>
+                <h1 className="text-sm">การเช็คชื่อเข้ารวมกิจกรรมหน้าเสาธง</h1>
+              </div>
+            </div>
+            <hr className="text-[#009EA3] my-2" />
+            <div className="flex text-xs md:text-sm text-[#009EA3]">
+              <Calendar size={16} className="mr-1" />
+              <CurrentDay />
             </div>
             {overTimeEditState && (
-              <span className="text-red-500 text-xs sm:text-sm text-wrap flex items-end p-2 ">
-                * หมดเวลาการแก้ไขข้อมูล กรุณาติดต่อผู้ดูแลเพื่อดำเนินการ
-              </span>
+              <div className="bg-rose-500 border-l-4 border-rose-500 rounded-md mt-2">
+                <div className="bg-white p-2 flex flex-col">
+                  <span className="text-rose-500 text-xs sm:text-sm">
+                    * หมดเวลาการแก้ไขข้อมูล
+                  </span>
+                  <span className="text-rose-500 text-xs sm:text-sm ml-2">
+                    กรุณาติดต่อผู้ดูแลเพื่อดำเนินการ
+                  </span>
+                </div>
+              </div>
             )}
           </div>
-          <div className="sm:flex ml-4 mt-4 mb-2 text-sm md:text-base text-[#009EA3]">
-            <p>ประจำวันที่</p>
-            <CurrentDay />
-          </div>
-          {dataHoliday.isHoliday && (
-          <p className="text-xs text-red-500 ml-4">
-            * {dataHoliday.name} ไม่ต้องเช็คชื่อ *
-          </p>
-        )}
 
-          <div className="p-2 grid grid-cols-1 md:grid-cols-2 m-1">
-            <div className="flex">
-              <p className="text-sm sm:text-base text-gray-700 p-2 ">
-                ชั้นเรียน
-              </p>
-              <select
-                className="px-5 outline-none border-b border-[#009EA3] cursor-pointer text-sm sm:text-base"
-                value={selectClasses}
-                onChange={(e) => setSelectClasses(e.target.value)}
-              >
-                {classes.map((room) => (
-                  <option key={room.label} value={room.label}>
-                    {room.label}
-                  </option>
-                ))}
-              </select>
+          {dataHoliday.isHoliday && (
+            <span className="bg-rose-500 border-l-4 border-rose-500 rounded-sm mt-2 flex w-fit">
+              <div className="bg-white p-2">
+                <p className="text-xs text-red-500 ml-2">
+                  * {dataHoliday.name} ไม่ต้องเช็คชื่อ *
+                </p>
+              </div>
+            </span>
+          )}
+
+          <div className="p-1/2 mt-4">
+            <div className="flex justify-between">
+              <div className="flex flex-col mb-2 sm:mb-0">
+                <p className="text-xs sm:text-sm text-slate-700">ชั้นเรียน</p>
+                <select
+                  className="px-2/3 py-1 outline-none border border-[#009EA3] rounded-md cursor-pointer text-sm sm:text-base w-fit mt-1"
+                  value={selectClasses}
+                  onChange={(e) => setSelectClasses(e.target.value)}
+                >
+                  {classes.map((room) => (
+                    <option key={room.label} value={room.label}>
+                      {room.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              {/* Select Pagination */}
+              <div className="">
+                <p className="text-xs">จำนวนแถว</p>
+                <select
+                  value={rowsPerPage}
+                  onChange={handleRowChange}
+                  className="px-2 py-1 border border-[#009EA3] rounded-md cursor-pointer text-sm mt-1"
+                >
+                  <option value={10}>10</option>
+                  <option value={15}>15</option>
+                  <option value={25}>25</option>
+                  <option value={50}>50</option>
+                  <option value={75}>75</option>
+                </select>
+              </div>
             </div>
             <div className="m-2 flex">
               <button
-                className={`bg-green-600 hover:bg-green-700 disabled:bg-green-700 transition-colors text-white rounded-lg px-2 py-1 ${loading ? "cursor-wait": "cursor-pointer"} disabled:cursor-not-allowed `}
+                className={`bg-green-600 hover:bg-green-700 disabled:bg-green-700 transition-colors text-white rounded-md px-3 py-2 ${
+                  loading ? "cursor-wait" : "cursor-pointer"
+                } disabled:cursor-not-allowed `}
                 onClick={handleUpdate}
                 disabled={dataUpdate.length === 0 || overTimeEditState}
               >
@@ -233,11 +326,25 @@ function tableAttendance({ session }) {
               </button>
 
               <button
-                className={`flex items-center ml-5 cursor-pointer `}
-                onClick={() => fetchDataAttendance()}
+                className={`flex items-center ml-5 cursor-pointer text-gray-500 hover:text-gray-800 transition-colors`}
+                onClick={async () => {
+                  try {
+                    Swal.fire({
+                      didOpen: () => {
+                        Swal.showLoading();
+                      },
+                    });
+                    setTimeout(async () => {
+                      await fetchDataAttendance();
+                      Swal.close();
+                    }, 500);
+                  } catch (error) {
+                    Swal.close();
+                  }
+                }}
               >
                 <RefreshCcw size={20} className="mr-1" />
-                refresh
+                <p className="text-xs sm:text-s">รีเฟรช</p>
               </button>
             </div>
           </div>
@@ -245,7 +352,7 @@ function tableAttendance({ session }) {
         <div className="overflow-x-auto">
           <table className="w-full table-auto border border-collapse border-gray-300 text-sm">
             <thead>
-              <tr className="bg-gray-100 text-nowrap">
+              <tr className="bg-blue-100 text-nowrap">
                 <th className="border border-gray-300 px-4 py-3 w-[20%]">
                   เลขประจำตัวนักเรียน
                 </th>
@@ -259,24 +366,24 @@ function tableAttendance({ session }) {
               </tr>
             </thead>
             <tbody>
-              {filteredStudentSelected.length > 0 ? (
-                filteredStudentSelected.map((value) => (
+              {currentData.length > 0 ? (
+                currentData.map((value) => (
                   <tr
-                    className="bg-gray-50 text-center text-nowrap"
+                    className="bg-slate-50 text-center text-nowrap"
                     key={value.studentId}
                   >
-                    <td className="border border-gray-300 px-4 py-3">
+                    <td className="border border-slate-300 text-[#009EA3] px-4 py-3">
                       {value.studentId}
                     </td>
-                    <td className="border border-gray-300 px-4 py-3">
+                    <td className="border border-slate-300 px-4 py-3">
                       {value.name}
                     </td>
-                    <td className="border border-gray-300 px-4 py-3">
+                    <td className="border border-slate-300 px-4 py-3">
                       {value.classes}
                     </td>
-                    <td className="border border-gray-300 px-4 py-3">
+                    <td className="border border-slate-300 px-4 py-3">
                       <select
-                        className="px-2 border-b border-gray-500 outline-none cursor-pointer disabled:text-gray-400 disabled:border-gray-400 disabled:cursor-not-allowed"
+                        className="px-2 border border-slate-500 focus:border-blue-500 transition-colors rounded-md outline-none cursor-pointer disabled:text-slate-400 disabled:border-slate-400 disabled:cursor-not-allowed"
                         value={value.status}
                         onChange={(e) =>
                           handleStatusChange(value.studentId, e.target.value)
@@ -284,7 +391,8 @@ function tableAttendance({ session }) {
                         disabled={
                           stateSelectDisable ||
                           (session?.user?.role === "teacher" &&
-                            session?.user?.isAdmin === false) || dataHoliday.isHoliday
+                            session?.user?.isAdmin === false) ||
+                          dataHoliday.isHoliday
                         }
                       >
                         <option value="เข้าร่วมกิจกรรม">เข้าร่วมกิจกรรม</option>
@@ -299,14 +407,42 @@ function tableAttendance({ session }) {
                   </tr>
                 ))
               ) : (
-                <tr className="bg-gray-50 text-center">
-                  <td className="border border-gray-300 px-4 py-3" colSpan={4}>
+                <tr className="bg-slate-50 text-center">
+                  <td className="border border-slate-300 px-4 py-3" colSpan={4}>
                     ไม่มีข้อมูลนักเรียน
                   </td>
                 </tr>
               )}
             </tbody>
           </table>
+          {/* Pagination */}
+          <div className="flex items-center text-sm mt-2 mb-4">
+            <button
+              onClick={() => setNumberPager(NumberPager - 1)}
+              disabled={NumberPager === 1}
+              className="mr-3 cursor-pointer text-slate-500 hover:text-slate-700 transition-colors disabled:cursor-not-allowed"
+            >
+              Prev
+            </button>
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <button
+                key={page}
+                onClick={() => setNumberPager(page)}
+                className={` mr-3 ${
+                  page === NumberPager && "bg-blue-400 text-white"
+                } outline outline-blue-400 px-3 py-1/2 cursor-pointer text-slate-500 hover:text-slate-700 transition-colors rounded-sm`}
+              >
+                {page}
+              </button>
+            ))}
+            <button
+              onClick={() => setNumberPager(NumberPager + 1)}
+              disabled={NumberPager === totalPages}
+              className="ml-3 cursor-pointer text-slate-500 hover:text-slate-700 transition-colors disabled:cursor-not-allowed"
+            >
+              Next
+            </button>
+          </div>
         </div>
       </div>
     </main>

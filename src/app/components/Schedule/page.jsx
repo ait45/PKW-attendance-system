@@ -14,13 +14,16 @@ function SchedulePage() {
     "ประวัติศาสตร์",
   ]);
   return (
-    <main className="max-w-7xl mx-auto p-6">
+    <main className="mx-auto p-6">
       <div className="bg-white rounded-lg shadow-lg p-8">
         <div className="flex items-end mb-6">
-            <h2 className="text-2xl font-bold text-gray-800 mr-8">ตารางเรียน</h2>
-            <select name="scheduleClasses" className="outline-none cursor-pointer">
-                <option value="">เลือกชั้นเรียน</option>
-            </select>
+          <h2 className="text-2xl font-bold text-gray-800 mr-8">ตารางเรียน</h2>
+          <select
+            name="scheduleClasses"
+            className="outline-none cursor-pointer"
+          >
+            <option value="">เลือกชั้นเรียน</option>
+          </select>
         </div>
 
         <div className="overflow-x-auto">

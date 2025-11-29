@@ -13,11 +13,11 @@ import {
   AlertTriangle,
   CircleAlert,
   FileBadge,
+  QrCode,
 } from "lucide-react";
-import { signOut } from "next-auth/react";
-
+import AttendanceCheckPage from "../AttendanceCheck/page";
 const StudentDashboard = ({ session }) => {
-  // checkUser 
+  // checkUser
   const [DataUser, setDataUser] = useState({});
   const fetchDataUser = async () => {
     const req = await fetch(`/api/studentManagement/${session?.id}`);
@@ -142,20 +142,57 @@ const StudentDashboard = ({ session }) => {
     </button>
   );
 
+  const [showDetailProfile, setShowDetailProfile] = useState(false);
+  const handleShowDetailProfile = () => {
+    const state = !showDetailProfile;
+    setShowDetailProfile(state);
+  };
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
       {/* Header */}
       <div className="bg-white shadow-sm border-b border-blue-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
-            <div className="flex place-items-center space-x-4">
-              <span className="flex justify-center items-center w-17 h-17 rounded-full bg-gray-200">
+            <div className="sm:flex place-items-center space-x-4">
+              <span className="flex justify-center items-center w-17 h-17 rounded-full bg-gray-200 cursor-pointer sm:cursor-default">
                 <UserRound
                   color={`${DataUser.isAdmin ? "red" : "#009EA3"}`}
                   size={50}
+                  onClick={handleShowDetailProfile}
                 />
               </span>
-              <div>
+              {showDetailProfile && (
+                <div className="w-full h-full" onClick={handleShowDetailProfile}>
+                  <div className="sm:hidden absolute left-1/4 transform -translate-x-1/2 px-2 py-1 z-50 text-white text-xs rounded-xl text-nowrap bg-[#18786F] opacity-85 backdrop-blur-xl shadow-2xl">
+                    <div className=" w-40 h-auto z-80">
+                      <h1 className="text-2xl font-bold text-white opacity-100">
+                        {DataUser.name || "กำลังโหลด"}
+                      </h1>
+                      <div className="text-xs text-white">
+                        <span className="flex mr-2 text-white">
+                          รหัสนักเรียน :
+                          <p className="ml-2">
+                            {DataUser.studentId || "กำลังโหลด"}
+                          </p>
+                        </span>
+                        <span className="flex mr-2">
+                          ชั้นเรียน :
+                          <p className="ml-2">
+                            {DataUser.classes || "กำลังโหลด"}
+                          </p>
+                        </span>
+                        <span className="flex mr-2">
+                          เลขที่ :
+                          <p className="ml-2">
+                            {DataUser.Number || "กำลังโหลด"}
+                          </p>
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+              <div className="hidden sm:inline">
                 <h1 className="text-2xl font-bold text-gray-900">
                   {DataUser.name || "กำลังโหลด"}
                 </h1>
@@ -182,76 +219,89 @@ const StudentDashboard = ({ session }) => {
               </div>
             </div>
 
-            {/* การเข้าแถววันนี้ */}
-            <div
-              className={`border ${
-                DataUser?.data_attendance?.status === "มา" &&
-                "bg-green-50 border-green-200"
-              } ${
-                DataUser?.data_attendance?.status === "ลา" &&
-                "bg-blue-50 border-blue-200"
-              } ${
-                DataUser?.data_attendance?.status === "ขาด" &&
-                "bg-red-50 border-red-200"
-              }  ${
-                DataUser?.data_attendance?.status === "ลา" &&
-                "bg-orange-50 border-orange-200"
-              } bg-gray-50 border-gray-200 rounded-lg p-4`}
-            >
-              <div className="flex items-center space-x-3">
-                {DataUser?.data_attendance?.status === "มา" && (
-                  <CheckCircle className="w-8 h-8 text-green-600" />
-                )}
-                {DataUser?.data_attendance?.status === "ลา" && (
-                  <Pause className="w-8 h-8 text-blue-600" />
-                )}
-                {DataUser?.data_attendance?.status === "สาย" && (
-                  <Clock className="w-8 h-8 text-orange-600" />
-                )}
-                {DataUser?.data_attendance?.status === "ขาด" && (
-                  <XCircle className="w-8 h-8 text-red-600" />
-                )}
-                {!DataUser?.data_attendance?.status && (
-                  <CircleAlert className="w-8 h-8 text-gray-600" />
-                )}
-                <div>
-                  <p
-                    className={`font-semibold text-gray-800  ${
-                      DataUser?.data_attendance?.status === "มา" &&
-                      "text-green-800"
-                    } ${
-                      DataUser?.data_attendance?.status === "ลา" &&
-                      "text-blue-800"
-                    } ${
-                      DataUser?.data_attendance?.status === "สาย" &&
-                      "text-orange-800"
-                    } ${
-                      DataUser?.data_attendance?.status === "ขาด" &&
-                      "text-red-800"
-                    }`}
-                  >
-                    สถานะการเข้าแถว
-                  </p>
-                  <p
-                    className={`text-sm text-gray-600 ${
-                      DataUser?.data_attendance?.status === "มา" &&
-                      "text-green-600"
-                    } ${
-                      DataUser?.data_attendance?.status === "ลา" &&
-                      "text-blue-600"
-                    } ${
-                      DataUser?.data_attendance?.status === "สาย" &&
-                      "text-orange-600"
-                    } ${
-                      DataUser?.data_attendance?.status === "ขาด" &&
-                      "text-red-600"
-                    }`}
-                  >
-                    {DataUser?.data_attendance?.status || "ยังไม่มีการเช็คชื่อ"}
-                    {DataUser?.data_attendance?.createdAt && (
-                      <span>เวลา {DataUser?.data_attendance?.createdAt}</span>
-                    )}
-                  </p>
+            <div className="flex items-center">
+              <div
+                title="สแกนการเช็คชื่อเข้าร่วมกิจกรรม"
+                className="flex flex-col justify-center"
+              >
+                <QrCode
+                  size={30}
+                  className="mr-4 cursor-pointer text-blue-500 hover:text-blue-700 transition-colors"
+                  onClick={() => setSelectedTab("scan")}
+                />
+              </div>
+              {/* การเข้าแถววันนี้ */}
+              <div
+                className={`border ${
+                  DataUser?.data_attendance?.status === "มา" &&
+                  "bg-green-50 border-green-200"
+                } ${
+                  DataUser?.data_attendance?.status === "ลา" &&
+                  "bg-blue-50 border-blue-200"
+                } ${
+                  DataUser?.data_attendance?.status === "ขาด" &&
+                  "bg-red-50 border-red-200"
+                }  ${
+                  DataUser?.data_attendance?.status === "ลา" &&
+                  "bg-orange-50 border-orange-200"
+                } bg-gray-50 border-gray-200 rounded-lg p-4`}
+              >
+                <div className="flex items-center space-x-3">
+                  {DataUser?.data_attendance?.status === "มา" && (
+                    <CheckCircle className="w-8 h-8 text-green-600" />
+                  )}
+                  {DataUser?.data_attendance?.status === "ลา" && (
+                    <Pause className="w-8 h-8 text-blue-600" />
+                  )}
+                  {DataUser?.data_attendance?.status === "สาย" && (
+                    <Clock className="w-8 h-8 text-orange-600" />
+                  )}
+                  {DataUser?.data_attendance?.status === "ขาด" && (
+                    <XCircle className="w-8 h-8 text-red-600" />
+                  )}
+                  {!DataUser?.data_attendance?.status && (
+                    <CircleAlert className="w-8 h-8 text-gray-600" />
+                  )}
+                  <div>
+                    <p
+                      className={`font-semibold text-nowrap text-gray-800  ${
+                        DataUser?.data_attendance?.status === "มา" &&
+                        "text-green-800"
+                      } ${
+                        DataUser?.data_attendance?.status === "ลา" &&
+                        "text-blue-800"
+                      } ${
+                        DataUser?.data_attendance?.status === "สาย" &&
+                        "text-orange-800"
+                      } ${
+                        DataUser?.data_attendance?.status === "ขาด" &&
+                        "text-red-800"
+                      }`}
+                    >
+                      สถานะการเข้าแถว
+                    </p>
+                    <p
+                      className={`text-sm text-nowrap text-gray-600 ${
+                        DataUser?.data_attendance?.status === "มา" &&
+                        "text-green-600"
+                      } ${
+                        DataUser?.data_attendance?.status === "ลา" &&
+                        "text-blue-600"
+                      } ${
+                        DataUser?.data_attendance?.status === "สาย" &&
+                        "text-orange-600"
+                      } ${
+                        DataUser?.data_attendance?.status === "ขาด" &&
+                        "text-red-600"
+                      }`}
+                    >
+                      {DataUser?.data_attendance?.status ||
+                        "ยังไม่มีการเช็คชื่อ"}
+                      {DataUser?.data_attendance?.createdAt && (
+                        <span>เวลา {DataUser?.data_attendance?.createdAt}</span>
+                      )}
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -280,10 +330,10 @@ const StudentDashboard = ({ session }) => {
               <AttendanceCard
                 icon={CheckCircle}
                 label="วันที่เข้าร่วม"
-                value={DataUser.comeDays}
+                value={DataUser.joinDays}
                 color="#10B981"
                 percentage={(
-                  (DataUser.comeDays / studentData.attendance.totalDays) *
+                  (DataUser.joinDays / studentData.attendance.totalDays) *
                   100
                 ).toFixed(1)}
               />
@@ -665,10 +715,12 @@ const StudentDashboard = ({ session }) => {
             </div>
           </div>
         )}
+        {/* Attendance Page */}
+        {selectedTab === "scan" && <AttendanceCheckPage />}
       </div>
 
       {/* Action Buttons */}
-      <div className="fixed bottom-6 right-6 flex flex-col space-y-3">
+      <div className="hidden fixed bottom-6 right-6 flex-col space-y-3">
         <button
           onClick={() => showAlert("success", "สำเร็จ", "ส่งข้อมูลแล้ว")}
           className="bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-full shadow-lg transition-all duration-200 hover:scale-110"

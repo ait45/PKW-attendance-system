@@ -38,7 +38,7 @@ function navBar({ session }) {
               }, 3000);
             }}
           />
-          <p className="hidden md:inline text-xs font-bold cursor-context-menu">
+          <p className="hidden md:inline text-xs cursor-context-menu">
             {currentDate}
           </p>
           {component === "date" && (
@@ -59,7 +59,7 @@ function navBar({ session }) {
               }, 3000);
             }}
           />
-          <p className="hidden md:inline text-xs font-bold cursor-context-menu">
+          <p className="hidden md:inline text-xs cursor-context-menu">
             <Timer />
           </p>
           {component === "time" && (

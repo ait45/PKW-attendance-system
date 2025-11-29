@@ -15,13 +15,8 @@ import {
   Search,
   ChevronLeft,
   ChevronRight,
-  QrCode,
-  GraduationCap,
-  BookOpen,
-  UserRoundCheck,
-  Calendar,
-  BarChart3,
   UserRound,
+  ShieldUser,
 } from "lucide-react";
 import StatisticsPage from "@/app/components/Statistics/page";
 import SchedulePage from "@/app/components/Schedule/page";
@@ -33,7 +28,13 @@ import ReportPage from "@/app/components/Report/page";
 import QRDownload from "@/app/components/QRDownload/page";
 import Teacher_Management from "@/app/components/TeacherManagement/page";
 import SettingsPage from "@/app/components/settings/page";
-import { useSearchParams, usePathname, useRouter, redirect } from "next/navigation";
+import MenuBar from "@/app/components/MenuBar_teacher/page";
+import {
+  useSearchParams,
+  usePathname,
+  useRouter,
+  redirect,
+} from "next/navigation";
 
 function adminPage() {
   const { data: session, status } = useSession();
@@ -41,6 +42,11 @@ function adminPage() {
   const searchParams = useSearchParams();
   const pathname = usePathname();
   Swal.close();
+
+  const currentPage = searchParams.get("page") || "dashboard";
+  const handleChangePage = (pageName) => {
+    router.push(`${pathname}?page=${pageName}`);
+  };
 
   useEffect(() => {
     const checkMobile = () => {
@@ -52,16 +58,9 @@ function adminPage() {
     return () => window.addEventListener("resize", checkMobile);
   }, []);
 
-  const currentPage = searchParams.get("page") || "dashboard";
-  const handleChangePage = (pageName) => {
-    router.push(`${pathname}?page=${pageName}`);
-  };
   const [isCollapsed, setIsCollapsed] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
-
   const SideBar = ({ activeMenu, setActiveMenu, session }) => {
-    
-
     const toggleSideBar = () => {
       setIsCollapsed((prev) => {
         const newState = !prev;
@@ -92,18 +91,16 @@ function adminPage() {
               {!isCollapsed && (
                 <div className="flex items-center space-x-3">
                   <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center backdrop-blur-sm">
-                    <span className="text-white font-bold text-lg cursor-default">
-                      P
-                    </span>
+                    <ShieldUser className="w-5 h-5" />
                   </div>
                   {session?.user?.role === "teacher" &&
                   session?.user?.isAdmin === true ? (
                     <span className="font-bold text-xl cursor-default">
-                      หน้า Admin
+                      หน้าผู้ดูแลระบบ
                     </span>
                   ) : (
                     <span className="font-bold text-xl cursor-default">
-                      หน้า Teacher
+                      หน้าบุคลากร
                     </span>
                   )}
                 </div>
@@ -175,7 +172,6 @@ function adminPage() {
       </main>
     );
   };
-
   if (!session?.user?.role === "teacher" && status === "unauthenticated")
     redirect("/login");
   if (session?.user?.role === "teacher" && !session?.user?.isAdmin)
@@ -188,88 +184,11 @@ function adminPage() {
   if (status === "loading") return null;
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <main className="min-h-screen bg-gray-100">
       <Nav session={session} />
       {/* Navigation */}
-      <nav className="bg-white shadow-lg max-w-full">
-        <div className="w-full mx-auto px-4">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center gap-3">
-              <GraduationCap size={32} className="text-blue-600" />
-              <div className="text-sm font-bold text-gray-800 hidden sm:inline">
-                โรงเรียนพระแก้วอาสาวิทยา
-              </div>
-            </div>
-            <div className="flex space-x-2">
-              <div
-                className="flex items-center text-gray-600 hover:text-gray-900 transition-colors rounded-md"
-                title={currentPage}
-              >
-                <QrCode size={20} />
-                <select
-                  className="outline-none w-[20px] sm:w-[120px] text-sm focus:text-gray-900 cursor-pointer"
-                  value={currentPage}
-                  onChange={(e) => handleChangePage(e.target.value)}
-                  id="attendance"
-                >
-                  <option value="dashboard">หน้าแรก</option>
-                  <option value="scan">เช็คชื่อ</option>
-                  <option value="tableAttendance">ตารางการเช็คชื่อ</option>
-                </select>
-              </div>
-              <button
-                onClick={() => handleChangePage("students")}
-                className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors text-sm ${
-                  currentPage === "students"
-                    ? "bg-blue-500 text-white"
-                    : "text-gray-600 hover:text-gray-800"
-                }`}
-                title="นักเรียน"
-              >
-                <Users size={20} />
-                <p className="hidden md:inline">นักเรียน</p>
-              </button>
-              <button
-                onClick={() => handleChangePage("schedule")}
-                className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors text-sm ${
-                  currentPage === "schedule"
-                    ? "bg-blue-500 text-white"
-                    : "text-gray-600 hover:text-gray-800"
-                }`}
-                title="ตารางเรียน"
-              >
-                <Calendar size={20} />
-                <p className="hidden md:inline">ตารางเรียน</p>
-              </button>
-              <button
-                onClick={() => handleChangePage("reports")}
-                className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors text-sm ${
-                  currentPage === "reports"
-                    ? "bg-blue-500 text-white"
-                    : "text-gray-600 hover:text-gray-800"
-                }`}
-                title="รายงาน"
-              >
-                <BookOpen size={20} />
-                <p className="hidden md:inline">รายงาน</p>
-              </button>
-              <button
-                onClick={() => handleChangePage("statistics")}
-                className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors text-sm ${
-                  currentPage === "statistics"
-                    ? "bg-blue-500 text-white"
-                    : "text-gray-600 hover:text-gray-800"
-                }`}
-                title="สถิติ"
-              >
-                <BarChart3 size={20} />
-                <p className="hidden md:inline">สถิติ</p>
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
-      <main className="flex h-screen bg-gradient-to-br from-blue-50 to-indigo-100 mb-4">
+      <MenuBar currentPage={currentPage} handleChangePage={handleChangePage} />
+      <div className="flex h-screen bg-gradient-to-br from-blue-50 to-indigo-100 mb-4 w-full">
         <SideBar
           activeMenu={currentPage}
           setActiveMenu={handleChangePage}
@@ -277,7 +196,7 @@ function adminPage() {
         />
         <main
           className={`flex-1 py-4 w-full overflow-y-scroll hide-scrollbar duration-300 ${
-            isCollapsed ? ("inline") : (isMobile && "hidden")
+            isCollapsed ? "inline" : isMobile && "hidden"
           } `}
         >
           {currentPage === "dashboard" && <Dashboard session={session} />}
@@ -288,16 +207,20 @@ function adminPage() {
           {currentPage === "students" && (
             <StudentManagement session={session} setMenu={handleChangePage} />
           )}
-          {currentPage === "PDFDownload" && <QRDownload session={session} setBack={handleChangePage}/>}
+          {currentPage === "PDFDownload" && (
+            <QRDownload session={session} setBack={handleChangePage} />
+          )}
           {currentPage === "schedule" && <SchedulePage session={session} />}
           {currentPage === "statistics" && <StatisticsPage session={session} />}
           {currentPage === "reports" && <ReportPage session={session} />}
-          {currentPage === "teachers" && <Teacher_Management />}
-          {currentPage === "settings" && < SettingsPage />}
+          {currentPage === "teachers" && (
+            <Teacher_Management session={session} />
+          )}
+          {currentPage === "settings" && <SettingsPage />}
         </main>
-      </main>
+      </div>
       <Footer />
-    </div>
+    </main>
   );
 }
 

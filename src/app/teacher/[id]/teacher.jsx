@@ -6,7 +6,6 @@ import { signOut, useSession } from "next-auth/react";
 import Swal from "sweetalert2";
 import {
   Home,
-  Users,
   UserRound,
   Settings,
   FileText,
@@ -16,12 +15,6 @@ import {
   Search,
   ChevronLeft,
   ChevronRight,
-  QrCode,
-  GraduationCap,
-  BookOpen,
-  UserRoundCheck,
-  Calendar,
-  BarChart3,
 } from "lucide-react";
 import StatisticsPage from "@/app/components/Statistics/page";
 import SchedulePage from "@/app/components/Schedule/page";
@@ -39,6 +32,7 @@ import Dashboard from "@/app/components/Dashboard/page";
 import ReportPage from "@/app/components/Report/page";
 import Teacher_Management from "@/app/components/TeacherManagement/page";
 import SettingsPage from "@/app/components/settings/page";
+import MenuBar from "@/app/components/MenuBar_teacher/page";
 
 function TeacherPage() {
   const router = useRouter();
@@ -50,29 +44,19 @@ function TeacherPage() {
   const handleChangePage = (pageName) => {
     router.push(`${pathname}?page=${pageName}`);
   };
-  
+ useEffect(() => {
+     const checkMobile = () => {
+       const mobile = window.innerWidth < 768;
+       setIsMobile(mobile);
+     };
+     checkMobile();
+     window.addEventListener("resize", checkMobile);
+     return () => window.addEventListener("resize", checkMobile);
+   }, []);
 
   const [isCollapsed, setIsCollapsed] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
-  const [screenWidth, setScreenWidth] = useState(0);
-
-  const checkScreenSize = () => {
-    setScreenWidth(window.innerWidth);
-  };
-  useEffect(() => {
-    checkScreenSize();
   
-  }, [isCollapsed]);
-  useEffect(() => {
-    if (screenWidth < 768) setIsMobile(true)
-    else setIsMobile(false)
-  }, [screenWidth]);
-  
-  useEffect(() => {
-    window.addEventListener("resize", checkScreenSize);
-    return () => window.removeEventListener("resize", checkScreenSize);
-  }, []);
-
   const SideBar = ({ activeMenu, setActiveMenu, session }) => {
     const menuItems = [
       { id: "dashboard", label: "Dashboard", icon: Home },
@@ -205,81 +189,7 @@ function TeacherPage() {
     <div className="min-h-screen bg-gray-100">
       <Nav session={session} />
       {/* Navigation */}
-      <nav className="bg-white shadow-lg max-w-full">
-        <div className="w-full mx-auto px-4">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center gap-3">
-              <GraduationCap size={32} className="text-blue-600" />
-              <div className="text-sm font-bold text-gray-800 hidden sm:inline">
-                โรงเรียนพระแก้วอาสาวิทยา
-              </div>
-            </div>
-            <div className="flex space-x-2">
-              <div className="flex items-center text-gray-600 hover:text-gray-900 transition-colors rounded-md">
-                <QrCode size={20} />
-                <select
-                  className="outline-none w-[20px] sm:w-[120px] text-sm focus:text-gray-900 cursor-pointer"
-                  value={currentPage}
-                  onChange={(e) => handleChangePage(e.target.value)}
-                  id="attendance"
-                >
-                  <option value="dashboard">หน้าแรก</option>
-                  <option value="scan">เช็คชื่อ</option>
-                  <option value="tableAttendance">ตารางการเช็คชื่อ</option>
-                </select>
-              </div>
-              <button
-                onClick={() => handleChangePage("students")}
-                className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors text-sm ${
-                  currentPage === "students"
-                    ? "bg-blue-500 text-white"
-                    : "text-gray-600 hover:text-gray-800"
-                }`}
-                title="นักเรียน"
-              >
-                <Users size={20} />
-                <p className="hidden md:inline">นักเรียน</p>
-              </button>
-              <button
-                onClick={() => handleChangePage("schedule")}
-                className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors text-sm ${
-                  currentPage === "schedule"
-                    ? "bg-blue-500 text-white"
-                    : "text-gray-600 hover:text-gray-800"
-                }`}
-                title="ตารางเรียน"
-              >
-                <Calendar size={20} />
-                <p className="hidden md:inline">ตารางเรียน</p>
-              </button>
-              <button
-                onClick={() => handleChangePage("reports")}
-                className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors text-sm ${
-                  currentPage === "reports"
-                    ? "bg-blue-500 text-white"
-                    : "text-gray-600 hover:text-gray-800"
-                }`}
-                title="รายงาน"
-              >
-                <BookOpen size={20} />
-                <p className="hidden md:inline">รายงาน</p>
-              </button>
-              <button
-                onClick={() => handleChangePage("statistics")}
-                className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors text-sm ${
-                  currentPage === "statistics"
-                    ? "bg-blue-500 text-white"
-                    : "text-gray-600 hover:text-gray-800"
-                }`}
-                title="สถิติ"
-              >
-                <BarChart3 size={20} />
-                <p className="hidden md:inline">สถิติ</p>
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
+      <MenuBar currentPage={currentPage} handleChangePage={handleChangePage} />
       <main className="flex h-screen">
         <SideBar
           activeMenu={currentPage}

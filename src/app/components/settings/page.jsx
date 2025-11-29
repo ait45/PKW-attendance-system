@@ -1,15 +1,23 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { ArrowLeft, Power, AlertTriangle } from "lucide-react";
+// นำเข้าโมดูลที่จำเป็นต่อการใช้งาน
+import React, { useState, useEffect, useRef } from "react";
+import {
+  ArrowLeft,
+  Power,
+  AlertTriangle,
+  Download,
+  Upload,
+  Save,
+} from "lucide-react";
 import { useSession } from "next-auth/react";
 import { redirect, useRouter } from "next/navigation";
 import Link from "next/link";
 import ShowAlert from "../Sweetalert";
 import Swal from "sweetalert2";
-import ReactDOMServer from "react-dom/server";
 
 function SettingsPage() {
+  // ประกาศตัวแปรและ state ต่างๆ
   const { data: session, status } = useSession();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -19,6 +27,7 @@ function SettingsPage() {
   const [main_active, set_main_active] = useState(false);
   const [teacher_Admin, setTeacher_Admin] = useState(false);
 
+  // ดีงค่าสถานะการตั้งค่าต่างๆ จาก server
   const fetchSetting = async () => {
     try {
       setLoading(true);
@@ -31,18 +40,20 @@ function SettingsPage() {
       }
       const res_main_active = await fetch("/api/system/toggle");
       const data_main_active = await res_main_active.json();
-      console.log(data_main_active);
       set_main_active(data_main_active.main_active);
-      
     } catch (error) {
       console.error(error);
     }
   };
   useEffect(() => {
     fetchSetting();
-    if (session?.user?.role === "teacher" && session?.user?.isAdmin === true) setTeacher_Admin(true);
+    //ตรวจสอลสถานะของผู้ใช้งาน -------------------------
+    if (session?.user?.role === "teacher" && session?.user?.isAdmin === true)
+      setTeacher_Admin(true);
   }, []);
+
   useEffect(() => {
+    // ตรวจสอบเวลาที่กรอกลงฟอร์ม ------------------------
     const {
       AttendanceStart,
       lateThreshold,
@@ -100,7 +111,9 @@ function SettingsPage() {
         "ช่องนี้ไม่สามารถเว้นว่าง กรุณาป้อนเวลา";
     return newError;
   };
+  // สั้นสุดการตรวจสอบเวลาที่กรอกลงฟอร์ม ------------------------
 
+  // ฟังก์ชั่นการเปลี่ยนแปลงข้อมูล --------------------------------
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setDataSetting((prev) => ({ ...prev, [name]: value }));
@@ -112,13 +125,15 @@ function SettingsPage() {
       }));
     }
   };
+  // สิ้นสุดฟังก์ชั่นการเปลี่ยนแปลงข้อมูล --------------------------------
+
+  // ฟังก์ชั่นการปิดระบบ ----------------------------------
   const toggleMainSystem = async () => {
     Swal.fire({
-      title: `${dataSetting.main_active ? "ยืนยันการปิดระบบ":"ยืนยันการเปิดระบบ"}`,
-      text: `${dataSetting.main_active ? "หน้าเว็บจะทำการปิดทุกหน้า..": ""}`,
-      iconHtml: ReactDOMServer.renderToString(
-        <AlertTriangle />
-      ),
+      title: `${main_active ? "ยืนยันการปิดระบบ" : "ยืนยันการเปิดระบบ"}`,
+      text: `${main_active ? "หน้าเว็บจะทำการปิดทุกหน้า.." : ""}`,
+      width: "90%",
+      icon: `${main_active ? "warning" : "question"}`,
       showConfirmButton: true,
       confirmButtonText: "ยืนยัน",
     }).then(async (result) => {
@@ -128,12 +143,29 @@ function SettingsPage() {
           method: "POST",
           body: JSON.stringify({ main_active: status }),
         });
-        if (req.ok) return ShowAlert({ title: "ปิดระบบสำเร็จ", icon: "success" });
-        ShowAlert({ title: "ปิดระบบไม่สำเร็จ", icon: "error" });
-        fetchSetting();
+        if (req.ok)
+          return Swal.fire({
+            title: `${main_active ? "ปิดระบบสำเร็จ" : "เปิดระบบสำเร็จ"}`,
+            icon: "success",
+            width: "90%",
+          }).then(() => {
+            window.location.reload(true);
+            fetchSetting();
+          });
+        else
+          return Swal.fire({
+            title: `${main_active ? "ปิดระบบไม่สำเร็จ" : "เปิดระบบไม่สำเร็จ"}`,
+            icon: "error",
+            width: "90%",
+          }).then(() => {
+            window.location.reload(true);
+            fetchSetting();
+          });
       }
     });
   };
+
+  // สิ้นสุดฟังก์ชั่นการปิดระบบ ----------------------------------
   const handleSubmit = async (e) => {
     e.preventDefault();
     const error = validateForm();
@@ -165,6 +197,9 @@ function SettingsPage() {
       }
     });
   };
+
+  // การตรวจสอบ session ของ ผู้ใช้งาน
+
   if (!session?.user?.role === "teacher" && status === "unauthenticated")
     redirect("/login");
   if (session?.user?.role === "student" && !session?.user?.isAdmin)
@@ -172,19 +207,19 @@ function SettingsPage() {
   if (session?.user?.role === "student" && session?.user?.isAdmin)
     return redirect(`/student/admin/${session?.id}`);
   if (!session && status === "unauthenticated") return redirect("/login");
-  
+
   if (status === "loading") return null;
   if (loading) return null;
-
+  // สิ้นสุดการตรวจสอบ session ของ ผู้ใช้งาน
   return (
     <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <div className="flex justify-center pt-2 mb-10">
         <div className="bg-white rounded-xl shadow-2xl w-[90%] sm:w-[70%] p-6 ">
           <Link
             href="#"
-            onClick={async () => {
+            onClick={async (e) => {
               if (isChange) {
-                await handleSubmit();
+                await handleSubmit(e);
               }
               router.back();
             }}
@@ -201,16 +236,22 @@ function SettingsPage() {
                 <p className="text-xs text-red-500">* ข้อมูลมีการเปลี่ยนแปลง</p>
               )}
             </div>
-            <div className="">
-              <button className="mr-2 px-3 py-2 outline-2 outline-blue-500 text-blue-500  hover:bg-blue-700 hover:text-white  transition-colors rounded-md cursor-pointer" >
-                ส่งออก
+            <div className="flex items-center">
+              <button
+                className="flex items-center sm:mr-2 px-3 py-2 outline-none sm:outline-2 outline-blue-500 text-blue-500  hover:bg-blue-500 hover:text-white  transition-colors rounded-md cursor-pointer"
+                title="ส่งออก"
+              >
+                <Upload />
+                <p className="hidden sm:inline">ส่งออก</p>
               </button>
               <button
                 onClick={handleSubmit}
                 disabled={!teacher_Admin}
-                className="px-3 py-2 outline-2 outline-green-500 text-green-500 hover:bg-green-700 hover:text-white transition-colors rounded-md cursor-pointer disabled:cursor-not-allowed"
+                title="บันทึก"
+                className="flex items-center px-3 py-2 outline-none sm:outline-2 outline-green-500 text-green-500 hover:bg-green-500 hover:text-white transition-colors rounded-md cursor-pointer disabled:cursor-not-allowed"
               >
-                บันทึก
+                <Save />
+                <p className="hidden sm:inline">บันทึก</p>
               </button>
             </div>
           </header>
@@ -287,7 +328,7 @@ function SettingsPage() {
                     disabled={!teacher_Admin}
                     className={`border-b-2 border-gray-500 focus:border-blue-500 ${
                       error.AttendanceStart && "border-red-500"
-                    } transition-all outline-none disabled:cursor-not-allowed disabled:text-gray-500 disabled:border-gray-500`}
+                    } transition-all outline-none disabled:cursor-not-allowed disabled:text-gray-500 disabled:border-gray-500 w-[100%]`}
                   />
                 </div>
               </div>
@@ -307,7 +348,7 @@ function SettingsPage() {
                     disabled={!teacher_Admin}
                     className={`border-b-2 border-gray-500 focus:border-blue-500 ${
                       error.lateThreshold && "border-red-500"
-                    } transition-all outline-none disabled:cursor-not-allowed disabled:text-gray-500 disabled:border-gray-500`}
+                    } transition-all outline-none disabled:cursor-not-allowed disabled:text-gray-500 disabled:border-gray-500 w-[100%]`}
                   />
                 </div>
               </div>
@@ -327,7 +368,7 @@ function SettingsPage() {
                     disabled={!teacher_Admin}
                     className={`border-b-2 border-gray-500 focus:border-blue-500 ${
                       error.absentThreshold && "border-red-500"
-                    } transition-all outline-none disabled:cursor-not-allowed disabled:text-gray-500 disabled:border-gray-500`}
+                    } transition-all outline-none disabled:cursor-not-allowed disabled:text-gray-500 disabled:border-gray-500 w-[100%]`}
                   />
                 </div>
               </div>
@@ -347,7 +388,7 @@ function SettingsPage() {
                     disabled={!teacher_Admin}
                     className={`border-b-2 border-gray-500 focus:border-blue-500 ${
                       error.timerStartEditAttendance && "border-red-500"
-                    } transition-all outline-none disabled:cursor-not-allowed disabled:text-gray-500 disabled:border-gray-500`}
+                    } transition-all outline-none disabled:cursor-not-allowed disabled:text-gray-500 disabled:border-gray-500 w-[100%]`}
                   />
                 </div>
               </div>
@@ -367,7 +408,7 @@ function SettingsPage() {
                     disabled={!teacher_Admin}
                     className={`border-b-2 border-gray-500 focus:border-blue-500 ${
                       error.timerEndEditAttendance && "border-red-500"
-                    } transition-all outline-none disabled:cursor-not-allowed disabled:text-gray-500 disabled:border-gray-500`}
+                    } transition-all outline-none disabled:cursor-not-allowed disabled:text-gray-500 disabled:border-gray-500 w-[100%]`}
                   />
                 </div>
               </div>
@@ -378,7 +419,11 @@ function SettingsPage() {
               )}
             </div>
           </div>
-          <div className={`bg-white rounded-xl shadow-xl p-4 m-2 ${!teacher_Admin && "hidden"}`}>
+          <div
+            className={`bg-white rounded-xl shadow-xl p-4 m-2 ${
+              !teacher_Admin && "hidden"
+            }`}
+          >
             <h1 className="font-bold text-blue-500">ควบคุม</h1>
             <div className="flex justify-between">
               <p className="font-bold">Main System</p>
@@ -400,26 +445,30 @@ function SettingsPage() {
               </button>
             </div>
           </div>
-          <div className={`bg-white rounded-xl shadow-xl p-4 m-2 ${!teacher_Admin && "hidden"}`}>
+          <div
+            className={`bg-white rounded-xl shadow-xl p-4 m-2 ${
+              !teacher_Admin && "hidden"
+            }`}
+          >
             <h1 className="font-bold text-blue-500">รีเซ็ตระบบ</h1>
             <div className="ml-2 my-2">
               <button
                 type="button"
-                className="mb-2 cursor-pointer px-3 py-2 bg-[#009E7A] hover:bg-[#008264] transition-all rounded-md text-white"
+                className="mb-2 cursor-pointer px-3 py-2 bg-[#009E7A] hover:bg-[#008264] transition-all rounded-md text-sm sm:text-base text-white"
               >
                 รีเซ็ตคะแนนความประพฤติ
               </button>
               <br />
               <button
                 type="button"
-                className="my-2 cursor-pointer px-3 py-2 bg-blue-500 hover:bg-blue-700 transition-all rounded-md text-white"
+                className="my-2 cursor-pointer px-3 py-2 bg-blue-500 hover:bg-blue-700 transition-all rounded-md text-sm sm:text-base text-white"
               >
                 รีเซ็ตข้อมูลนักเรียน
               </button>
               <br />
               <button
                 type="button"
-                className="my-2 cursor-pointer px-3 py-2 bg-blue-500 hover:bg-blue-700 transition-all rounded-md text-white"
+                className="my-2 cursor-pointer px-3 py-2 bg-blue-500 hover:bg-blue-700 transition-all rounded-md text-sm sm:text-base text-white"
               >
                 รีเซ็ตข้อมูลการเช็คชื่อ
               </button>

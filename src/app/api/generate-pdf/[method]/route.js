@@ -2,6 +2,7 @@ export const runtime = "nodejs";
 
 // นำเข้าโมดูลที่จำเป็น -------------------
 import PDFDocument from "pdfkit";
+import PDFTable from "pdfkit-table";
 import QRCode from "qrcode";
 import { getToken } from "next-auth/jwt";
 import { NextResponse } from "next/server";
@@ -10,6 +11,7 @@ import Student from "../../../../../models/Student";
 import { Buffer } from "node:buffer";
 import fs from "fs";
 import path from "path";
+import LineupAttendanceModal from "../../../../../models/LineupAttendanceModal";
 
 function registerFonts(doc) {
   const fonts = {
@@ -54,10 +56,21 @@ function registerFonts(doc) {
   }
 }
 
+// สร้างชื่อไฟล์ pdf ------------------------
 function getFileName(base) {
   const date = new Date().toISOString().replace(/[:.]/g, "-");
   return `${base}-${date}.pdf`;
 }
+
+// สร้าง id file --------------------------
+function getIdFile(type) {
+  const date = new Date();
+  const tzOffset = 7 * 60; // Thailand UTC+7
+  const ISOFormat = new Date(date.getTime() + tzOffset * 60000).toISOString();
+  return `TH ${type} | ${ISOFormat}`;
+}
+
+// สร้างวันที่บนไฟล์ --------------------
 
 const getThaiDate = () => {
   const now = new Date();
@@ -79,6 +92,8 @@ const getThaiDate = () => {
   return `${now.getDate()} ${monthNames[now.getMonth()]} ${year}`;
 };
 
+const NameService = "PKW SERVICE SYSTEM";
+
 export async function GET(req, { params }) {
   const token = getToken({ req, secret: process.env.AUTH_SECRET });
   if (!token)
@@ -99,13 +114,12 @@ export async function GET(req, { params }) {
     const { width, height } = doc.page;
     doc
       .save()
-      .rotate(-45, { origin: [width / 2, height / 2] })
-      .font("THSarabunNew")
+      .rotate(-45, { origin: [width / 1.5, height / 2.3] })
+      .font("THSarabunNew ExtraBold")
       .fontSize(60)
-      .fillColor("rgba(150, 150, 150, 0.2")
-      .text(text, width / 4, height / 2, {
+      .fillColor("#F0F9FF")
+      .text(text, doc.page.margins.left + 50, doc.page.margins.top + 200, {
         align: "center",
-        opacity: 0.1,
       })
       .restore();
   };
@@ -132,14 +146,15 @@ export async function GET(req, { params }) {
       .moveTo(textX, textY + 30)
       .lineTo(textX + 250, textY + 30)
       .lineWidth(1.5)
-      .strokeColor("#000")
+      .strokeColor("blue")
       .stroke();
     doc
       .font("THSarabunNew bold")
       .fontSize(18)
-      .text("PKW SERVICE SYSTEM", textX, textY + 32);
+      .text("PKW SERVICE SYSTEM", textX, textY + 32)
+      .fillColor("black");
 
-    // Page number + date
+    // date + handlers
     doc.fontSize(12).opacity(1);
     doc.text(
       `ออกเมื่อวันที่: ${getThaiDate()}`,
@@ -147,22 +162,23 @@ export async function GET(req, { params }) {
       doc.page.margins.left,
       doc.page.height - 40
     );
+    doc.fontSize(12).text("โดยระบบ", { align: "right" });
   };
-
-  const FooterPage = (doc, currentPage, pageNumber) => {
+  const FooterPage = (doc, pageNumber, idFile) => {
     doc
       .font("THSarabunNew normal")
-      .fontSize(12)
+      .fontSize(10)
       .fillColor("#888")
       .text(
-        `หน้า ${currentPage} จาก ${pageNumber}`,
-        doc.page.margins.right,
-        790,
+        `${getIdFile(idFile)}  หน้าที่ ${pageNumber}`,
+        50,
+        doc.page.height - 50,
         {
           align: "right",
         }
       );
   };
+
   if (method === "qr-student") {
     try {
       await connectDB();
@@ -175,7 +191,7 @@ export async function GET(req, { params }) {
         margin: 30,
         info: {
           Title: "QrCode สำหรับการเช็คชื่อ",
-          Author: "PKW SERVICE SYSTEM",
+          Author: NameService,
         },
       });
 
@@ -208,18 +224,24 @@ export async function GET(req, { params }) {
           HeaderPage(doc);
 
           x = doc.page.margins.left;
-          y = doc.y + 80;
+          y = doc.y + 55;
           let count = 0;
 
           doc
             .fontSize(16)
             .fillColor("#000")
             .text(`ชั้น: ${cls}`, x + 30, y);
-          y += 25;
+          y += 40;
 
           // วาด QRcode
           for (const student of classStudent) {
-            const qrData = await QRCode.toDataURL(student.studentId);
+            const qrData = await QRCode.toDataURL(student.studentId, {
+              type: "image/png",
+              color: {
+                dark: "#000000",
+                light: "#00000000",
+              },
+            });
             const base64Data = qrData.replace(/^data:image\/png;base64,/, "");
             const buffer = Buffer.from(base64Data, "base64");
 
@@ -228,25 +250,20 @@ export async function GET(req, { params }) {
               width: qrSize,
               height: qrSize,
             });
-            // Watermark ใต้ QrCode
-            doc.save();
-            doc.fontSize(10).opacity(0.1).fillColor("gray");
-            const watermarkText = "PKW SERVICE SYSTEM";
-            const watermarkX =
-              x + (colWidth - doc.widthOfString(watermarkText)) / 2;
-            const watermarkY = y + qrSize / 2;
-            doc.text(watermarkText, watermarkX, watermarkY);
-            doc.restore();
 
             // ข้อมูลใต้ QrCode
             doc
               .font("THSarabunNew bold")
               .fontSize(16)
-              .text(`รหัส: ${student.studentId}`, x, y + qrSize + 5, {
+              .text(`${student.studentId}`, x, y + qrSize + 5, {
                 width: colWidth,
                 align: "center",
               });
-            doc.text(`ชื่อ: ${student.name}`, x, y + qrSize + 20, {
+            doc.text(`${student.name}`, x, y + qrSize + 20, {
+              width: colWidth,
+              align: "center",
+            });
+            doc.text(`${student.classes}`, x, y + qrSize + 35, {
               width: colWidth,
               align: "center",
             });
@@ -257,8 +274,12 @@ export async function GET(req, { params }) {
               y += 180;
               if (y + 180 > doc.page.height - doc.page.margins.bottom) {
                 doc.addPage();
-                y = doc.page.margins.top;
                 HeaderPage(doc);
+                doc
+                  .fontSize(16)
+                  .fillColor("#000")
+                  .text(`ชั้น: ${cls}`, x + 30, doc.page.margins.top + 80);
+                y = doc.page.margins.top + 100;
               }
             } else {
               x += colWidth;
@@ -268,20 +289,8 @@ export async function GET(req, { params }) {
         y += 200;
 
         doc.end();
-        doc.on("end", () => {
-          try {
-            // นับจำนวนหน้าเอกสาร
-            const totalPages = doc.bufferedPageRange().count;
-            for (let n = 0; n < totalPages; n++) {
-              doc.switchToPage(n);
-              FooterPage(doc, n + 1, totalPages);
-            }
-
-            resolve(Buffer.concat(buffers));
-          } catch (error) {
-            reject(error);
-          }
-        });
+        doc.on("end", () => resolve(Buffer.concat(buffers)));
+        doc.on("error", reject);
       });
 
       const pdfBuffer = await pdfPromise;
@@ -302,183 +311,148 @@ export async function GET(req, { params }) {
       );
     }
   }
+  // รายงานคะแนนความประพฤติของนักเรียนทั้งหมด ----------------------------
   if (method === "report_student-behaviorScore-all") {
     try {
       const filename = getFileName("behaviorScore-all");
       const data_student = await Student.find();
-      pdfMake.vfs = pdfFonts.vfs;
-
-      pdfMake.fonts = {
-        THSarabunNew: {
-          normal: "THSarabunNew.ttf",
-          bold: "THSarabunNew Bold.ttf",
-          italics: "THSarabunNew Italic.ttf",
-          bolditalics: "THSarabunNew BoldItalic.ttf",
+      const doc = new PDFDocument({
+        size: "A4",
+        margin: "30",
+        info: {
+          Title: "คะแนนความประพฤตินักเรียน",
+          Author: NameService,
         },
-      };
-      // == Helper Function == //
+      });
+      const pageWidth =
+        doc.page.width - doc.page.margins.left - doc.page.margins.right;
+      registerFonts(doc);
 
-      const logoPath = path.join(process.cwd(), "src", "app", "favicon.ico");
-      const logoBase64 = fs.existsSync(logoPath)
-        ? `data:image/png;base64,${fs
-            .readFileSync(logoPath)
-            .toString("base64")}`
-        : null;
+      const buffers = [];
+      doc.on("data", buffers.push.bind(buffers));
+      const pdfPromise = new Promise(async (resolve, reject) => {
+        let pageNumber = 1;
 
-      const docDefinition = {
-        pageSize: "A4",
-        PageOrientation: "portrait",
-        PageMargins: [40, 100, 40, 60],
-        background: {
-          text: "PKW SERVICE TH OFFICIAL",
-          color: "gray",
-          opacity: 0.15,
-          fontSize: 60,
-          bold: true,
-          alignment: "center",
-          margin: [0, 300],
-        },
+        // จัดข้อมูลตามชั้นเรียน
+        const groupByClass = data_student.reduce((acc, cur) => {
+          if (!acc[cur.classes]) acc[cur.classes] = [];
+          acc[cur.classes].push(cur);
+          return acc;
+        }, {});
 
-        header: function () {
-          return {
-            margin: [20, 15, 20, 10],
-            stack: [
-              {
-                columns: [
-                  logoBase64
-                    ? {
-                        image: logoBase64,
-                        width: 50,
-                        height: 50,
-                        margin: [0, 0, 5, 0],
-                      }
-                    : { text: "" },
-                  {
-                    stack: [
-                      {
-                        text: "PKW SERVICE TH",
-                        fontSize: 16,
-                        bold: true,
-                        lineHeight: 1.1,
-                      },
-                      {
-                        text: "โรงเรียนพระแก้วอาสาวิทยา",
-                        fontSize: 12,
-                        lineHeight: 1.1,
-                      },
-                    ],
-                    margin: [0, 5, 0, 0],
-                  },
+        // loop ชั้นเรียนแต่ละชั้น
+        let index = 0;
+        const lastIndex = Object.keys(groupByClass).length - 1;
+        for (const classes of Object.keys(groupByClass)) {
+          HeaderPage(doc);
+          WaterMarkPage(doc);
 
-                  // วันที่พิมพ์
-                  {
-                    text: `วันที่พิมพ์: ${getThaiDate()}`,
-                    alignment: "right",
-                    fontSize: 10,
-                    color: "blue",
-                    margin: [0, 15, 0, 0],
-                  },
-                ],
-              },
-            ],
-          };
-        },
+          const classStudent = groupByClass[classes];
+          const isLast = index === lastIndex;
+          doc
+            .font("THSarabunNew bold")
+            .fontSize(24)
+            .text(
+              "รายงานคะแนนความประพฤติ",
+              doc.page.margins.left,
+              doc.page.margins.top + 65,
+              { align: "center" }
+            );
+          doc
+            .font("THSarabunNew normal")
+            .fontSize(16)
+            .text(
+              `ระดับชั้น : ${classes}`,
+              doc.page.margins.left,
+              doc.page.margins.top + 90,
+              { align: "center" }
+            );
+          // สร้างตาราง
+          const headers = [
+            { text: "รหัสนักเรียน" },
+            { text: "ชื่อ-สกุล" },
+            "คะแนน",
+            "มา",
+            "ลา",
+            "สาย",
+            "ขาด",
+          ];
+          const data = classStudent.map((s) => [
+            s.studentId,
+            { text: s.name },
+            s.behaviorScore,
+            s.joinDays,
+            s.leaveDays,
+            s.lateDays,
+            s.absentDays,
+          ]);
+          const tableData = [headers, ...data];
 
-        footer: (currentPage, pageCount) => {
-          return {
-            margin: [20, 0, 20, 10],
-            fontSize: 8,
-            columns: [
-              {
-                text: "ผู้จัดทำรายงาน: ครูที่ปรึกษา / ระบบอัตโนมัติ PKW SERVICE",
-                alignment: "left",
-              },
-              {
-                text: `หน้า ${currentPage} จาก ${pageCount}`,
-                alignment: "right",
-              },
-            ],
-          };
-        },
-        content: [
-          {
-            margin: [0, 20],
-            stack: [
-              { text: "รายงานคะแนนความประพฤติ" },
-              {
-                table: {
-                  headerRows: 1,
-                  widths: [50, "*", 100, 60, 50, 40, 40, 40],
-                  body: [
-                    [
-                      { text: "รหัส", style: "tableHeader" },
-                      { text: "ชื่อ", style: "tableHeader" },
-                      { text: "ชั้น", style: "tableHeader" },
-                      { text: "คะแนน", style: "tableHeader" },
-                      { text: "เข้าร่วม", style: "tableHeader" },
-                      { text: "ลา", style: "tableHeader" },
-                      { text: "สาย", style: "tableHeader" },
-                      { text: "ขาด", style: "tableHeader" },
-                    ],
-                    ...data_student.map((index) => [
-                      index.studentId,
-                      index.name,
-                      index.classes,
-                      index.behaviorScore?.toString() || "-",
-                      index.joinDays || "0",
-                      index.leaveDays || "0",
-                      index.lateDays || "0",
-                      index.absentDays || "0",
-                    ]),
-                  ],
-                },
-                layout: {
-                  fillColor: (rowIndex) => (rowIndex === 0 ? "#444" : null),
-                  hLineColor: () => "#bbb",
-                  vLineColor: () => "#bbb",
-                },
-              },
-            ],
-          },
-        ],
-        styles: {
-          tableHeader: {
-            bold: true,
-            fontSize: 10,
-            color: "white",
-            alignment: "center",
-          },
-        },
-        defaultStyle: {
-          font: "THSarabunNew",
-          fontSize: 10,
-        },
-      };
+          doc.font("THSarabunNew normal").table({
+            position: {
+              x: doc.page.margins.left + 30,
+              y: doc.page.margins.top + 120,
+            },
+            columnStyles: [80, 200, 60, 30, 30, 30, 30],
+            data: tableData,
+          });
+          FooterPage(doc, pageNumber, "RP-sc/a");
+          pageNumber++;
+          index++;
+          if (!isLast) doc.addPage();
+        }
+        doc.end();
+        doc.on("end", () => resolve(Buffer.concat(buffers)));
+        doc.on("error", reject);
+      });
+      const pdfBuffer = await pdfPromise;
 
-      // สร้าง pdf
-
-      return await new Promise((resolve) => {
-        pdfMake.createPdf(docDefinition).getBuffer((buffer) => {
-          const Disposition = `inline; filename="${encodeURIComponent(
+      return new Response(pdfBuffer, {
+        headers: {
+          "Content-Type": "application/pdf",
+          "Content-Disposition": `inline; filename=${encodeURIComponent(
             filename
-          )}`;
-
-          resolve(
-            new NextResponse(Buffer.from(buffer), {
-              headers: {
-                "Content-Type": "application/pdf",
-                "Content-Disposition": Disposition,
-              },
-            })
-          );
-        });
+          )}`,
+        },
       });
     } catch (error) {
-      console.error(error);
+      console.error("PDF Generate failed: ", error);
       return NextResponse.json(
-        { error: "Failed to generate PDF" },
+        { success: false, mesage: error },
         { status: 500 }
       );
     }
   }
+  if (method === "attendance-Today") {
+    try {
+      const now = new Date();
+      const start = now.setHours(0, 0, 0, 0);
+      const end = now.setHours(23, 59, 59, 999);
+      const fileName = getFileName("attendance");
+      const data = await LineupAttendanceModal.find([
+        {
+          createdAt: { $gte: start, $lte: end },
+        },
+      ]);
+
+      const doc = new PDFDocument({
+        size: "A4",
+        margin: 30,
+        info: {
+          Title: "รายงานการเข้าแถวประจำวัน",
+          Author: NameService,
+        }
+      })
+      console.log(data);
+    } catch (error) {
+      return NextResponse.json(
+        { success: false, message: error },
+        { status: 500 }
+      );
+    }
+  } else
+    return NextResponse.json(
+      { success: false, message: "Method Not Found" },
+      { status: 400 }
+    );
 }

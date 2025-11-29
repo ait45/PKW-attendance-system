@@ -87,12 +87,22 @@ export async function update_behaviorScore(list) {
     const setting = await readConfig();
 
     for (const item of list) {
-      const { _id, studentId, status } = item;
+      const { update, _id, studentId, status } = item;
+      if (!update) {
+        const { studentId, name, classes, status } = item;
+        return await LineupAttendanceModal.create({
+          handler: "Teacher",
+          studentId,
+          name,
+          classes,
+          status: status,
+        });
+      }
       const old_data_attendance = await LineupAttendanceModal.findById(_id);
 
       if (!old_data_attendance) return;
       const state = old_data_attendance.status;
-      
+
       await LineupAttendanceModal.findByIdAndUpdate(
         _id,
         {

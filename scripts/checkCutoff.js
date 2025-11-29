@@ -36,7 +36,7 @@ export async function cutoff() {
 }
 
 export async function autoCutoff() {
-  const setting = readConfig();
+  const setting = await readConfig();
   const [h, m] = setting.absentThreshold.split(":").map(Number);
   const timeCutoff = new Date();
   timeCutoff.setHours(h, m, 0, 0);
@@ -48,36 +48,41 @@ export async function autoCutoff() {
       await connectDB();
       console.log("start autoCutoff");
       const holiday = Holiday(now);
-      if (holiday.isHoliday){
+      if (holiday.isHoliday) {
         console.log("is Holiday");
         return;
       }
+      /* The code snippet `const student = await Student.find({}, "studentId");` is querying the
+      database to find all documents in the "Student" collection and only returning the "studentId"
+      field for each document. */
       const student = await Student.find();
-      const checked = await LineupAttendanceModal.find({
+      const totalStudents = await Student.countDocuments();
+
+      const checkedToday = await LineupAttendanceModal.find({
         createdAt: { $gte: startOfDay, $lte: endOfDay },
       });
-      if (student.length === checked.length) {
+
+      const checkedIds = new Set(checkedToday.map((s) => s.studentId));
+      if (checkedIds.size >= totalStudents) {
         console.log("autocutoff is excited");
         return;
+      } else {
+        const missing = student.filter((id) => !checkedIds.has(id.studentId));
+        console.log(missing);
+        if (missing.length === 0)
+          return console.log("No missing students for autoCutoff");
+        await LineupAttendanceModal.insertMany(
+          missing.map((id) => ({
+            handler: "system",
+            studentId: id.studentId,
+            name: id.name,
+            classes: id.classes,
+            status: "ขาด",
+          }))
+        );
+        await Calculate_behaviorScore();
+        console.log("autoCutoff successfully..");
       }
-
-      const checkedIds = checked.map((s) => s.studentId);
-
-      const toMarkAbsent = student.filter(
-        (s) => !checkedIds.includes(s.studentId)
-      );
-
-      for (const student of toMarkAbsent) {
-        await LineupAttendanceModal.create({
-          handler: "system",
-          studentId: student.studentId,
-          name: student.name,
-          classes: student.classes,
-          status: "ขาด",
-        });
-      }
-      await Calculate_behaviorScore();
-      console.log("autoCutoff successfully..");
     } catch (error) {
       console.error(error);
     }

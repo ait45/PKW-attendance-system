@@ -4,7 +4,7 @@ import { Camera, QrCode, BarChart3, RotateCcw, PowerOff } from "lucide-react";
 import Swal from "sweetalert2";
 import { Html5Qrcode } from "html5-qrcode";
 
-function QRScanning({ onScan, label = "Scan QR" , holiday}) {
+function QRScanning({ onScan, label = "Scan QR", holiday }) {
   const scannerRef = useRef(null);
   const [result, setResult] = useState("");
   const [scanning, setScanning] = useState(false);
@@ -18,7 +18,7 @@ function QRScanning({ onScan, label = "Scan QR" , holiday}) {
   const nextPage = useRef(false);
   const togglePageBeforeStop = () => {
     nextPage.current = !nextPage.current;
-  }
+  };
   const [loading, setLoading] = useState(false);
 
   const handleScan = (data) => {
@@ -62,18 +62,16 @@ function QRScanning({ onScan, label = "Scan QR" , holiday}) {
         },
       });
       setScanning(false);
-      
+
       await html5QrCodeRef.current
         .stop()
         .then(() => {
           Toast.close();
           html5QrCodeRef.current.clear();
-   
         })
         .catch(() => {
           Toast.close();
           html5QrCodeRef.current.clear();
-    
         });
       Toast.close();
     } catch (error) {
@@ -150,7 +148,6 @@ function QRScanning({ onScan, label = "Scan QR" , holiday}) {
               handleScan(decodedText);
               setTimeout(() => {
                 setResult("");
-                
               }, 500);
             }
           )
@@ -180,15 +177,21 @@ function QRScanning({ onScan, label = "Scan QR" , holiday}) {
   };
 
   return (
-    <div className={`min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8 px-4 ${loading && 'cursor-wait pointer-events-none'}`}>
+    <div
+      className={`bg-gradient-to-br from-blue-50 to-indigo-100 rounded-md shadow-md py-8 px-4 ${
+        loading && "cursor-wait pointer-events-none"
+      }`}
+    >
       <div className="max-w-md mx-auto">
         {/* Header */}
         <div className="bg-white rounded-t-2xl shadow-lg p-6">
           <h1 className=" flex items-center justify-center text-2xl font-bold text-center text-gray-800 mb-2">
             <Camera className="text-blue-500 mr-2" />
-            ตัวสแกน QR Code
+            SCANNER
           </h1>
-          <p className="text-center text-gray-600">กรุณาวาง QRcode ภายในกรอบ</p>
+          <p className="text-center text-gray-600 text-sm">
+            กรุณาวาง QRcode ภายในกรอบ
+          </p>
           <div className="flex mt-4">
             <div
               id="reader"

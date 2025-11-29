@@ -23,7 +23,8 @@ export async function POST(req) {
   }
 
   const { main_active } = await req.json();
-  console.log(main_active);
+  console.log("State is Change");
+  console.log("System State:", main_active);
   fs.writeFileSync(systemPath, JSON.stringify({ main_active: main_active }, null, 2));
   return NextResponse.json({ ok: true, main_active });
 }

@@ -47,6 +47,7 @@ export async function GET(req) {
           lateDays: index.lateDays,
           absentDays: index.absentDays,
           behaviorScore: index.behaviorScore,
+          isAdmin: index.isAdmin,
         };
       });
       return NextResponse.json(
@@ -69,12 +70,15 @@ export async function GET(req) {
         lateDays: index.lateDays,
         absentDays: index.absentDays,
         behaviorScore: index.behaviorScore,
+        isAdmin: index.isAdmin,
       };
     });
+    console.log(payload);
     return NextResponse.json(
       { success: true, message: payload },
       { status: 200 }
     );
+
   } catch (error) {
     console.log("Error :", error);
     return NextResponse.json(

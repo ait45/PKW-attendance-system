@@ -25,18 +25,20 @@ function StatisticsPage() {
   }, []);
   return (
     // หน้าสถิติ
-    <main className="max-w-7xl p-4">
+    <main className="p-4">
       <div className="bg-white rounded-xl shadow-xl p-4">
         <header className="mb-3">
           <div className="flex items-center">
             <ChartArea />
-            <h1 className="text-base md:text-xl font-bold text-blue-500 mb-2 ml-1">
+            <h1 className="text-base md:text-xl font-bold text-blue-500 ml-1">
               สถิติการเช็คชื่อรายสัปดาห์
             </h1>
           </div>
-          <Day />
+          <p className="text-sm sm:text-base">
+            <Day />
+          </p>
         </header>
-        <div className="">
+        <div>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart
               data={data}

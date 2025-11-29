@@ -184,7 +184,7 @@ export default function LoginPage() {
                   }}
                   className={`block w-full pl-10 pr-1.5 sm:pr-3 py-2 sm:py-3 text-xs sm:text-sm border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors ${
                     errors.username ? "border-red-300" : "border-gray-300"
-                  }`}
+                  } outline-none`}
                   placeholder="กรอกชื่อผู้ใช้ของคุณ"
                 />
               </div>
@@ -218,7 +218,7 @@ export default function LoginPage() {
                   }}
                   className={`block w-full pl-10 pr-1.5 sm:pr-3 py-2 sm:py-3 text-xs sm:text-sm border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors ${
                     errors.password ? "border-red-300" : "border-gray-300"
-                  }`}
+                  } outline-none`}
                   placeholder="กรอกรหัสผ่านของคุณ"
                 />
                 <button
