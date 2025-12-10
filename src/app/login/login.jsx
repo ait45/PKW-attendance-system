@@ -7,6 +7,7 @@ import Image from "next/image";
 import logo from "../assets/logo.png";
 import Footer from "../components/Footer/page";
 import ShowAlert from "../components/Sweetalert";
+import { NextResponse } from "next/server";
 
 export default function LoginPage() {
   const { data: session, status } = useSession();

@@ -12,6 +12,7 @@ import {
   Mail,
   Database,
   Plus,
+  Pin,
   Search,
   ChevronLeft,
   ChevronRight,
@@ -29,6 +30,7 @@ import QRDownload from "@/app/components/QRDownload/page";
 import Teacher_Management from "@/app/components/TeacherManagement/page";
 import SettingsPage from "@/app/components/settings/page";
 import MenuBar from "@/app/components/MenuBar_teacher/page";
+import Notifications from "@/app/components/Notifications/page";
 import {
   useSearchParams,
   usePathname,
@@ -72,6 +74,7 @@ function adminPage() {
       { id: "dashboard", label: "Dashboard", icon: Home },
       { id: "messages", label: "Messages", icon: Mail },
       { id: "teachers", label: "ข้อมูลครู", icon: UserRound },
+      { id: "notifications", label: "ประกาศ", icon: Pin },
       { id: "settings", label: "ตั้งค่า", icon: Settings },
     ];
     const handleMenuClick = (itemId) => {
@@ -172,6 +175,8 @@ function adminPage() {
       </main>
     );
   };
+
+  // ตรวจสอบ session ต่างๆ
   if (!session?.user?.role === "teacher" && status === "unauthenticated")
     redirect("/login");
   if (session?.user?.role === "teacher" && !session?.user?.isAdmin)
@@ -195,7 +200,7 @@ function adminPage() {
           session={session}
         />
         <main
-          className={`flex-1 py-4 w-full overflow-y-scroll hide-scrollbar duration-300 ${
+          className={`flex-1 py-1 w-full overflow-y-scroll hide-scrollbar duration-300 ${
             isCollapsed ? "inline" : isMobile && "hidden"
           } `}
         >
@@ -217,6 +222,9 @@ function adminPage() {
             <Teacher_Management session={session} />
           )}
           {currentPage === "settings" && <SettingsPage />}
+          {currentPage === "notifications" && (
+            <Notifications session={session} />
+          )}
         </main>
       </div>
       <Footer />

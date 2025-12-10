@@ -1,4 +1,3 @@
-import { connectDB } from "../../../../lib/mongodb";
 import { NextResponse } from "next/server";
 import readConfig from "../../../../scripts/readConfig";
 import { getToken } from "next-auth/jwt";
@@ -11,7 +10,7 @@ export async function GET(req) {
     return NextResponse.json(
       {
         error: "Unauthorized",
-        message: "คุณไม่ได้รับอนุญาต",
+        message: "ต้องยืนยันตัวตนก่อนใช้งาน",
         code: "UNAUTHORIZED",
       },
       { status: 401 }

@@ -1,40 +1,44 @@
 import { getToken } from "next-auth/jwt";
 import { NextResponse } from "next/server";
-import Teacher from "../../../../models/Teacher";
-import { connectDB } from "../../../../lib/mongodb";
+import { MariaDBConnection } from "../../../../lib/config.mariaDB";
 
 export async function GET(req) {
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
   if (!token)
     return NextResponse.json(
-      { success: false, error: "Unauthorized" },
+      {
+        error: "Unauthorized",
+        message: "คุณไม่ได้รับอนุญาต",
+        code: "UNAUTHORIZED",
+      },
       { status: 401 }
     );
-  if (!token.role === "teacher")
+  if (token.role !== "teacher")
     return NextResponse.json(
-      { success: false, error: "Forbidden" },
+      {
+        error: "Forbidden",
+        message: "คุณไม่มีสิทธิ์เข้าถึงข้อมูลนี้",
+        code: "FORBIDDEN",
+      },
       { status: 403 }
     );
 
   try {
-    await connectDB();
-    const response = await Teacher.find({});
+    const conn = await MariaDBConnection.getConnection();
+    const query = `SELECT TEACHER_ID, NAME, DEPARTMENT, SUBJECT, PHONE, IS_ADMIN FROM ${process.env.MARIA_DB_TABLE_TEACHERS}`;
 
-    const payload = response.map((index) => {
-      return {
-        teacherId: index.teacherId,
-        name: index.name,
-        department: index.department,
-        phone: index.phone,
-      };
-    });
+    const payload = await conn.query(query);
+    conn.end();
     return NextResponse.json(
       { success: true, message: payload },
       { status: 200 }
     );
   } catch (error) {
     console.error(error);
-    return NextResponse.json({ message: error }, { status: 500 });
+    return NextResponse.json(
+      { success: false, message: error },
+      { status: 500 }
+    );
   }
 }
 

@@ -30,6 +30,7 @@
     "dotenv": "^17.2.2",
     "downshift": "^9.0.10",
     "express": "^5.1.0",
+    "express-rate-limit": "^8.2.1",
     "fontkit": "^2.0.4",
     "fs": "^0.0.1-security",
     "html5-qrcode": "^2.3.8",
@@ -38,6 +39,7 @@
     "jsqr": "^1.4.0",
     "lru-cache": "^11.2.2",
     "lucide-react": "^0.539.0",
+    "mariadb": "^3.4.5",
     "moment-timezone": "^0.6.0",
     "mongodb": "^5.9.2",
     "mongoose": "^8.18.0",
@@ -61,7 +63,8 @@
     "react-qr-barcode-scanner": "^2.1.8",
     "react-select": "^5.10.2",
     "recharts": "^3.1.2",
-    "sweetalert2": "^11.22.4"
+    "sweetalert2": "^11.22.4",
+    "typescript": "^5.9.3"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

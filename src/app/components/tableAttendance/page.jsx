@@ -44,7 +44,7 @@ function tableAttendance({ session }) {
       return data.data;
     } catch (error) {
       console.log(error);
-      Swal.fire("เกิดข้อผิดพลาด", "", "error");
+      Swal.fire("เกิดข้อผิดพลาด", error, "error");
     }
   };
   const holiday = async () => {
@@ -62,12 +62,12 @@ function tableAttendance({ session }) {
       try {
         const req = await fetch("/api/studentManagement");
         const data = await req.json();
-        if (data.message.lenght < 1) return;
-        setDataStudent(data.message);
+        if (data.payload.lenght < 1) return;
+        setDataStudent(data.payload);
         //console.log(DataStudent);
       } catch (error) {
         console.log(error);
-        Swal.fire("เกิดข้อผิดพลาด", "", "error");
+        Swal.fire("เกิดข้อผิดพลาด", error, "error");
       }
     };
     fetchDataAttendance();
@@ -95,7 +95,6 @@ function tableAttendance({ session }) {
       selectClasses === "ทั้งหมด"
         ? DataStudent
         : DataStudent.filter((s) => s.classes === selectClasses);
-    console.log(DataStudentAttendance);
     if (!DataStudentAttendance) {
       //setStateSelectDisable(true);
 
@@ -288,7 +287,10 @@ function tableAttendance({ session }) {
                 <select
                   className="px-2/3 py-1 outline-none border border-[#009EA3] rounded-md cursor-pointer text-sm sm:text-base w-fit mt-1"
                   value={selectClasses}
-                  onChange={(e) => setSelectClasses(e.target.value)}
+                  onChange={(e) => {
+                    setSelectClasses(e.target.value);
+                    setNumberPager(1);
+                  }}
                 >
                   {classes.map((room) => (
                     <option key={room.label} value={room.label}>

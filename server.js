@@ -1,18 +1,30 @@
 import express from "express";
-import { parse } from "url";
 import next from "next";
+import rateLimit from "express-rate-limit";
 import "dotenv/config";
 import { autoCutoff } from "./scripts/checkCutoff.js";
 import path from "path";
 import fs from "fs";
 import cookie from "cookie";
 import { getToken } from "next-auth/jwt";
-import fetch from "node-fetch";
 
 const secret = process.env.NEXTAUTH_SECRET;
 const dev = process.env.NODE_ENV !== "production";
 const hostname = "localhost";
 const port = process.env.PORT || 3000;
+
+// setting ratelimit api
+
+const limiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 minute
+  max: 100, // limit each IP to 100 requests per windowMs
+  message: {
+    success: false,
+    message: "Too many requests, please try again later.",
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 const app = next({ dev, hostname, port, turbopack: dev });
 const handle = app.getRequestHandler();
@@ -29,7 +41,13 @@ function test() {
 
 app.prepare().then(() => {
   const server = express();
-  
+
+  /* The code `server.set('trust proxy', 1);` is setting the trust proxy setting in the Express server.
+  This setting is used to indicate to the server that it is behind a proxy and to trust the
+  X-Forwarded-* headers set by the proxy. */
+  server.set("trust proxy", 1);
+
+  server.use("/api", limiter);
 
   server.use(async (req, res, next) => {
     const pathname = req.path;
@@ -71,7 +89,6 @@ app.prepare().then(() => {
         pathname.includes(".js") ||
         pathname.includes(".css");
 
-
       const isAllowed = allowedPaths.some((p) => pathname.startsWith(p));
 
       if (!pathname.startsWith("/api/auth")) {
@@ -81,8 +98,12 @@ app.prepare().then(() => {
           secureCookie: false,
         });
         // ถ้าระบบปิด + ไม่ใช่ path ที่อนุญาต + ไม่ใช่หน้าแรก
-        if (!systemStatus.main_active && !isAllowed && !isInternalAsset && pathname !== "/") {
-
+        if (
+          !systemStatus.main_active &&
+          !isAllowed &&
+          !isInternalAsset &&
+          pathname !== "/"
+        ) {
           // ✅ ใช้ AND (&&) ไม่ใช่ OR (||)
           const isTeacherOrAdmin =
             token?.role === "teacher" && token?.isAdmin === true;

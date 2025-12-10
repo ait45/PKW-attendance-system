@@ -200,7 +200,7 @@ function StudentManagement({ session, setMenu }) {
                   isAdmin: false,
                 });
                 fetchStudents();
-              } else if (req.status === 400) {
+              } else if (req.status === 409) {
                 setErrors(res.message);
                 Swal.close();
                 return;
@@ -311,9 +311,12 @@ function StudentManagement({ session, setMenu }) {
 
   // ดึงข้อมูลจาก api
   const fetchStudents = async () => {
-    const res = await fetch("/api/studentManagement");
+    const res = await fetch("/api/studentManagement", {
+      method: "GET",
+      credentials: "include",
+    });
     const data = await res.json();
-    setTableStudent(data.message);
+    setTableStudent(data.payload);
   };
   useEffect(() => {
     fetchStudents();
@@ -675,7 +678,10 @@ function StudentManagement({ session, setMenu }) {
             <p className="text-xs">ชั้นเรียน</p>
             <select
               value={selectClasses}
-              onChange={(e) => setSelectClasses(e.target.value)}
+              onChange={(e) => {
+                setSelectClasses(e.target.value);
+                setNumberPager(1);
+              }}
               className="text-sm px-2 py-1 rounded-md border border-[#009EA3] outline-none w-fit cursor-pointer"
             >
               {classesList.map((val) => (

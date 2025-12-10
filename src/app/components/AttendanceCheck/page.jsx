@@ -130,7 +130,7 @@ function AttendanceCheckPage({ session }) {
             </div>
           </div>
           <button
-            className="px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-md transition-colors mt-5.5 ml-4 "
+            className="px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-md transition-colors mt-5.5 ml-4 disabled:cursor-not-allowed"
             onClick={handleManualCheckIn}
             disabled={showHoliday.isHoliday}
           >

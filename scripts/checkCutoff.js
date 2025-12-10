@@ -1,9 +1,8 @@
-import { connectDB } from "../lib/mongodb.js";
-import Student from "../models/Student.js";
-import LineupAttendanceModal from "../models/LineupAttendanceModal.js";
 import { Calculate_behaviorScore } from "./behaviorScore-deduction.js";
 import readConfig from "./readConfig.js";
 import { Holiday } from "./Holiday.js";
+import { MariaDBConnection } from "../lib/config.mariaDB.js";
+import { MongoDBConnection } from "../lib/config.mongoDB.js";
 
 const now = new Date();
 
@@ -11,6 +10,8 @@ const startOfDay = new Date();
 startOfDay.setHours(0, 0, 0, 0);
 const endOfDay = new Date();
 endOfDay.setHours(23, 59, 59, 999);
+
+const StudentTable_ENV = process.env.MARIA_DB_TABLE_STUDENTS;
 
 export async function cutoff() {
   const settings = await readConfig();
@@ -44,8 +45,8 @@ export async function autoCutoff() {
 
   if (now > timeCutoff) {
     console.log("autoCutoff");
+    let conn;
     try {
-      await connectDB();
       console.log("start autoCutoff");
       const holiday = Holiday(now);
       if (holiday.isHoliday) {
@@ -55,20 +56,24 @@ export async function autoCutoff() {
       /* The code snippet `const student = await Student.find({}, "studentId");` is querying the
       database to find all documents in the "Student" collection and only returning the "studentId"
       field for each document. */
-      const student = await Student.find();
-      const totalStudents = await Student.countDocuments();
+      //const student = await Student.find();
+      //const totalStudents = await Student.countDocuments();
+      conn = await MariaDBConnection.getConnection();
+      const queryTotalStudent = `SELECT STUDENT_ID, NAME, CLASSES FROM ${StudentTable_ENV}`;
+      const student = await conn.query(queryTotalStudent);
+      const totalStudents = student.length;
+      conn.end();
 
       const checkedToday = await LineupAttendanceModal.find({
         createdAt: { $gte: startOfDay, $lte: endOfDay },
       });
 
-      const checkedIds = new Set(checkedToday.map((s) => s.studentId));
+      const checkedIds = new Set(checkedToday.map((s) => s.STUDENT_ID));
       if (checkedIds.size >= totalStudents) {
         console.log("autocutoff is excited");
         return;
       } else {
-        const missing = student.filter((id) => !checkedIds.has(id.studentId));
-        console.log(missing);
+        const missing = student.filter((id) => !checkedIds.has(id.STUDENT_ID));
         if (missing.length === 0)
           return console.log("No missing students for autoCutoff");
         await LineupAttendanceModal.insertMany(
@@ -85,6 +90,8 @@ export async function autoCutoff() {
       }
     } catch (error) {
       console.error(error);
+    } finally {
+      if (conn) conn.end();
     }
   }
 }

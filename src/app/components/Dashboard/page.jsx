@@ -22,13 +22,13 @@ function Dashboard() {
       setLoading(true);
       const req_students = await fetch("/api/studentManagement", {
         method: "GET",
-        credentials: "include",
       });
       const data_student = await req_students.json();
-      setDataStudent({ student: data_student.message });
-      const array_data_student = data_student.message;
+      setDataStudent({ student: data_student.payload });
+      const array_data_student = data_student.payload || [];
+      console.log(array_data_student);
       const data_student_danger = array_data_student.filter(
-        (i) => i.behaviorScore < 65
+        (i) => i.BEHAVIOR_SCORE < 65
       );
       setStudent_danger(data_student_danger);
       const req_attendance = await fetch("/api/scanAttendance", {
@@ -98,8 +98,9 @@ function Dashboard() {
             </div>
             <div className="relative z-50">
               <div className=" text-3xl font-bold text-blue-600 mb-2 ">
-                {DataStudent &&
-                  (Object.keys(DataStudent.student).length || "กำลังโหลด")}
+                {DataStudent
+                  ? Object.keys(DataStudent.student).length
+                  : "กำลังโหลด"}
               </div>
               <div className="text-blue-700 font-medium">นักเรียนทั้งหมด</div>
             </div>

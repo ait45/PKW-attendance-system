@@ -44,19 +44,19 @@ function TeacherPage() {
   const handleChangePage = (pageName) => {
     router.push(`${pathname}?page=${pageName}`);
   };
- useEffect(() => {
-     const checkMobile = () => {
-       const mobile = window.innerWidth < 768;
-       setIsMobile(mobile);
-     };
-     checkMobile();
-     window.addEventListener("resize", checkMobile);
-     return () => window.addEventListener("resize", checkMobile);
-   }, []);
+  useEffect(() => {
+    const checkMobile = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+    };
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.addEventListener("resize", checkMobile);
+  }, []);
 
   const [isCollapsed, setIsCollapsed] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
-  
+
   const SideBar = ({ activeMenu, setActiveMenu, session }) => {
     const menuItems = [
       { id: "dashboard", label: "Dashboard", icon: Home },
@@ -197,7 +197,7 @@ function TeacherPage() {
           session={session}
         />
         <main
-          className={`flex-1 py-4 w-full overflow-auto ${
+          className={`flex-1 py-1 w-full overflow-auto ${
             isCollapsed && "inline"
           } ${isMobile ? "hidden" : "inline"}`}
         >

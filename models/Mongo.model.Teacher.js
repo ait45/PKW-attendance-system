@@ -14,20 +14,17 @@ const TeacherSchema = Schema(
       type: String,
       required: true,
     },
-    department: {
+    role: {
       type: String,
       required: true,
-    },
-    phone: {
-      type: Number,
-      required: true,
+      default: "teacher",
     },
     isAdmin: {
       type: Boolean,
       default: false,
-    }
+    },
   },
-  { collection: "TeacherDB", Timestamp: true }
+  { collection: "TeacherDB", timestamp: true }
 );
 export default mongoose.models.Teacher ||
   mongoose.model("Teacher", TeacherSchema);

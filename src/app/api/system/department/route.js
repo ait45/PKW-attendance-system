@@ -11,16 +11,27 @@ export async function GET(req) {
   const token = await getToken({ req, secret: process.env.AUTH_SECRET });
   if (!token)
     return NextResponse.json(
-      { success: false, message: "authorization" },
+      {
+        error: "Unauthorized",
+        message: "ต้องยืนยันตัวตนก่อนใช้งาน",
+        code: "UNAUTHORIZED",
+      },
       { status: 401 }
     );
 
   try {
     const file = JSON.parse(fs.readFileSync(departmentPath, "utf-8"));
-    return NextResponse.json({ success: true, message: file}, { status: 200 });
+    return NextResponse.json(
+      { success: true, message: file, code: "SUCCESSFULLY" },
+      { status: 200 }
+    );
   } catch (error) {
     return NextResponse.json(
-      { success: false, message: error },
+      {
+        error: "Internal Server Error",
+        message: error,
+        code: "INTERNAL_ERROR",
+      },
       { status: 500 }
     );
   }
@@ -29,15 +40,32 @@ export async function PUT(req) {
   const token = await getToken({ req, secret: process.env.AUTH_SECRET });
   if (!token)
     return NextResponse.json(
-      { success: false, message: "authorization" },
+      {
+        error: "Unauthorized",
+        message: "ต้องยืนยันตัวตนก่อนใช้งาน",
+        code: "UNAUTHORIZED",
+      },
       { status: 401 }
     );
-    try {
-      const body = await req.json();
-      if (!body) return NextResponse.json({ success: false, message: "Parameter Not Found"}, { status: 422 })
-      
-
-    } catch (error) {
-      return NextResponse.json({ success: false, message: error }, { status: 500 });
-    }
+  try {
+    const body = await req.json();
+    if (!body)
+      return NextResponse.json(
+        {
+          error: "Parameter Not Found",
+          message: "ไม่มีข้อมูลที่ส่งมา",
+          code: "PARAMETER_NOT_FOUND",
+        },
+        { status: 422 }
+      );
+  } catch (error) {
+    return NextResponse.json(
+      {
+        error: "Internal Server Error",
+        message: error,
+        code: "INTERNAL_ERROR",
+      },
+      { status: 500 }
+    );
+  }
 }

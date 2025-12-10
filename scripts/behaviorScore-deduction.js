@@ -1,6 +1,6 @@
-import { connectDB } from "../lib/mongodb.js";
+import { MongoDBConnection } from "../lib/config.mongoDB.js";
 import LineupAttendanceModal from "../models/LineupAttendanceModal.js";
-import Student from "../models/Student.js";
+import Student from "../models/Mongo.model.Student.js";
 import readConfig from "./readConfig.js";
 
 const startOfDay = new Date();
@@ -16,7 +16,7 @@ function stringToNegative(str) {
 // ฟังก์ชั่นคำนวณคะแนนความประพฤติหลังจาก cutoff
 export async function Calculate_behaviorScore() {
   try {
-    await connectDB();
+    await MongoDBConnection();
     console.log("start deduction score");
     const setting = await readConfig();
     const data_Attendance_Today_raw = await LineupAttendanceModal.find({
@@ -83,7 +83,7 @@ export async function Calculate_behaviorScore() {
 export async function update_behaviorScore(list) {
   try {
     console.log("start updata_begaviorScore");
-    await connectDB();
+    await MongoDBConnection();
     const setting = await readConfig();
 
     for (const item of list) {

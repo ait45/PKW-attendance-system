@@ -1,10 +1,21 @@
 import { NextResponse } from "next/server";
-import { connectDB } from "../../../../../lib/mongodb";
+import { MongoDBConnection } from "../../../../../lib/config.mongoDB";
 import LineupAttendanceModal from "../../../../../models/LineupAttendanceModal";
 import { startOfWeek, endOfWeek } from "date-fns";
+import { getToken } from "next-auth/jwt";
 
 export async function GET(req) {
-  await connectDB();
+  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+  if (!token)
+    return NextResponse.json(
+      {
+        error: "Unauthorized",
+        message: "คุณไม่ได้รับอนุญาต",
+        code: "UNAUTHORIZED",
+      },
+      { status: 401 }
+    );
+  await MongoDBConnection();
 
   const now = new Date();
   const start = startOfWeek(now, { weekStartsOn: 1 });
@@ -26,27 +37,27 @@ export async function GET(req) {
         },
         leave: {
           $sum: {
-            $cond: [{ $eq: ["$status", "ลา"]}, 1, 0],
+            $cond: [{ $eq: ["$status", "ลา"] }, 1, 0],
           },
         },
         late: {
           $sum: {
-            $cond: [{ $eq: ["$status", "สาย"]}, 1, 0],
+            $cond: [{ $eq: ["$status", "สาย"] }, 1, 0],
           },
         },
         absent: {
           $sum: {
-            $cond: [{ $eq: ["$status", "ขาด"]}, 1, 0],
-          }
-        }
+            $cond: [{ $eq: ["$status", "ขาด"] }, 1, 0],
+          },
+        },
       },
     },
   ]);
   const days = ["Mon", "Tue", "Wed", "Thu", "Fri"];
   const weeklyData = days.map((day, i) => {
     const d = data.find((x) => x._id === i + 2);
-    return { 
-      day, 
+    return {
+      day,
       present: d ? d.present : 0,
       leave: d ? d.leave : 0,
       late: d ? d.late : 0,

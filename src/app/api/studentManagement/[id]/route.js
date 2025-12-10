@@ -1,18 +1,22 @@
 import { NextResponse } from "next/server";
-import { connectDB } from "../../../../../lib/mongodb";
-import Student from "../../../../../models/Student";
+import { MongoDBConnection } from "../../../../../lib/config.mongoDB";
+import Student from "../../../../../models/Mongo.model.Student";
 import { getToken } from "next-auth/jwt";
 
 export async function DELETE(req, { params }) {
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
   if (!token)
     return NextResponse.json(
-      { success: false, message: "Unauthorization" },
+      {
+        error: "Unauthorized",
+        message: "ต้องยืนยันตัวตนก่อนใช้งาน",
+        code: "UNAUTHORIZED",
+      },
       { status: 401 }
     );
   try {
     const { id } = await params;
-    await connectDB();
+    await MongoDBConnection();
     await Student.findByIdAndDelete(id);
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {
@@ -28,7 +32,7 @@ export async function PUT(req, { params }) {
       { status: 401 }
     );
   try {
-    await connectDB();
+    await MongoDBConnection();
     const body = await req.json();
     const update = { ...body };
     const { id } = await params;
@@ -57,7 +61,7 @@ export async function GET(req, { params }) {
       { status: 401 }
     );
   try {
-    await connectDB();
+    await MongoDBConnection();
     const { id } = await params;
     const res = await Student.findById(id);
     const data = {
@@ -86,4 +90,3 @@ export async function GET(req, { params }) {
     );
   }
 }
-

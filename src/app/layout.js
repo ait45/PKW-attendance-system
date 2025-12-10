@@ -1,29 +1,32 @@
 // ตรวจสอบ Provider
 import { AuthProvider } from "./Provider";
 
-
 // font system
-import { Kanit } from "next/font/google";
 import "./globals.css";
+import localFont from "next/font/local";
+
+const MyFontWeb = localFont({
+  src: [
+    {
+      path: "./assets/fonts/Kanit-Regular.woff2",
+      weight: "400",
+      style: "normal",
+    },
+  ],
+});
+
 // Progress Action
 import ProgressBar from "./ProgressBar";
 
-const kanitSans = Kanit({
-  weight: '400',
-  subsets: ['thai'],
-});
-
-
 export const metadata = {
-  title: "PKW Attendance",
+  title: "PKW Service TH",
   description: "System Service",
 };
 
 export default function RootLayout({ children }) {
-  
   return (
     <html lang="en">
-      <body className={kanitSans.className} >
+      <body className={MyFontWeb.className}>
         <AuthProvider>
           <ProgressBar />
           {children}

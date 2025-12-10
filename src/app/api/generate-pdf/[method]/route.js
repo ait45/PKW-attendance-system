@@ -6,8 +6,8 @@ import PDFTable from "pdfkit-table";
 import QRCode from "qrcode";
 import { getToken } from "next-auth/jwt";
 import { NextResponse } from "next/server";
-import { connectDB } from "../../../../../lib/mongodb";
-import Student from "../../../../../models/Student";
+import { MongoDBConnection } from "../../../../../lib/config.mongoDB";
+import Student from "../../../../../models/Mongo.model.Student";
 import { Buffer } from "node:buffer";
 import fs from "fs";
 import path from "path";
@@ -181,7 +181,7 @@ export async function GET(req, { params }) {
 
   if (method === "qr-student") {
     try {
-      await connectDB();
+      await MongoDBConnection();
       const fileName = getFileName("PKW-QrCode-Student");
       const students = await Student.find();
 
@@ -306,7 +306,11 @@ export async function GET(req, { params }) {
     } catch (error) {
       console.error("Pdf generate failed", error);
       return NextResponse.json(
-        { success: false, message: error },
+        {
+          error: "Internal Server Error",
+          message: error,
+          code: "INTERNAL_ERROR",
+        },
         { status: 500 }
       );
     }
@@ -418,7 +422,11 @@ export async function GET(req, { params }) {
     } catch (error) {
       console.error("PDF Generate failed: ", error);
       return NextResponse.json(
-        { success: false, mesage: error },
+        {
+          error: "Internal Server Error",
+          message: error,
+          code: "INTERNAL_ERROR",
+        },
         { status: 500 }
       );
     }
@@ -441,18 +449,22 @@ export async function GET(req, { params }) {
         info: {
           Title: "รายงานการเข้าแถวประจำวัน",
           Author: NameService,
-        }
-      })
+        },
+      });
       console.log(data);
     } catch (error) {
       return NextResponse.json(
-        { success: false, message: error },
+        {
+          error: "Internal Server Error",
+          message: error,
+          code: "INTERNAL_ERROR",
+        },
         { status: 500 }
       );
     }
   } else
     return NextResponse.json(
-      { success: false, message: "Method Not Found" },
+      { error: "Bad Request", message: "คำขอไม่ถูกต้อง", code: "BAD_REQUEST" },
       { status: 400 }
     );
 }

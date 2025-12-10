@@ -32,7 +32,11 @@ export async function GET(req, { params }) {
   } catch (error) {
     console.error(error);
     return NextResponse.json(
-      { success: false, message: "Failed to Request!" },
+      {
+        error: "Internal Server Error",
+        message: error,
+        code: "INTERNAL_ERROR",
+      },
       { status: 500 }
     );
   }
