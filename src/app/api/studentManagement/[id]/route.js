@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { MongoDBConnection } from "../../../../../lib/config.mongoDB";
-import Student from "../../../../../models/Mongo.model.Student";
+import { MongoDBConnection } from "@/lib/config.mongoDB.ts";
+import Student from "@/models/Mongo.model.Student.ts";
 import { getToken } from "next-auth/jwt";
 
 export async function DELETE(req, { params }) {
@@ -18,8 +18,13 @@ export async function DELETE(req, { params }) {
     const { id } = await params;
     await MongoDBConnection();
     await Student.findByIdAndDelete(id);
-    return NextResponse.json({ success: true }, { status: 200 });
+    return NextResponse.json(
+      { success: true,
+        code: "success",
+      },
+      { status: 200 });
   } catch (error) {
+    console.error("Error to Delete Data", error);
     return NextResponse.json({ success: false }, { status: 500 });
   }
 }

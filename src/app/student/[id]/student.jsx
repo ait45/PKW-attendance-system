@@ -1,13 +1,12 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 
-import Nav from "@/app/components/Navbar/page";
+import Nav from "@/app/components/Navbar";
 import Footer from "@/app/components/Footer/page";
 import Swal from "sweetalert2";
 import { useSession } from "next-auth/react";
 import { redirect } from "next/navigation";
-import StudentDashboard from "@/app/components/StudentDashboard/page";
-
+import StudentDashboard from "@/app/components/StudentDashboard";
 
 function student() {
   const { data: session, status } = useSession();

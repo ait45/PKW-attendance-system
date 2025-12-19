@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { MariaDBConnection } from "../../../../lib/config.mariaDB";
+import { MariaDBConnection } from "../../../lib/config.mariaDB";
 
 export async function GET(request) {
   try {

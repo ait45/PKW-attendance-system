@@ -3,10 +3,9 @@
 import React, { useState } from "react";
 import { signOut, useSession } from "next-auth/react";
 import { redirect } from "next/navigation";
-import Nav from "@/app/components/Navbar/page";
+import Nav from "@/app/components/Navbar";
 import Footer from "@/app/components/Footer/page";
-import StudentDashboard from "@/app/components/StudentDashboard/page";
-
+import StudentDashboard from "@/app/components/StudentDashboard";
 
 function admin() {
   const { data: session, status } = useSession();
@@ -23,7 +22,7 @@ function admin() {
   return (
     <main>
       <Nav session={session} />
-      <StudentDashboard session={session}/>
+      <StudentDashboard session={session} />
       <Footer />
     </main>
   );

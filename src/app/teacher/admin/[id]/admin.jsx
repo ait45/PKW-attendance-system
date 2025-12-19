@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import Nav from "@/app/components/Navbar/page";
+import Nav from "@/app/components/Navbar";
 import Footer from "@/app/components/Footer/page";
 import { signOut, useSession } from "next-auth/react";
 import Swal from "sweetalert2";
@@ -21,15 +21,15 @@ import {
 } from "lucide-react";
 import StatisticsPage from "@/app/components/Statistics/page";
 import SchedulePage from "@/app/components/Schedule/page";
-import StudentManagement from "@/app/components/StudentManagement/page";
-import AttendanceCheckPage from "@/app/components/AttendanceCheck/page";
-import TableAttendance from "@/app/components/tableAttendance/page";
+import StudentManagement from "@/app/components/StudentManagement";
+import AttendanceCheckPage from "@/app/components/AttendanceCheck";
+import TableAttendance from "@/app/components/tableAttendance";
 import Dashboard from "@/app/components/Dashboard/page";
 import ReportPage from "@/app/components/Report/page";
-import QRDownload from "@/app/components/QRDownload/page";
-import Teacher_Management from "@/app/components/TeacherManagement/page";
+import QRDownload from "@/app/components/QRDownload";
+import Teacher_Management from "@/app/components/TeacherManagement";
 import SettingsPage from "@/app/components/settings/page";
-import MenuBar from "@/app/components/MenuBar_teacher/page";
+import MenuBar from "@/app/components/MenuBar_teacher";
 import Notifications from "@/app/components/Notifications/page";
 import {
   useSearchParams,

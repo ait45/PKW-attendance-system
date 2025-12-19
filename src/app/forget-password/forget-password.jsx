@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import Nav from "../components/Navbar/page";
+import Nav from "../components/Navbar";
 import Footer from "../components/Footer/page";
 import Link from "next/link";
 import { IdCard, LockKeyhole } from "lucide-react";
