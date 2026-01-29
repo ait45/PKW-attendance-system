@@ -26,7 +26,7 @@ function Index() {
       </section>
       {/* Content Section */}
       <section className="bg-white grid grid-cols-2">
-        <div className="m-4 p-2 ml-6 text-xs sm:text-sm border-r-1 border-slate-400">
+        <div className="m-4 p-2 ml-6 text-xs sm:text-sm border-r border-slate-400">
           <p>ข้อมูลการติดต่อ</p>
           <div className="flex items-center">
             <Globe size={10} color="blue" />

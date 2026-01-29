@@ -7,13 +7,14 @@ startOfDay.setHours(0, 0, 0, 0);
 const endOfDay = new Date();
 endOfDay.setHours(23, 59, 59, 999);
 
-const attendance_Table: string = process.env.MARIA_DB_TABLE_ATTENDANCE;
-const data_student_Table: string = process.env.MARIA_DB_TABLE_STUDENT;
+const attendance_Table = process.env.MARIA_DB_TABLE_ATTENDANCE;
+const data_student_Table = process.env.MARIA_DB_TABLE_STUDENT;
 
 // ฟังก์ชั่นคำนวณคะแนนความประพฤติหลังจาก cutoff
 export async function Calculate_behaviorScore(): Promise<void> {
-  let conn: PoolConnection;
+  let conn: PoolConnection | undefined;
   try {
+    
     conn = await MariaDBConnection.getConnection();
     console.log("start deduction score");
     const setting = await readConfig();
@@ -108,6 +109,8 @@ export async function Calculate_behaviorScore(): Promise<void> {
     }
   } catch (error) {
     console.error(error);
+  } finally {
+    if (conn) conn.end();
   }
 }
 
@@ -123,11 +126,10 @@ export async function update_behaviorScore(
     status: string;
   }>
 ): Promise<void> {
-  let conn: PoolConnection;
+  let conn: PoolConnection | undefined;
   try {
     console.log("start updata_begaviorScore");
     conn = await MariaDBConnection.getConnection();
-    const setting = await readConfig();
     const HANDLER: string = "Teacher";
     for (const item of list) {
       const { update, studentId, status } = item;
@@ -143,5 +145,7 @@ export async function update_behaviorScore(
   } catch (error) {
     console.error(error);
     return;
+  } finally {
+    if (conn) conn.end();
   }
 }

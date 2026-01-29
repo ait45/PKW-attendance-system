@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { ChevronsLeft } from "lucide-react";
 import type { Route } from "next";
 
-export default function DownloadPdf({ setBack }) {
+export default function DownloadPdf({ setBack }: { setBack: (back: string) => void }) {
   const [loading, setLoading] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 

@@ -1,10 +1,10 @@
+"use server";
 import { NextResponse, NextRequest } from "next/server";
-import { getToken } from "next-auth/jwt";
 import { cutoff, attendanceStart } from "@/scripts/checkCutoff.ts";
 import { update_behaviorScore } from "@/scripts/behaviorScore-deduction.ts";
 import { MariaDBConnection } from "@/lib/config.mariaDB.ts";
-import { PoolConnection } from "mariadb/*";
-import { JWT } from "next-auth/jwt";
+import { PoolConnection } from "mariadb";
+import { auth } from "@/lib/auth.ts";
 
 const now = new Date();
 const startOfDay = new Date();
@@ -12,14 +12,12 @@ startOfDay.setHours(0, 0, 0, 0);
 const endOfDay = new Date();
 endOfDay.setHours(23, 59, 59, 999);
 
-const attendance_Table: string = process.env.MARIA_DB_TABLE_ATTENDANCE;
-const students_Table: string = process.env.MARIA_DB_TABLE_STUDENTS;
+const attendance_Table = process.env.MARIA_DB_TABLE_ATTENDANCE;
+const students_Table = process.env.MARIA_DB_TABLE_STUDENTS;
+
 export async function POST(req: NextRequest) {
-  const token = await getToken({
-    req,
-    secret: process.env.AUTH_SECRET,
-  });
-  if (!token)
+  const session = await auth();
+  if (!session)
     return NextResponse.json(
       {
         error: "Unauthorized",
@@ -28,7 +26,7 @@ export async function POST(req: NextRequest) {
       },
       { status: 401 }
     );
-  if (token?.user?.isAdmin === false)
+  if (session?.user?.isAdmin === false)
     return NextResponse.json(
       {
         error: "Forbidden",
@@ -37,9 +35,9 @@ export async function POST(req: NextRequest) {
       },
       { status: 403 }
     );
-  let conn: PoolConnection;
+  let conn: PoolConnection | undefined;
   try {
-    if (attendanceStart) {
+    if (await attendanceStart()) {
       const post = await req.json();
 
       conn = await MariaDBConnection.getConnection();
@@ -66,7 +64,7 @@ export async function POST(req: NextRequest) {
         { status: 200 }
       );
     }
-  } catch (error) {
+  } catch (error: any) {
     if (error.errno === 1062) {
       return NextResponse.json(
         {
@@ -83,11 +81,8 @@ export async function POST(req: NextRequest) {
 }
 
 export async function GET(req: NextRequest) {
-  const token: JWT = await getToken({
-    req,
-    secret: process.env.NEXTAUTH_SECRET,
-  });
-  if (!token) {
+  const session = await auth();
+  if (!session) {
     return NextResponse.json(
       {
         error: "Unauthorized",
@@ -97,14 +92,19 @@ export async function GET(req: NextRequest) {
       { status: 401 }
     );
   }
-  let conn: PoolConnection;
+  let conn: PoolConnection | undefined;
   try {
     conn = await MariaDBConnection.getConnection();
-    const query: string = `SELECT * FROM ${attendance_Table} WHERE CREATED_AT BETWEEN ? AND ? ORDER BY CREATED_AT DESC`;
+
+    const query = `SELECT * FROM ${attendance_Table} WHERE CREATED_AT BETWEEN ? AND ? ORDER BY CREATED_AT DESC`;
+
     const data = await conn.query(query, [startOfDay, endOfDay]);
-    if (data.length === 0) {
-      return new NextResponse(null, { status: 204 });
-    }
+
+    if (data.length === 0)
+      return NextResponse.json(
+        { error: "Not Found", message: "ไม่พบข้อมูล", code: "NOT_FOUND" },
+        { status: 404 }
+      );
 
     const payload = data.map(
       (index: {
@@ -125,6 +125,7 @@ export async function GET(req: NextRequest) {
         };
       }
     );
+
     return NextResponse.json(
       { success: true, message: payload },
       { status: 200 }
@@ -142,9 +143,9 @@ export async function GET(req: NextRequest) {
   }
 }
 export async function PUT(req: NextRequest) {
-  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+  const session = await auth();
 
-  if (!token) {
+  if (!session) {
     return NextResponse.json(
       {
         error: "Unauthorized",

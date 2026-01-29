@@ -30,7 +30,7 @@ function ReportPage() {
   useEffect(() => {
     if (!params) return;
 
-    const processPDF = async (typeFile) => {
+    const processPDF = async (typeFile: string) => {
       try {
         const res = await fetch(`/api/generate-pdf/${typeFile}`);
         if (res.ok)

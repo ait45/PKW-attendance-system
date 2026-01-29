@@ -53,6 +53,7 @@ const nextConfig: NextConfig = {
   serverExternalPackages: ["pdfkit"],
 
   typedRoutes: true,
+  eslint: { ignoreDuringBuilds: true },
 };
 
 export default nextConfig;

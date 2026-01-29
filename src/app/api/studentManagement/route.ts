@@ -1,10 +1,8 @@
-export const runtime = "nodejs";
-
 import { MongoDBConnection } from "@/lib/config.mongoDB.ts";
 import { MariaDBConnection } from "@/lib/config.mariaDB.ts";
 import { NextRequest, NextResponse } from "next/server";
 import Student from "@/models/Mongo.model.Student.ts";
-import { getToken } from "next-auth/jwt";
+import { auth } from "@/lib/auth.ts";
 import crypto from "crypto";
 import bcrypt from "bcrypt";
 
@@ -39,10 +37,9 @@ async function genPassword(size: number) {
   }
   return password;
 }
-export async function GET(req: NextRequest) {
-  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
-  console.log(token);
-  if (!token)
+export async function GET() {
+  const session = await auth();
+  if (!session)
     return NextResponse.json(
       {
         error: "Unauthorized",
@@ -58,7 +55,7 @@ export async function GET(req: NextRequest) {
     const data = await conn.query(query);
     conn.end();
 
-    if (token?.role === "teacher" && token?.isAdmin) {
+    if (session?.user?.role === "teacher" && session?.user?.isAdmin === true) {
       const payload = data.map((index: Data) => {
         return {
           _id: index._id,
@@ -82,7 +79,10 @@ export async function GET(req: NextRequest) {
         { success: true, payload: payload },
         { status: 200 }
       );
-    } else if (token?.role === "teacher" && !token?.isAdmin) {
+    } else if (
+      session?.user?.role === "teacher" &&
+      session?.user?.isAdmin === false
+    ) {
       const payload = data.map((index: Data) => {
         return {
           id: index._id,
@@ -105,19 +105,39 @@ export async function GET(req: NextRequest) {
         { success: true, payload: payload },
         { status: 200 }
       );
+    } else {
+      return NextResponse.json(
+        {
+          error: "Forbidden",
+          message: "ไม่มีสิทธิ์เข้าถึงข้อมูล",
+          code: "FORBIDDEN",
+        },
+        { status: 403 }
+      );
     }
   } catch (error) {
     console.log("Error :", error);
     return NextResponse.json(
-      { success: false, message: error },
-      { status: 501 }
+      {
+        error: "Internal Server Error",
+        message: error,
+        code: "INTERNAL_ERROR",
+      },
+      { status: 500 }
     );
   }
 }
-export async function POST(req) {
-  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
-  if (!token)
-    return NextResponse.json({ error: "Unauthrization" }, { status: 401 });
+export async function POST(req: NextRequest) {
+  const session = await auth();
+  if (!session)
+    return NextResponse.json(
+      {
+        error: "Unauthorized",
+        message: "ต้องยืนยันตัวตนก่อนใช้งาน",
+        code: "UNAUTHORIZED",
+      },
+      { status: 401 }
+    );
   try {
     const { studentId, name, classes, phone, parentPhone, Number } =
       await req.json();
@@ -144,18 +164,19 @@ export async function POST(req) {
     });
 
     return NextResponse.json(
-      { success: true, message: "เพิ่มข้อมูลเสร็จสิ้น" },
+      { success: true, message: "เพิ่มข้อมูลเสร็จสิ้น", code: "SUCCESS" },
       { status: 200 }
     );
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error :", error);
     if (error.code === "ER_DUP_ENTRY") {
       const message = error.sqlMessage || error.message;
       if (message.includes("STUDENT_ID")) {
         return NextResponse.json(
           {
-            success: false,
+            error: "student_id_exists",
             message: { studentId: "มีข้อมูลในระบบแล้ว" },
+            code: "STUDENT_ID_EXISTS",
           },
           { status: 409 }
         );
@@ -163,15 +184,20 @@ export async function POST(req) {
       if (message.includes("unique_class_number")) {
         return NextResponse.json(
           {
-            success: false,
+            error: "number_exists",
             message: { Number: "เลขที่มีข้อมูลในระบบแล้ว" },
+            code: "NUMBER_EXISTS",
           },
           { status: 409 }
         );
       }
     }
     return NextResponse.json(
-      { success: false, message: error },
+      {
+        error: "internal_server_error",
+        message: error,
+        code: "INTERNAL_SERVER_ERROR",
+      },
       { status: 500 }
     );
   }

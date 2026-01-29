@@ -8,10 +8,10 @@ interface holiday {
   isHoliday: boolean;
   name?: string;
 }
-function TableAttendance({ session }) {
+function TableAttendance({ session }: { session: any }) {
   const now = new Date();
-  const [DataStudentAttendance, setDataStudentAttendance] = useState([]);
-  const [DataStudent, setDataStudent] = useState([]);
+  const [DataStudentAttendance, setDataStudentAttendance] = useState<any[]>([]);
+  const [DataStudent, setDataStudent] = useState<any[]>([]);
   const [stateSelectDisable, setStateSelectDisable] = useState<Partial<boolean>>(false);
   const [selectClasses, setSelectClasses] = useState<Partial<string>>("ทั้งหมด");
   const [overTimeEditState, setOverTimeEditState] = useState(false);
@@ -31,12 +31,21 @@ function TableAttendance({ session }) {
   const fetchDataAttendance = async () => {
     try {
       const req = await fetch("/api/scanAttendance");
-      if (req.status === 204) return;
+      // กรณีไม่พบข้อมูล (404 หรือ 204) ให้ set เป็น empty array
+      if (req.status === 404 || req.status === 204) {
+        setDataStudentAttendance([]);
+        return;
+      }
       const data = await req.json();
-      setDataStudentAttendance(data.message);
-      //console.log(DataStudentAttendance);
+      // ตรวจสอบว่า data.message เป็น array ก่อน set
+      if (Array.isArray(data.message)) {
+        setDataStudentAttendance(data.message);
+      } else {
+        setDataStudentAttendance([]);
+      }
     } catch (error) {
-      console.log(error);
+      console.error(error);
+      setDataStudentAttendance([]);
       Swal.fire("เกิดข้อผิดพลาด", "", "error");
     }
   };
@@ -46,8 +55,8 @@ function TableAttendance({ session }) {
       if (req.status === 204) return;
       const data = await req.json();
       return data.data;
-    } catch (error) {
-      console.log(error);
+    } catch (error: any) {
+      console.error(error);
       Swal.fire("เกิดข้อผิดพลาด", error, "error");
     }
   };
@@ -69,7 +78,7 @@ function TableAttendance({ session }) {
         if (data.payload.lenght < 1) return;
         setDataStudent(data.payload);
         //console.log(DataStudent);
-      } catch (error) {
+      } catch (error: any) {
         console.log(error);
         Swal.fire("เกิดข้อผิดพลาด", error, "error");
       }
@@ -98,7 +107,7 @@ function TableAttendance({ session }) {
     const students =
       selectClasses === "ทั้งหมด"
         ? DataStudent
-        : DataStudent.filter((s) => s.classes === selectClasses);
+        : DataStudent.filter((s: any) => s.classes === selectClasses);
     if (!DataStudentAttendance) {
       //setStateSelectDisable(true);
 
@@ -114,9 +123,9 @@ function TableAttendance({ session }) {
     } else {
       setStateSelectDisable(false);
       if (students.length === 0) return null;
-      return students.map((student) => {
-        const attendance = DataStudentAttendance.find(
-          (a) => a.studentId === student.studentId
+      return students.map((student: any) => {
+        const attendance: any = DataStudentAttendance.find(
+          (a: any) => a.studentId === student.studentId
         );
 
         return {
@@ -126,15 +135,15 @@ function TableAttendance({ session }) {
       });
     }
   }, [DataStudent, selectClasses, DataStudentAttendance]);
-  const [dataUpdate, setDataUpdate] = useState([]);
+  const [dataUpdate, setDataUpdate] = useState<any[]>([]);
 
   /**
    * The function `handleStatusChange` updates the status of a student in the DataStudentAttendance
    * array based on the input student ID and new status.
    */
-  function handleStatusChange(inputId, newStatus) {
-    setDataUpdate((prev) => {
-      const data = DataStudentAttendance.find((d) => d.studentId === inputId);
+  function handleStatusChange(inputId: string, newStatus: string) {
+    setDataUpdate((prev: any) => {
+      const data: any = DataStudentAttendance.find((d: any) => d.studentId === inputId);
       if (data) {
         return [
           ...prev,
@@ -146,7 +155,7 @@ function TableAttendance({ session }) {
           },
         ];
       }
-      const student = DataStudent.find((d) => d.studentId === inputId);
+      const student: any = DataStudent.find((d: any) => d.studentId === inputId);
       return [
         ...prev,
         {
@@ -158,13 +167,29 @@ function TableAttendance({ session }) {
         },
       ];
     });
-    setDataStudentAttendance((prev) => {
-      const exists = prev.find((d) => d.studentId === inputId);
+    setDataStudentAttendance((prev: any) => {
+      // Ensure prev is always an array
+      const currentData = prev ?? [];
+      const exists = currentData.find((d: any) => d.studentId === inputId);
       if (exists) {
-        return prev.map((d) =>
+        return currentData.map((d: any) =>
           d.studentId === inputId ? { ...d, status: newStatus } : d
         );
       }
+      // Add new student to attendance array if they don't exist
+      const student = DataStudent.find((s: any) => s.studentId === inputId);
+      if (student) {
+        return [
+          ...currentData,
+          {
+            studentId: inputId,
+            name: student.name,
+            classes: student.classes,
+            status: newStatus,
+          },
+        ];
+      }
+      return currentData;
     });
   }
   /**
@@ -202,7 +227,7 @@ function TableAttendance({ session }) {
             setDataUpdate([]);
             fetchDataAttendance();
           }
-        } catch (error) {
+        } catch (error: any) {
           document.body.classList.remove("loading");
           setLoading(false);
           console.error(error);
@@ -234,7 +259,7 @@ function TableAttendance({ session }) {
       NumberPager * rowsPerPage
     ) || [];
   // เปลี่ยนจำนวน row
-  const handleRowChange = (e) => {
+  const handleRowChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setRowsPerPage(Number(e.target.value));
     setNumberPager(1);
   };

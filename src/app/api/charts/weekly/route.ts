@@ -1,13 +1,14 @@
+"use server";
+
 import { NextResponse, NextRequest } from "next/server";
-import { MongoDBConnection } from "../../../../lib/config.mongoDB";
-import { MariaDBConnection } from "../../../../lib/config.mariaDB";
+import { MariaDBConnection } from "@/lib/config.mariaDB.ts";
 import { startOfWeek, endOfWeek } from "date-fns";
-import { getToken } from "next-auth/jwt";
+import { auth } from "@/lib/auth.ts";
 import { PoolConnection } from "mariadb/*";
 
-export async function GET(req: NextRequest) {
-  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
-  if (!token)
+export async function GET() {
+  const session = await auth();
+  if (!session)
     return NextResponse.json(
       {
         error: "Unauthorized",
@@ -20,7 +21,7 @@ export async function GET(req: NextRequest) {
   const now = new Date();
   const start = startOfWeek(now, { weekStartsOn: 1 });
   const end = endOfWeek(now, { weekStartsOn: 1 });
-  let conn: PoolConnection;
+  let conn: PoolConnection | undefined;
   try {
     conn = await MariaDBConnection.getConnection();
     const query = `SELECT 

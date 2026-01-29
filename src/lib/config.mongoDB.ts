@@ -3,7 +3,7 @@ const MONGODB_URI = process.env.MONGODB_URI;
 if (!MONGODB_URI) {
   throw new Error("Please define the MONGODB_URI in .env");
 }
-let isConnected = null;
+let isConnected: number | null = null;
 export const MongoDBConnection = async () => {
   if (isConnected) return;
   try {

@@ -1,10 +1,9 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import Day from "../date-time/day";
 import {
   ChartColumnBig,
-  BookOpen,
   Clock,
   Calendar,
   Users,
@@ -22,22 +21,28 @@ function Dashboard() {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const req_students = await fetch("/api/studentManagement", {
+      const req = await fetch("/api/studentManagement", {
         method: "GET",
       });
-      const data_student = await req_students.json();
-      setDataStudent({ student: data_student.payload });
-      const array_data_student = data_student.payload || [];
-      console.log(array_data_student);
-      const data_student_danger = array_data_student.filter(
-        (i) => i.BEHAVIOR_SCORE < 65
-      );
-      setStudent_danger(data_student_danger);
+      if (!req.ok) {
+        setDataStudent({});
+      } else {
+        const data_student = await req.json();
+        setDataStudent({ student: data_student.payload });
+        const array_data_student = data_student.payload || [];
+        const data_student_danger = array_data_student.filter(
+          (i) => i.BEHAVIOR_SCORE < 65,
+        );
+        setStudent_danger(data_student_danger);
+      }
       const req_attendance = await fetch("/api/scanAttendance", {
         method: "GET",
-        credentials: "include",
       });
       if (req_attendance.status === 204) return;
+      if (req_attendance.status === 500) {
+        setDataStudent((prev) => ({ ...prev, attendance: {} }));
+        return;
+      }
       const data_attendance = await req_attendance.json();
       const attendance = {
         comeDays: 0,
@@ -45,11 +50,16 @@ function Dashboard() {
         leaveDays: 0,
         absentDays: 0,
       };
-      for (const value of data_attendance.message) {
-        if (value.status === "เข้าร่วมกิจกรรม") attendance.comeDays += 1;
-        else if (value.status === "ลา") attendance.leaveDays += 1;
-        else if (value.status === "สาย") attendance.lateDays += 1;
-        else if (value.status === "ขาด") attendance.absentDays += 1;
+      if (!data_attendance.message) {
+        setDataStudent((prev) => ({ ...prev, attendance }));
+        return;
+      } else {
+        for (const value of data_attendance.message) {
+          if (value.status === "เข้าร่วมกิจกรรม") attendance.comeDays += 1;
+          else if (value.status === "ลา") attendance.leaveDays += 1;
+          else if (value.status === "สาย") attendance.lateDays += 1;
+          else if (value.status === "ขาด") attendance.absentDays += 1;
+        }
       }
 
       setDataStudent((prev) => ({ ...prev, attendance }));
@@ -64,7 +74,7 @@ function Dashboard() {
   }, []);
   if (loading)
     return (
-      <p className="flex justify-center items-center text-gray-500 ">
+      <p className="flex justify-center items-center text-slate-500 p-4 ">
         กำลังโหลด....
       </p>
     );
@@ -100,7 +110,7 @@ function Dashboard() {
             </div>
             <div className="relative z-50">
               <div className=" text-3xl font-bold text-blue-600 mb-2 ">
-                {DataStudent
+                {DataStudent?.student
                   ? Object.keys(DataStudent.student).length
                   : "กำลังโหลด"}
               </div>
@@ -159,7 +169,7 @@ function Dashboard() {
           </div>
         </div>
       </div>
-      <div className="bg-white rounded-lg shadow-lg p-4 sm:p-8">
+      <div className="bg-slate-100 rounded-lg shadow-lg p-4 sm:p-8">
         {/* นักเรียนที่มาสายบ่อย */}
         <div>
           <h3 className="flex items-center text-md sm:text-lg font-semibold mb-4">
@@ -172,7 +182,7 @@ function Dashboard() {
             </div>
           </h3>
           <div className="overflow-x-auto">
-            <table className="w-full table-auto text-sm sm:text-md">
+            <table className="w-full table-auto text-sm sm:text-md rounded-xl shadow-xl">
               <thead>
                 <tr className="bg-gray-200">
                   <th className="px-4 py-3 text-left text-nowrap bg-slate-300">
@@ -224,8 +234,8 @@ function Dashboard() {
                     </tr>
                   ))
                 ) : (
-                  <tr>
-                    <td className="text-center" colSpan={5}>
+                  <tr className="px-4 py-3 bg-slate-300">
+                    <td className="text-center mx-3" colSpan={6}>
                       ไม่มีข้อมูล
                     </td>
                   </tr>

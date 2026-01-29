@@ -7,7 +7,7 @@ interface IUser {
   role: string;
   isAdmin: boolean;
 }
-const TeacherSchema = new Schema<IUser>(
+const TeacherSchema = new Schema(
   {
     teacherId: {
       type: String,

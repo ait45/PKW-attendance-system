@@ -12,8 +12,8 @@ export function Holiday(dateStr: Date | string) {
     return { isHoliday: true, name: day === 0 ? "วันอาทิตย์" : "วันเสาร์" };
 
   const formatted = date.toISOString().slice(0, 10);
-  const holiday = holidays.find((h) => h.date === formatted);
+  const holiday = holidays.find((h: { date: string }) => h.date === formatted);
   if (holiday) return { isHoliday: true, name: holiday.name };
 
-  return { isHoliday: false };
+  return { isHoliday: false, name: "" };
 }

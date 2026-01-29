@@ -1,0 +1,496 @@
+{
+  "type": "bubble",
+  "size": "mega",
+  "header": {
+    "type": "box",
+    "layout": "vertical",
+    "contents": [
+      {
+        "type": "box",
+        "layout": "horizontal",
+        "contents": [
+          {
+            "type": "text",
+            "text": "📊",
+            "size": "24px",
+            "flex": 0
+          },
+          {
+            "type": "box",
+            "layout": "vertical",
+            "contents": [
+              {
+                "type": "text",
+                "text": "PKW ATTENDANCE",
+                "size": "20px",
+                "weight": "bold",
+                "color": "#1a73e8"
+              },
+              {
+                "type": "text",
+                "text": "ระบบเช็คชื่อหน้าเสาธง",
+                "size": "12px",
+                "color": "#888888"
+              }
+            ],
+            "margin": "md"
+          }
+        ],
+        "alignItems": "center"
+      }
+    ],
+    "backgroundColor": "#f8f9fa",
+    "paddingAll": "16px"
+  },
+  "hero": {
+    "type": "box",
+    "layout": "vertical",
+    "contents": [
+      {
+        "type": "text",
+        "text": "📅 วันที่ ${data.date}",
+        "align": "center",
+        "weight": "bold",
+        "size": "16px",
+        "color": "#333333"
+      }
+    ],
+    "paddingAll": "12px",
+    "backgroundColor": "#e3f2fd"
+  },
+  "body": {
+    "type": "box",
+    "layout": "vertical",
+    "contents": [
+      {
+        "type": "box",
+        "layout": "vertical",
+        "contents": [
+          {
+            "type": "box",
+            "layout": "horizontal",
+            "contents": [
+              {
+                "type": "text",
+                "text": "🎓 มัธยมศึกษาปีที่ 1",
+                "size": "15px",
+                "weight": "bold",
+                "flex": 2
+              },
+              {
+                "type": "text",
+                "text": "${data.totalm1} คน",
+                "size": "14px",
+                "align": "end",
+                "color": "#666666"
+              }
+            ]
+          },
+          {
+            "type": "box",
+            "layout": "horizontal",
+            "contents": [
+              {
+                "type": "text",
+                "text": "✅ มา ${data.t1} คน",
+                "size": "13px",
+                "color": "#00c853"
+              },
+              {
+                "type": "text",
+                "text": "❌ ขาด ${data.f1} คน",
+                "size": "13px",
+                "color": "#ff1744",
+                "align": "end"
+              }
+            ],
+            "margin": "sm"
+          }
+        ],
+        "backgroundColor": "#fafafa",
+        "paddingAll": "12px",
+        "cornerRadius": "8px",
+        "margin": "sm"
+      },
+      {
+        "type": "box",
+        "layout": "vertical",
+        "contents": [
+          {
+            "type": "box",
+            "layout": "horizontal",
+            "contents": [
+              {
+                "type": "text",
+                "text": "🎓 มัธยมศึกษาปีที่ 2",
+                "size": "15px",
+                "weight": "bold",
+                "flex": 2
+              },
+              {
+                "type": "text",
+                "text": "${data.totalm2} คน",
+                "size": "14px",
+                "align": "end",
+                "color": "#666666"
+              }
+            ]
+          },
+          {
+            "type": "box",
+            "layout": "horizontal",
+            "contents": [
+              {
+                "type": "text",
+                "text": "✅ มา ${data.t2} คน",
+                "size": "13px",
+                "color": "#00c853"
+              },
+              {
+                "type": "text",
+                "text": "❌ ขาด ${data.f2} คน",
+                "size": "13px",
+                "color": "#ff1744",
+                "align": "end"
+              }
+            ],
+            "margin": "sm"
+          }
+        ],
+        "backgroundColor": "#fafafa",
+        "paddingAll": "12px",
+        "cornerRadius": "8px",
+        "margin": "sm"
+      },
+      {
+        "type": "box",
+        "layout": "vertical",
+        "contents": [
+          {
+            "type": "box",
+            "layout": "horizontal",
+            "contents": [
+              {
+                "type": "text",
+                "text": "🎓 มัธยมศึกษาปีที่ 3",
+                "size": "15px",
+                "weight": "bold",
+                "flex": 2
+              },
+              {
+                "type": "text",
+                "text": "${data.totalm3} คน",
+                "size": "14px",
+                "align": "end",
+                "color": "#666666"
+              }
+            ]
+          },
+          {
+            "type": "box",
+            "layout": "horizontal",
+            "contents": [
+              {
+                "type": "text",
+                "text": "✅ มา ${data.t3} คน",
+                "size": "13px",
+                "color": "#00c853"
+              },
+              {
+                "type": "text",
+                "text": "❌ ขาด ${data.f3} คน",
+                "size": "13px",
+                "color": "#ff1744",
+                "align": "end"
+              }
+            ],
+            "margin": "sm"
+          }
+        ],
+        "backgroundColor": "#fafafa",
+        "paddingAll": "12px",
+        "cornerRadius": "8px",
+        "margin": "sm"
+      },
+      {
+        "type": "box",
+        "layout": "vertical",
+        "contents": [
+          {
+            "type": "box",
+            "layout": "horizontal",
+            "contents": [
+              {
+                "type": "text",
+                "text": "🎓 มัธยมศึกษาปีที่ 4",
+                "size": "15px",
+                "weight": "bold",
+                "flex": 2
+              },
+              {
+                "type": "text",
+                "text": "${data.totalm4} คน",
+                "size": "14px",
+                "align": "end",
+                "color": "#666666"
+              }
+            ]
+          },
+          {
+            "type": "box",
+            "layout": "horizontal",
+            "contents": [
+              {
+                "type": "text",
+                "text": "✅ มา ${data.t4} คน",
+                "size": "13px",
+                "color": "#00c853"
+              },
+              {
+                "type": "text",
+                "text": "❌ ขาด ${data.f4} คน",
+                "size": "13px",
+                "color": "#ff1744",
+                "align": "end"
+              }
+            ],
+            "margin": "sm"
+          }
+        ],
+        "backgroundColor": "#fafafa",
+        "paddingAll": "12px",
+        "cornerRadius": "8px",
+        "margin": "sm"
+      },
+      {
+        "type": "box",
+        "layout": "vertical",
+        "contents": [
+          {
+            "type": "box",
+            "layout": "horizontal",
+            "contents": [
+              {
+                "type": "text",
+                "text": "🎓 มัธยมศึกษาปีที่ 5",
+                "size": "15px",
+                "weight": "bold",
+                "flex": 2
+              },
+              {
+                "type": "text",
+                "text": "${data.totalm5} คน",
+                "size": "14px",
+                "align": "end",
+                "color": "#666666"
+              }
+            ]
+          },
+          {
+            "type": "box",
+            "layout": "horizontal",
+            "contents": [
+              {
+                "type": "text",
+                "text": "✅ มา ${data.t5} คน",
+                "size": "13px",
+                "color": "#00c853"
+              },
+              {
+                "type": "text",
+                "text": "❌ ขาด ${data.f5} คน",
+                "size": "13px",
+                "color": "#ff1744",
+                "align": "end"
+              }
+            ],
+            "margin": "sm"
+          }
+        ],
+        "backgroundColor": "#fafafa",
+        "paddingAll": "12px",
+        "cornerRadius": "8px",
+        "margin": "sm"
+      },
+      {
+        "type": "box",
+        "layout": "vertical",
+        "contents": [
+          {
+            "type": "box",
+            "layout": "horizontal",
+            "contents": [
+              {
+                "type": "text",
+                "text": "🎓 มัธยมศึกษาปีที่ 6",
+                "size": "15px",
+                "weight": "bold",
+                "flex": 2
+              },
+              {
+                "type": "text",
+                "text": "${data.totalm6} คน",
+                "size": "14px",
+                "align": "end",
+                "color": "#666666"
+              }
+            ]
+          },
+          {
+            "type": "box",
+            "layout": "horizontal",
+            "contents": [
+              {
+                "type": "text",
+                "text": "✅ มา ${data.t6} คน",
+                "size": "13px",
+                "color": "#00c853"
+              },
+              {
+                "type": "text",
+                "text": "❌ ขาด ${data.f6} คน",
+                "size": "13px",
+                "color": "#ff1744",
+                "align": "end"
+              }
+            ],
+            "margin": "sm"
+          }
+        ],
+        "backgroundColor": "#fafafa",
+        "paddingAll": "12px",
+        "cornerRadius": "8px",
+        "margin": "sm"
+      },
+      {
+        "type": "separator",
+        "margin": "lg",
+        "color": "#1a73e8"
+      },
+      {
+        "type": "box",
+        "layout": "vertical",
+        "contents": [
+          {
+            "type": "text",
+            "text": "📈 สรุปรวมทั้งหมด",
+            "size": "16px",
+            "weight": "bold",
+            "color": "#1a73e8",
+            "align": "center"
+          },
+          {
+            "type": "box",
+            "layout": "horizontal",
+            "contents": [
+              {
+                "type": "box",
+                "layout": "vertical",
+                "contents": [
+                  {
+                    "type": "text",
+                    "text": "✅ มาทั้งหมด",
+                    "size": "12px",
+                    "color": "#666666",
+                    "align": "center"
+                  },
+                  {
+                    "type": "text",
+                    "text": "${data.totalPresent} คน",
+                    "size": "18px",
+                    "weight": "bold",
+                    "color": "#00c853",
+                    "align": "center"
+                  }
+                ],
+                "flex": 1
+              },
+              {
+                "type": "separator",
+                "color": "#dddddd"
+              },
+              {
+                "type": "box",
+                "layout": "vertical",
+                "contents": [
+                  {
+                    "type": "text",
+                    "text": "❌ ขาดทั้งหมด",
+                    "size": "12px",
+                    "color": "#666666",
+                    "align": "center"
+                  },
+                  {
+                    "type": "text",
+                    "text": "${data.totalAbsent} คน",
+                    "size": "18px",
+                    "weight": "bold",
+                    "color": "#ff1744",
+                    "align": "center"
+                  }
+                ],
+                "flex": 1
+              }
+            ],
+            "margin": "md"
+          },
+          {
+            "type": "box",
+            "layout": "vertical",
+            "contents": [
+              {
+                "type": "text",
+                "text": "อัตราการมาเรียน",
+                "size": "12px",
+                "color": "#666666",
+                "align": "center"
+              },
+              {
+                "type": "text",
+                "text": "${data.percentage}%",
+                "size": "24px",
+                "weight": "bold",
+                "color": "#1a73e8",
+                "align": "center"
+              }
+            ],
+            "margin": "md",
+            "backgroundColor": "#e3f2fd",
+            "paddingAll": "12px",
+            "cornerRadius": "8px"
+          }
+        ],
+        "margin": "lg",
+        "paddingAll": "12px"
+      }
+    ],
+    "paddingAll": "12px"
+  },
+  "footer": {
+    "type": "box",
+    "layout": "vertical",
+    "contents": [
+      {
+        "type": "separator",
+        "color": "#dddddd"
+      },
+      {
+        "type": "text",
+        "text": "© PKW SERVICE TH",
+        "size": "10px",
+        "color": "#aaaaaa",
+        "align": "center",
+        "margin": "md"
+      }
+    ],
+    "paddingAll": "12px"
+  },
+  "styles": {
+    "header": {
+      "separator": false
+    },
+    "footer": {
+      "separator": false
+    }
+  }
+}

@@ -9,8 +9,13 @@ import localFont from "next/font/local";
 const MyFontWeb = localFont({
   src: [
     {
-      path: "./assets/fonts/Kanit-Regular.woff2",
-      weight: "400",
+      path: "./assets/fonts/SukhumvitSet-Medium.woff2",
+      weight: "500",
+      style: "normal",
+    },
+    {
+      path: "./assets/fonts/SukhumvitSet-Bold.woff2",
+      weight: "700",
       style: "normal",
     },
   ],
@@ -21,8 +26,8 @@ import ProgressBar from "./ProgressBar";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "PKW Service TH",
-  description: "System Service",
+  title: "PKW Service System",
+  description: "Prakeawasawittaya School",
 };
 
 export default function RootLayout({

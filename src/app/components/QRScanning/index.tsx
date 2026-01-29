@@ -4,22 +4,23 @@ import { Camera, QrCode, PowerOff } from "lucide-react";
 import Swal from "sweetalert2";
 import { Html5Qrcode } from "html5-qrcode";
 
-function QRScanning({ onScan, holiday }) {
-  const scannerRef = useRef(null);
-  const [result, setResult] = useState("");
-  const [scanning, setScanning] = useState(false);
 
-  const lastScanTime = useRef(0);
-  const delay = 3000;
+function QRScanning({ onScan, holiday }: { onScan: any; holiday: boolean }) {
 
-  const html5QrCodeRef = useRef(null);
-  const canvasRef = useRef(null);
+  const [result, setResult] = useState<string>("");
+  const [scanning, setScanning] = useState<boolean>(false);
+
+  const lastScanTime = useRef<number>(0);
+  const delay: number = 3000;
+
+  const html5QrCodeRef = useRef<Html5Qrcode | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   const nextPage = useRef(false);
   const togglePageBeforeStop = () => {
     nextPage.current = !nextPage.current;
   };
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState<boolean>(false);
 
   const handleScan = (data: number) => {
     const json = {
@@ -63,18 +64,20 @@ function QRScanning({ onScan, holiday }) {
       });
       setScanning(false);
 
-      await html5QrCodeRef.current
-        .stop()
-        .then(() => {
-          Toast.close();
-          html5QrCodeRef.current.clear();
-        })
-        .catch(() => {
-          Toast.close();
-          html5QrCodeRef.current.clear();
-        });
+      if (html5QrCodeRef.current) {
+        await html5QrCodeRef.current
+          .stop()
+          .then(() => {
+            Toast.close();
+            html5QrCodeRef.current?.clear();
+          })
+          .catch(() => {
+            Toast.close();
+            html5QrCodeRef.current?.clear();
+          });
+      }
       Toast.close();
-    } catch (error) {
+    } catch (error: Error |any) {
       Swal.fire({
         title: "ไม่สามารถปิดกล้องได้!",
         text: error,
@@ -87,7 +90,9 @@ function QRScanning({ onScan, holiday }) {
 
     if (canvasRef.current) {
       const ctx = canvasRef.current.getContext("2d");
-      ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+      if (ctx) {
+        ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+      }
     }
   };
   const startScanning = async () => {
@@ -123,36 +128,41 @@ function QRScanning({ onScan, holiday }) {
 
               lastScanTime.current = now;
               // วาดกรอบรอบ QR ที่เจอ
-              if (decodedResult?.decodedResult?.points && canvasRef.current) {
+              if ((decodedResult?.result as any)?.points && canvasRef.current) {
                 const ctx = canvasRef.current.getContext("2d");
-                const points = decodedResult.decodedResult.points;
-                ctx.clearRect(
-                  0,
-                  0,
-                  canvasRef.current.width,
-                  canvasRef.current.height
-                );
-                ctx.strokeStyle = "lime";
-                ctx.lineWidth = 4;
-                ctx.beginPath();
-                ctx.moveTo(points[0].x, points[0].y);
-                points.forEach((p, idx) => {
-                  if (idx > 0) ctx.lineTo(p.x, p.y);
-                });
-                ctx.closePath();
-                ctx.stroke();
+                if (ctx) {
+                  const points = (decodedResult.result as any).points;
+                  ctx.clearRect(
+                    0,
+                    0,
+                    canvasRef.current.width,
+                    canvasRef.current.height
+                  );
+                  ctx.strokeStyle = "lime";
+                  ctx.lineWidth = 4;
+                  ctx.beginPath();
+                  ctx.moveTo(points[0].x, points[0].y);
+                  points.forEach((p: any, idx: number) => {
+                    if (idx > 0) ctx.lineTo(p.x, p.y);
+                  });
+                  ctx.closePath();
+                  ctx.stroke();
+                }
               }
               const beepSound = new Audio("/scanner.mp3");
               beepSound.play();
               setResult(decodedText);
-              handleScan(decodedText);
+              handleScan(decodedText as any);
               setTimeout(() => {
                 setResult("");
               }, 500);
+            },
+            (errorMessage) => {
+              // parse error, ignore it.
             }
           )
           .then(() => {
-            scannerRef.current = html5QrCodeRef;
+
             setScanning(true);
           })
           .catch((err) => {
@@ -165,7 +175,7 @@ function QRScanning({ onScan, holiday }) {
             });
           });
       }
-    } catch (error) {
+    } catch (error: Error | any) {
       Swal.fire({
         title: "เริ่มสแกนไม่ได้!",
         text: error,
@@ -178,7 +188,7 @@ function QRScanning({ onScan, holiday }) {
 
   return (
     <div
-      className={`bg-gradient-to-br from-blue-50 to-indigo-100 rounded-md shadow-md py-8 px-4 ${
+      className={`bg-linear-to-br from-blue-50 to-indigo-100 rounded-md shadow-md py-8 px-4 ${
         loading && "cursor-wait pointer-events-none"
       }`}
     >
@@ -229,7 +239,7 @@ function QRScanning({ onScan, holiday }) {
         <div className="bg-white mt-2 p-4 m-auto">
           <p className="font-semibold text-center">ข้อมูลการสแกน</p>
           <hr className="text-gray-400 w-[80%] m-auto py-2" />
-          <p className="break-words text-blue-600 text-center">
+          <p className="warp-break-words text-blue-600 text-center">
             {result || "ไม่มีข้อมูล"}
           </p>
         </div>

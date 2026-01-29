@@ -1,10 +1,10 @@
-import { NextResponse, NextRequest } from "next/server";
-import { Holiday } from "@/scripts/Holiday";
-import { getToken } from "next-auth/jwt";
+import { NextResponse } from "next/server";
+import { Holiday } from "@/scripts/Holiday.ts";
+import { auth } from "@/lib/auth.ts";
 
-export async function GET(req: NextRequest) {
-  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
-  if (!token)
+export async function GET() {
+  const session = await auth();
+  if (!session)
     return NextResponse.json(
       {
         error: "Unauthorized",

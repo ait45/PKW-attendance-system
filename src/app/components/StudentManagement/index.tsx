@@ -1,10 +1,9 @@
 "use client";
 
-import React, { useEffect, useState, useMemo, SetStateAction, SyntheticEvent } from "react";
+import React, { useEffect, useState, useMemo, SyntheticEvent } from "react";
 import {
   Plus,
   FileUser,
-  IdCard,
   UserPlus,
   UserPen,
   Trash2,
@@ -13,9 +12,9 @@ import {
   X,
   UserRoundPlus,
   FolderOpen,
+  RotateCcw,
 } from "lucide-react";
 import Swal from "sweetalert2";
-import ShowAlert from "../Sweetalert";
 
 
 interface Student {
@@ -29,7 +28,7 @@ interface Student {
   plantData: string;
   isAdmin: boolean;
 }
-function StudentManagement({ session, setMenu }) {
+function StudentManagement({ session, setMenu }: { session?: any, setMenu: any}) {
   const classes: string[] = [
     "มัธยมศึกษาปีที่ 1",
     "มัธยมศึกษาปีที่ 2",
@@ -50,8 +49,8 @@ function StudentManagement({ session, setMenu }) {
     isAdmin: false,
   });
 
-  const [isOpenModel, setIsOpenModel] = useState<SetStateAction<boolean>>(false);
-  const [isformUpdate, setIsFormUpdate] = useState<SetStateAction<boolean>>(false);
+  const [isOpenModel, setIsOpenModel] = useState<boolean>(false);
+  const [isFormUpdate, setIsFormUpdate] = useState<boolean>(false);
   const [idUpdate, setIdUpdate] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -120,31 +119,16 @@ function StudentManagement({ session, setMenu }) {
     try {
       Swal.fire({
         titleText: `${
-          isformUpdate ? "ยืนยันการแก้ไขข้อมูล" : "ยืนยันการเพิ่มข้อมูล"
+          isFormUpdate ? "ยืนยันการแก้ไขข้อมูล" : "ยืนยันการเพิ่มข้อมูล"
         }`,
-        html: `
-            <table style="text-align:left; margin:0 auto; font-size:12px; sm:font-size:12px;">
-              <tr><td><b>เลขประจำตัวนักเรียน :</b></td><td>${newStudent.studentId}</td></tr>
-              <tr><td><b>ชื่อนักเรียน :</b></td><td>${newStudent.name}</td></tr>
-              <tr><td><b>ระดับชั้น :</b></td><td>${newStudent.classes}</td></tr>
-               <tr><td><b>เลขที่ :</b></td><td>${newStudent.Number}</td></tr>
-              <tr><td><b>เบอร์มือถือ :</b></td><td>${newStudent.phone}</td></tr>
-              <tr><td><b>เบอร์ผู้ปกครอง :</b></td><td>${newStudent.parentPhone}</td></tr>
-              
-            </table>
-        `,
         icon: "question",
-        width: "80%",
+        width: "60%",
         showConfirmButton: true,
         showCancelButton: true,
         cancelButtonText: "ยกเลิก",
         confirmButtonText: "ตกลง",
         confirmButtonColor: "#31C950",
         cancelButtonColor: "#FB2C36",
-        customClass: {
-          title: "text-xs !important",
-          htmlContainer: "text-sm !important",
-        },
       }).then(async (result) => {
         if (result.isConfirmed) {
           Swal.fire({
@@ -153,7 +137,7 @@ function StudentManagement({ session, setMenu }) {
               Swal.showLoading();
             },
           });
-          if (isformUpdate) {
+          if (isFormUpdate) {
             const req = await fetch(`/api/studentManagement/${idUpdate}`, {
               method: "PUT",
               headers: { "Content-Type": "application/json" },
@@ -165,6 +149,7 @@ function StudentManagement({ session, setMenu }) {
                 text: "แก้ไขข้อมูลสำเร็จ!",
                 icon: "success",
                 timer: 2000,
+                width: "60%",
               });
               closeModel();
               setNewStudent({
@@ -184,7 +169,7 @@ function StudentManagement({ session, setMenu }) {
                 text: "กรุณาลองอีกครั้ง",
                 icon: "warning",
                 timer: 3000,
-                width: "80%",
+                width: "60%",
               });
             }
           } else {
@@ -201,6 +186,7 @@ function StudentManagement({ session, setMenu }) {
                   text: "เพิ่มข้อมูลสำเร็จ!",
                   icon: "success",
                   timer: 2000,
+                  width: "60%",
                 });
                 setNewStudent({
                   studentId: "",
@@ -222,6 +208,7 @@ function StudentManagement({ session, setMenu }) {
                   text: "กรุณาลองอีกครั้ง",
                   icon: "warning",
                   timer: 3000,
+                  width: "60%",
                 });
               }
             } catch (error) {
@@ -229,6 +216,7 @@ function StudentManagement({ session, setMenu }) {
                 title: "เกิดข้อผิดพลาด",
                 text: "กรุณาลองใหม่อีกครั้ง",
                 icon: "error",
+                width: "60%",
               });
               console.log("Error: ", error);
             }
@@ -251,7 +239,9 @@ function StudentManagement({ session, setMenu }) {
       showCancelButton: true,
       showConfirmButton: true,
       confirmButtonColor: "#31C950",
+      confirmButtonText: "ตกลง",
       cancelButtonColor: "#FB2C36",
+      cancelButtonText: "ยกเลิก",
       icon: "warning",
     }).then(async (result) => {
       if (result.isConfirmed) {
@@ -273,13 +263,15 @@ function StudentManagement({ session, setMenu }) {
               timer: 3000,
               icon: "success",
               showConfirmButton: true,
+              width: "60%",
             });
           }
-          ShowAlert({
+          Swal.fire({
             title: "เกิดข้อผิดพลาด",
             text: "กรุณาลองใหม่อีกครั้ง",
             icon: "error",
             timer: 3000,
+            width: "60%",
           });
         } catch (error) {
           console.log(error);
@@ -289,12 +281,10 @@ function StudentManagement({ session, setMenu }) {
   };
 
   //อัพเดตข้อมูลนักเรียน
-  const handleUpdate = async (id: string, index: string) => {
+  const handleUpdate = async (id: string, index?: string) => {
     setIsOpenModel(true);
     setIsFormUpdate(true);
-    console.log(id, index);
-    const dataBeforeUpdate = tableStudent.filter((data) => data._id === id);
-    console.log(dataBeforeUpdate);
+    const dataBeforeUpdate = tableStudent.filter((data: any) => data._id === id);
     setNewStudent({
       studentId: dataBeforeUpdate[0].studentId,
       password: dataBeforeUpdate[0].password,
@@ -309,10 +299,10 @@ function StudentManagement({ session, setMenu }) {
     setIdUpdate(id);
   };
   // ประกาศตัวเก็บข้อมูลของ รายชื่อนักเรียนสำหรับการแก้ไขข้อมูล
-  const [tableStudent, setTableStudent] = useState([]);
+  const [tableStudent, setTableStudent] = useState<(Student & { _id: string })[]>([]);
 
   // ฟังก์ชัน format เบอร์โทร (xxx-xxx-xxxx)
-  const formatPhone = (value) => {
+  const formatPhone = (value: string) => {
     const digits = value.replace(/\D/g, "").slice(0, 10); // 10 หลักจริง
     let result = "";
     if (digits.length > 0) result = digits.slice(0, 3);
@@ -351,7 +341,7 @@ function StudentManagement({ session, setMenu }) {
   ];
   const filteredStudentSelected = useMemo(() => {
     if (selectClasses === "ทั้งหมด") return tableStudent;
-    return tableStudent.filter((s) => s.classes === selectClasses);
+    return tableStudent.filter((s: any) => s.classes === selectClasses);
   }, [tableStudent, selectClasses]);
 
   // Pagination ------------------------------
@@ -412,19 +402,19 @@ function StudentManagement({ session, setMenu }) {
               className="fixed inset-0 bg-slate-50 h-full"
               style={{ backgroundColor: "rgba(0, 0, 0, 0.4)" }}
             />
-            <div className="w-[85%] md:w-[50%] h-[70vh] bg-white bg-opacity-10 backdrop-blur-2xl shadow-2xl rounded-2xl p-2 overflow-y-scroll hide-scrollbar top-0 ring-2 ring-slate-100/20">
+            <div className="w-[85%] md:w-[50%] h-[70vh] bg-white bg-opacity-10 backdrop-blur-2xl shadow-2xl rounded-2xl p-2 overflow-y-scroll hide-scrollbar top-0 ring-2 ring-slate-100/20 transition-all duration-600">
               <div className="px-6 py-4 space-y-5 ">
                 <div className="flex justify-between items-start">
                   <div className="flex items-center">
                     <div
                       className={`${
-                        isformUpdate ? "bg-amber-500" : "bg-emerald-500"
+                        isFormUpdate ? "bg-amber-500" : "bg-emerald-500"
                       } mr-2 text-white p-2 rounded-md`}
                     >
-                      {isformUpdate ? <UserPen /> : <UserPlus />}
+                      {isFormUpdate ? <UserPen /> : <UserPlus />}
                     </div>
                     <h1 className="text-base sm:text-2xl font-bold">
-                      {isformUpdate
+                      {isFormUpdate
                         ? "แก้ไขข้อมูลนักเรียน"
                         : "เพิ่มนักเรียนใหม่"}
                     </h1>
@@ -460,11 +450,11 @@ function StudentManagement({ session, setMenu }) {
                     min="0"
                     value={newStudent.studentId}
                     onChange={handleInputChange}
-                    disabled={true}
+                    disabled={isFormUpdate}
                     className={`px-4 py-2 h-10 sm:h-12 w-[40%] border rounded-lg focus:outline-none focus:ring-2 ${
                       errors.studentId ? "border-red-500" : "border-slate-300"
                     } focus:ring-blue-500 ${
-                      isformUpdate
+                      isFormUpdate
                         ? "text-slate-400 cursor-not-allowed"
                         : "text-slate-900"
                     }`}
@@ -485,6 +475,7 @@ function StudentManagement({ session, setMenu }) {
                     type="text"
                     id="name"
                     name="name"
+                    width="80%"
                     value={newStudent.name}
                     onChange={handleInputChange}
                     className={`px-4 py-2 h-10 md:h-12 border rounded-lg focus:outline-none focus:ring-2 ${
@@ -542,7 +533,7 @@ function StudentManagement({ session, setMenu }) {
                       min="0"
                       value={newStudent.Number}
                       onChange={handleInputChange}
-                      className={`px-4 py-2 h-10 md:h-12 w-[80px] border rounded-lg  focus:outline-none focus:ring-2 ${
+                      className={`px-4 py-2 h-10 md:h-12 w-20 border rounded-lg  focus:outline-none focus:ring-2 ${
                         errors.Number ? "border-red-500" : "border-slate-300"
                       } focus:ring-blue-500`}
                       placeholder="xx"
@@ -555,7 +546,7 @@ function StudentManagement({ session, setMenu }) {
                   </div>
                 </div>
               </div>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 p-2 sm:p-6 w-[50%]">
+              <div className="flex flex-col p-2 sm:p-6 w-[50%]">
                 <div className="lg:flex">
                   <div className="flex flex-col mb-1 md:mr-4">
                     <label
@@ -576,7 +567,7 @@ function StudentManagement({ session, setMenu }) {
                         })
                       }
                       placeholder="xxx-xxx-xxxx"
-                      className={`px-4 py-2 h-10 md:h-12 w-[150px] md:w-[160px] border rounded-lg focus:outline-none focus:ring-2 ${
+                      className={`px-4 py-2 h-10 md:h-12 w-37.5 md:w-40 border rounded-lg focus:outline-none focus:ring-2 ${
                         errors.phone ? "border-red-500" : "border-slate-300"
                       } focus:ring-blue-500`}
                     />
@@ -605,7 +596,7 @@ function StudentManagement({ session, setMenu }) {
                           parentPhone: formatPhone(e.target.value),
                         })
                       }
-                      className={`px-4 py-2 h-10 md:h-12 w-[150px] md:w-[160px] border rounded-lg focus:outline-none focus:ring-2 ${
+                      className={`px-4 py-2 h-10 md:h-12 w-37.5 md:w-40 border rounded-lg focus:outline-none focus:ring-2 ${
                         errors.parentPhone
                           ? "border-red-500"
                           : "border-slate-300"
@@ -617,7 +608,8 @@ function StudentManagement({ session, setMenu }) {
                       </p>
                     )}
                   </div>
-                  {session?.user?.role === "teacher" && isformUpdate && (
+                </div>
+                 {session?.user?.role === "teacher" && isFormUpdate && (
                     <div className="flex flex-col md:flex-row">
                       <div className="flex flex-col mt-2 md:mt-0 mr-2">
                         <label
@@ -632,7 +624,7 @@ function StudentManagement({ session, setMenu }) {
                           name="plantData"
                           value={newStudent.plantData}
                           readOnly={true}
-                          className={`px-4 py-2 h-10 md:h-12 w-[150px] border rounded-lg outline-none border-slate-300 text-slate-400`}
+                          className={`px-4 py-2 h-10 md:h-12 w-37.5 md:w-40 border rounded-lg outline-none border-slate-300 text-slate-400 cursor-copy`}
                         />
                       </div>
                       <div className="flex flex-col mt-2 md:mt-0">
@@ -645,7 +637,7 @@ function StudentManagement({ session, setMenu }) {
                         <select
                           name="isAdmin"
                           id="isAdminToggle"
-                          className="px-4 py-2 h-10 md:h-12 w-[150px] border rounded-lg outline-none border-slate-300"
+                          className="px-4 py-2 h-10 md:h-12 w-37.5 md:w-40 border rounded-lg outline-none border-slate-300 cursor-pointer"
                           value={String(newStudent.isAdmin)}
                           onChange={handleInputChange}
                         >
@@ -655,10 +647,9 @@ function StudentManagement({ session, setMenu }) {
                       </div>
                     </div>
                   )}
-                </div>
               </div>
               <div className="flex justify-end p-2">
-                {isformUpdate ? (
+                {isFormUpdate ? (
                   <button
                     className="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-3 rounded-lg font-medium transition-colors flex items-center cursor-pointer"
                     onClick={handleSubmit}
@@ -682,8 +673,11 @@ function StudentManagement({ session, setMenu }) {
       </div>
       <div className="mt-8 p-4 bg-white rounded-lg">
         <div className="flex items-center mb-3">
-          <FolderOpen className="text-blue-700 mr-3" />
-          <h1 className="text-md sm:text-lg font-bold">ข้อมูลแต่ละชั้นเรียน</h1>
+          <div className="flex item-center">
+            <FolderOpen className="text-blue-700 mr-3" />
+            <h1 className="text-md sm:text-lg font-bold">ข้อมูลแต่ละชั้นเรียน</h1>
+          </div>
+          <RotateCcw size={18} className="text-blue-700 hover:text-blue-800 transition-color ml-4 cursor-pointer" onClick={() => fetchStudents()}/>
         </div>
         <div className="p-2 mb-4 flex justify-between">
           <div>
@@ -723,71 +717,70 @@ function StudentManagement({ session, setMenu }) {
         <div className="overflow-x-auto">
           <table className="table w-full border text-sm sm:text-md">
             <thead>
-              <tr className="bg-blue-100 text-center border p-4">
-                <th className="px-6 py-4 whitespace-nowrap border">
+              <tr className="bg-[#009EA3] text-white text-center border p-2">
+                <th className="px-3 py-3 whitespace-nowrap border">
                   รหัสนักเรียน
                 </th>
-                <th className="px-6 py-4 whitespace-nowrap border">
+                <th className="px-3 py-3 whitespace-nowrap border">
                   ชื่อ-นามสกุล
                 </th>
 
-                <th className="px-6 py-4 whitespace-nowrap border">เบอร์โทร</th>
-                <th className="px-6 py-4 whitespace-nowrap  border">
+                <th className="px-2 py-3 whitespace-nowrap border ">เบอร์โทร</th>
+                <th className="px-1 py-3 whitespace-nowrap  border ">
                   เบอร์โทรผู้ปกครอง
                 </th>
-                <th className="px-6 py-4 whitespace-nowrap border">
+                <th className="px-2 py-3 whitespace-nowrap border">
                   ชั้นเรียน
                 </th>
-                <th className="px-6 py-4 whitespace-nowrap border">สถานะ</th>
-                <th className="px-6 py-4 whitespace-nowrap border">
+                <th className="px-3 py-3 whitespace-nowrap border">
                   การดำเนินการ
                 </th>
               </tr>
             </thead>
             <tbody>
               {currentData.length > 0 ? (
-                currentData.map((value, index) => (
-                  <tr key={index} className="text-center border">
-                    <td className="border border-slate-500 whitespace-nowrap p-2 text-[#009EA3]">
+                currentData.map((value: any, index: any) => (
+                  <tr key={index} className="text-center border-b border-l border-r border-blue-100">
+                    <td className="whitespace-nowrap p-2 text-[#009EA3]">
                       {value.studentId || "ไม่มีข้อมูล"}
                     </td>
-                    <td className="border whitespace-nowrap p-2">
+                    <td className="whitespace-nowrap p-2">
                       {value.name || "ไม่มีข้อมูล"}
                     </td>
 
-                    <td className="border whitespace-nowrap p-2">
-                      {value.phone || "ไม่มีข้อมูล"}
+                    <td className="whitespace-nowrap p-2 text-center">
+                      <div className="bg-blue-500 text-white rounded-xl w-[80%] text-center">
+                        {value.phone || "ไม่มีข้อมูล"}
+                      </div>
                     </td>
-                    <td className="border whitespace-nowrap p-2">
-                      {value.parentPhone || "ไม่มีข้อมูล"}
+                    <td className="whitespace-nowrap p-2 text-center">
+                      <div className="bg-blue-700 text-white rounded-xl w-[80%] text-center">
+                        {value.parentPhone || "ไม่มีข้อมูล"}
+                      </div>
                     </td>
-                    <td className="border whitespace-nowrap p-2">
-                      {value.classes || "ไม่มีข้อมูล"}
+                    <td className="whitespace-nowrap p-2 text-center">
+                      <div className="bg-green-500 text-white rounded-xl w-[80%] text-center">
+                        {value.classes || "ไม่มีข้อมูล"}
+                      </div>
                     </td>
-                    <td className="border p-2">
-                      <p
-                        className={`${
-                          value.status ? "text-green-500" : "text-red-500"
-                        }`}
-                      >
-                        {value.status}
-                      </p>
-                    </td>
-                    <td className="flex justify-center-safe ml-2">
+                    
+                    <td>
+                      <div className="flex justify-center-safe items-center-safe">
                       <button
-                        className="text-yellow-500 hover:text-yellow-600 cursor-pointer flex items-center transition-colors p-2"
+                        className="bg-yellow-500 hover:bg-yellow-600 text-white cursor-pointer flex items-center transition-colors px-2 py-1 rounded-md mr-5"
                         onClick={() => handleUpdate(value._id, value.name)}
                       >
-                        <UserPen />
-                        <p className="text-gray-800">แก้ไข</p>
+                        <UserPen className="w-4 h-4 mr-2"/>
+                        <p className="text-white">แก้ไข</p>
                       </button>
                       <button
-                        className="text-red-500 hover:text-red-600 cursor-pointer flex items-center transition-colors p-2"
+                        className="bg-red-500 hover:bg-red-600 text-white cursor-pointer flex items-center transition-colors px-2 py-1 rounded-md"
                         onClick={() => handleDelete(value._id, value.name)}
                       >
-                        <Trash2 />
-                        <p className="text-gray-800">ลบ</p>
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        <p className="text-white">ลบ</p>
                       </button>
+                      </div>
                     </td>
                   </tr>
                 ))

@@ -4,16 +4,18 @@ import Image from "next/image";
 import logo from "../../assets/logo.png";
 import Link from "next/link";
 import { Clock, Calendar, LogIn, LogOut, CircleUserRound } from "lucide-react";
-import { signOut, useSession } from "next-auth/react";
+import { signOut } from "next-auth/react";
 import Timer from "../date-time/timer";
 import Day from "../date-time/day";
 import Swal from 'sweetalert2';
 import type { Route } from "next";
+import { useRouter } from "next/navigation";
 
 
-function NavBar({ session }) {
+function NavBar({ session }: { session?: any }) {
   const [currentDate] = useState(Day());
   const [component, setComponent] = useState("");
+  const router = useRouter();
   return (
     <header className="flex items-center bg-white w-auto max-h-50 border-b-2 border-[#009EA3]">
       <Image
@@ -24,12 +26,12 @@ function NavBar({ session }) {
         className="m-1 sm:m-2"
       />
       <h2 className="text-sm sm:text-lg font-bold cursor-default">
-        PKW SERVICE TH
+        PKW SERVICE SYSTEM
       </h2>
       <div className="flex items-center justify-end ml-auto gap-2 ">
         <div className="relative flex items-center sm:mr-2">
           <Calendar
-            className="sm:mr-2"
+            className="sm:mr-2 cursor-pointer"
             width={12}
             height={12}
             onClick={() => {
@@ -50,7 +52,7 @@ function NavBar({ session }) {
         </div>
         <div className="relative flex items-center sm:mr-2">
           <Clock
-            className="sm:mr-2"
+            className="sm:mr-2 cursor-pointer"
             width={12}
             height={12}
             onClick={() => {
@@ -85,8 +87,8 @@ function NavBar({ session }) {
               <p>{session?.user?.name}</p>
             </div>
             <a
-              onClick={() => {
-                signOut();
+              onClick={async () => {
+                await signOut();
                 setTimeout(() => {
                   Swal.fire({
                     title: "ออกจากระบบเสร็จสิ้น",
@@ -94,6 +96,7 @@ function NavBar({ session }) {
                     timer: 5000,
                   });
                 }, 1000);
+                router.push("/login" as Route);
               }}
               className="flex items-center text-sm text-red-500 hover:text-red-700 hover:transition-colors cursor-pointer mr-2"
               title="ออกจากระบบ"

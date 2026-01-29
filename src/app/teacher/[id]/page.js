@@ -1,4 +1,4 @@
-import TeacherPage from './teacher';
+import TeacherPage from '.';
 
 export const metadata = {
     title: 'PKW | หน้า Teacher',

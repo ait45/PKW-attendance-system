@@ -1,8 +1,13 @@
-import express, { type Request, type Response } from "express";
+import express from "express";
+import type {
+  Request as ExpressRequest,
+  Response,
+  NextFunction,
+} from "express";
 import next from "next";
 import rateLimit from "express-rate-limit";
 import "dotenv/config";
-import { autoCutoff } from "./src/scripts/checkCutoff.ts";
+import { autoCutoffWithRetry } from "./src/scripts/checkCutoff.ts";
 import path from "path";
 import fs from "fs";
 import cookie from "cookie";
@@ -39,7 +44,7 @@ app.prepare().then(() => {
 
   server.use("/api", limiter);
 
-  server.use(async (req: Request, res: Response, next) => {
+  server.use(async (req: ExpressRequest, res: Response, next: NextFunction) => {
     const pathname = req.path;
 
     try {
@@ -55,7 +60,7 @@ app.prepare().then(() => {
         if (fs.existsSync(systemPath)) {
           systemStatus = JSON.parse(fs.readFileSync(systemPath, "utf8"));
         } else {
-          console.warn("⚠️ system.json not found, defaulting to active:true");
+          console.warn("system.json not found, defaulting to active:true");
         }
       } catch (error) {
         console.error("Error reading system.json:", error);
@@ -63,7 +68,7 @@ app.prepare().then(() => {
 
       // หน้าที่ยกเว้นจากการ redirect
       const allowedPaths = [
-        "/system-off",
+        "/notFound",
         "/teacher",
         "/api",
         "/settings",
@@ -80,12 +85,14 @@ app.prepare().then(() => {
         pathname.includes(".css");
 
       const isAllowed: boolean = allowedPaths.some((p) =>
-        pathname.startsWith(p)
+        pathname.startsWith(p),
       );
 
       if (!pathname.startsWith("/api/auth")) {
         const token = await getToken({
-          req,
+          req: {
+            headers: req.headers as Record<string, string>,
+          },
           secret: process.env.NEXTAUTH_SECRET,
           secureCookie: false,
         });
@@ -101,15 +108,15 @@ app.prepare().then(() => {
             token?.role === "teacher" && token?.isAdmin === true;
           const notAuthOrSystemOff =
             !pathname.startsWith("/api/auth") &&
-            !pathname.startsWith("/system-off");
+            !pathname.startsWith("/notFound");
 
           if (!isTeacherOrAdmin && notAuthOrSystemOff && !res.headersSent) {
             res.setHeader("Set-Cookie", [
               "next-auth.session-token=; Max-Age=0; Path=/;",
               "__Secure-next-auth.session-token=; Max-Age=0; Path=/;",
             ]);
-            console.log("Redirecting to /system-off from:", pathname);
-            res.writeHead(302, { Location: "/system-off" });
+            console.log("Redirecting to /notFound from:", pathname);
+            res.writeHead(302, { Location: "/notFound" });
             return res.end(); // ✅ หยุดการทำงานหลัง redirect
           }
         }
@@ -122,33 +129,57 @@ app.prepare().then(() => {
     }
   });
 
-  server.all("/api/auth/:path", (req: Request, res: Response) =>
-    handle(req, res)
+  server.all("/api/auth/:path", (req: ExpressRequest, res: Response) =>
+    handle(req, res),
   );
-  server.all(/.*/, (req: Request, res: Response) => handle(req, res));
+  server.all(/.*/, (req: ExpressRequest, res: Response) => handle(req, res));
 
   server.listen(port, (err?) => {
     if (err) throw err;
+    console.log(`> Start Server Successfully-----------------`);
     console.log(`> Server ready on http://${hostname}:${port}`);
 
-    // setInterval autoCutoff
+    // Initial autoCutoff run on server start
+    (async () => {
+      try {
+        console.log("> Running initial autoCutoff check...");
+        const result = await autoCutoffWithRetry();
+        if (result.skipped) {
+          console.log(`> Initial autoCutoff skipped: ${result.reason}`);
+        } else if (result.success) {
+          console.log(
+            `> Initial autoCutoff completed: ${result.studentsMarked} students marked`,
+          );
+        }
+      } catch (err) {
+        console.error("> Initial autoCutoff error:", err);
+      }
+    })();
+
+    // setInterval autoCutoff - ทุก 10 นาที
     setInterval(async () => {
       try {
-        await autoCutoff();
+        const result = await autoCutoffWithRetry();
+        if (!result.skipped && result.success) {
+          console.log(
+            `[autoCutoff] Completed: ${result.studentsMarked} students marked absent`,
+          );
+        }
       } catch (err) {
-        console.error("Error autoCutoff:", err);
+        console.error("[autoCutoff] Error:", err);
       }
-    }, 600000); // ทุก 10 นาที
+    }, 600000);
 
     // setInterval test log
     setInterval(() => {
       const now = new Date();
-      console.log(now.toLocaleDateString("th-TH"));
+      console.log("วันที่: ", now.toLocaleDateString("th-TH"));
       console.log(
+        "เวลา: ",
         now.toLocaleTimeString("th-TH", {
           hour: "2-digit",
           minute: "2-digit",
-        })
+        }),
       );
     }, 60000); // ทุก 1 นาที
   });

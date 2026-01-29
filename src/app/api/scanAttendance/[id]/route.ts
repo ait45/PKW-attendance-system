@@ -1,18 +1,21 @@
 import { NextResponse, NextRequest } from "next/server";
-import { getToken } from "next-auth/jwt";
+import { auth } from "@/lib/auth.ts";
 import { PoolConnection } from "mariadb/*";
-import { MariaDBConnection } from "@/lib/config.mariaDB";
+import { MariaDBConnection } from "@/lib/config.mariaDB.ts";
 
 const startOfDay = new Date();
 startOfDay.setHours(0, 0, 0, 0);
 const endOfDay = new Date();
 endOfDay.setHours(23, 59, 59, 999);
 
-const attendance_Table: string = process.env.MARIA_DB_TABLE_ATTENDANCE;
+const attendance_Table = process.env.MARIA_DB_TABLE_ATTENDANCE;
 
-export async function GET(req: NextRequest, { params }) {
-  const token = getToken({ req, secret: process.env.AUTH_SECRET });
-  if (!token)
+export async function GET(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const session = await auth();
+  if (!session)
     return NextResponse.json(
       {
         error: "Unauthorized",
@@ -29,11 +32,14 @@ export async function GET(req: NextRequest, { params }) {
     const query = `SELECT NAME, STATUS, CREATED_AT FROM ${attendance_Table} WHERE STUDENT_ID = ? AND DATE(CREATED_AT) = CURDATE()`;
     const data = conn.execute(query, [id]);
     if (!data) {
-      return new NextResponse(null, { status: 204 });
+      return NextResponse.json(
+        { error: "Not Found", message: "ไม่พบข้อมูล", code: "NOT FOUND" },
+        { status: 404 }
+      );
     }
     return NextResponse.json(
       {
-        scuccess: true,
+        success: true,
         payload: data,
         code: "SUCCESS",
       },

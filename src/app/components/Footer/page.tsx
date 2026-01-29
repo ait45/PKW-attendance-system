@@ -6,8 +6,8 @@ function Footer() {
         <footer className="bg-transparen text-center text-[10px] sm:text-xs text-gray-500">
             <p><span className='text-amber-300'>&copy;</span> 2025 PKW SERVICE TH. All rights reserved.</p>
             <Link 
-            href={'/report' as Route}
-            className='text-[#00CAD1]'
+            href={'/issue-report' as Route}
+            className='text-[#00CAD1] hover:underline'
             >
                 แจ้งปัญหา ?
             </Link>

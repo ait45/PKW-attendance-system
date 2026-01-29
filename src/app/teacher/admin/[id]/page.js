@@ -1,4 +1,4 @@
-import AdminPage from "./admin";
+import AdminPage from ".";
 
 export const metadata = {
     title: 'PKW | หน้า Admin',

@@ -2,17 +2,20 @@ export const runtime = "nodejs";
 
 // นำเข้าโมดูลที่จำเป็น -------------------
 import PDFDocument from "pdfkit";
+
 import PDFTable from "pdfkit-table";
 import QRCode from "qrcode";
-import { getToken } from "next-auth/jwt";
+import { auth } from "@/lib/auth.ts";
 import { NextRequest, NextResponse } from "next/server";
-import { MongoDBConnection } from "@/lib/config.mongoDB";
-import Student from "@/models/Mongo.model.Student";
+import { MongoDBConnection } from "@/lib/config.mongoDB.ts";
+import Student from "@/models/Mongo.model.Student.ts";
 import { Buffer } from "node:buffer";
 import fs from "fs";
 import path from "path";
 
-function registerFonts(doc) {
+type PDFDoc = InstanceType<typeof PDFDocument>;
+
+function registerFonts(doc: PDFDoc) {
   const fonts = {
     THSarabunNew: {
       normal: path.join(process.cwd(), "assets/fonts/THSarabunNew.ttf"),
@@ -79,11 +82,14 @@ const getThaiDate = () => {
   return `${now.getDate()} ${monthNames[now.getMonth()]} ${year}`;
 };
 
-const NameService = "PKW SERVICE SYSTEM";
+const NameService: string = "PKW SERVICE SYSTEM";
 
-export async function GET(req: NextRequest, { params }) {
-  const token = getToken({ req, secret: process.env.AUTH_SECRET });
-  if (!token)
+export async function GET(
+  req: NextRequest,
+  { params }: { params: Promise<{ method: string }> }
+) {
+  const session = await auth();
+  if (!session)
     return NextResponse.json(
       {
         error: "Unauthorized",
@@ -97,7 +103,7 @@ export async function GET(req: NextRequest, { params }) {
 
   // วาดลายน้ำด้านหลังเอกสาร
 
-  const WaterMarkPage = (doc, text: string = "PKW SERVICE SYSTEM") => {
+  const WaterMarkPage = (doc: PDFDoc, text: string = "PKW SERVICE SYSTEM") => {
     const { width, height } = doc.page;
     doc
       .save()
@@ -112,7 +118,7 @@ export async function GET(req: NextRequest, { params }) {
   };
 
   // -------- HeaderPage ---------- //
-  const HeaderPage = (doc) => {
+  const HeaderPage = (doc: PDFDoc) => {
     const startX = doc.page.margins.left;
     const startY = doc.page.margins.top;
 
@@ -145,13 +151,13 @@ export async function GET(req: NextRequest, { params }) {
     doc.fontSize(12).opacity(1);
     doc.text(
       `ออกเมื่อวันที่: ${getThaiDate()}`,
-      { align: "right" },
       doc.page.margins.left,
-      doc.page.height - 40
+      doc.page.height - 40,
+      { align: "right" }
     );
     doc.fontSize(12).text("โดยระบบ", { align: "right" });
   };
-  const FooterPage = (doc, pageNumber, idFile) => {
+  const FooterPage = (doc: PDFDoc, pageNumber: number, idFile: string) => {
     doc
       .font("THSarabunNew normal")
       .fontSize(10)
@@ -185,7 +191,7 @@ export async function GET(req: NextRequest, { params }) {
       // เช็ค fonts ในระบบ
       registerFonts(doc);
 
-      const buffers = [];
+      const buffers: any[] = [];
       doc.on("data", buffers.push.bind(buffers));
       const pdfPromise = new Promise(async (resolve, reject) => {
         // ตั้งค่า layout
@@ -316,17 +322,20 @@ export async function GET(req: NextRequest, { params }) {
         },
       });
 
-      const buffers = [];
+      const buffers: any[] = [];
       doc.on("data", buffers.push.bind(buffers));
       const pdfPromise = new Promise(async (resolve, reject) => {
         let pageNumber = 1;
 
         // จัดข้อมูลตามชั้นเรียน
-        const groupByClass = data_student.reduce((acc, cur) => {
-          if (!acc[cur.classes]) acc[cur.classes] = [];
-          acc[cur.classes].push(cur);
-          return acc;
-        }, {});
+        const groupByClass = data_student.reduce(
+          (acc: Record<string, any[]>, cur) => {
+            if (!acc[cur.classes]) acc[cur.classes] = [];
+            acc[cur.classes].push(cur);
+            return acc;
+          },
+          {} as Record<string, any[]>
+        );
 
         // loop ชั้นเรียนแต่ละชั้น
         let index = 0;
@@ -365,7 +374,7 @@ export async function GET(req: NextRequest, { params }) {
             "สาย",
             "ขาด",
           ];
-          const data = classStudent.map((s) => [
+          const data = classStudent.map((s: any) => [
             s.studentId,
             { text: s.name },
             s.behaviorScore,
