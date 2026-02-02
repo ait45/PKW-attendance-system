@@ -13,6 +13,7 @@ import {
   XCircle,
   Eye,
   X,
+  Mailbox,
 } from "lucide-react";
 import { SkeletonIssueReportManagement } from "@/app/components/Skeleton";
 
@@ -121,14 +122,22 @@ export default function IssueReportManagement() {
   }
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
+    <main className="p-4 sm:p-6 bg-gray-50 min-h-screen">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-800">📋 จัดการเรื่องร้องเรียน</h1>
-            <p className="text-gray-500 text-sm">รายการแจ้งปัญหาและข้อเสนอแนะจากผู้ใช้</p>
-          </div>
+          
+            <div className="flex items-start">
+              <span className="bg-blue-500 text-white p-2 rounded-md mr-1">
+                <Mailbox className="w-7 h-7"/>
+              </span>
+              <div>
+                <h1 className="text-xl sm:text-2xl font-bold text-gray-800 text-nowrap">จัดการเรื่องร้องเรียน</h1>
+              <p className="text-gray-500 text-xs m:text-sm">รายการแจ้งปัญหาและ <br className="sm:hidden"/>ข้อเสนอแนะจากผู้ใช้</p>
+              </div>
+            </div>
+            
+          
           <button onClick={fetchReports} className="p-2 bg-gray-100 rounded-lg hover:bg-gray-200">
             <RefreshCw className={`w-5 h-5 ${loading ? "animate-spin" : ""}`} />
           </button>
@@ -144,16 +153,16 @@ export default function IssueReportManagement() {
         </div>
 
         {/* Filters */}
-        <div className="bg-white rounded-xl p-4 mb-6 flex flex-wrap gap-3 items-center">
+        <div className="bg-white rounded-xl p-2 sm:p-4 mb-6 flex sm:flex-wrap gap-1.5 sm:gap-3 items-center">
           <Filter className="w-4 h-4 text-gray-400" />
-          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="px-3 py-1.5 border rounded-lg text-sm">
+          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="px-1.5 sm:px-3 py-1 sm:py-1.5 border rounded-lg text-xs sm:text-sm">
             <option value="all">สถานะทั้งหมด</option>
             <option value="pending">รอดำเนินการ</option>
             <option value="in_progress">กำลังดำเนินการ</option>
             <option value="resolved">แก้ไขแล้ว</option>
             <option value="closed">ปิด</option>
           </select>
-          <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} className="px-3 py-1.5 border rounded-lg text-sm">
+          <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} className="px-1.5 sm:px-3 py-1 sm:py-1.5 border rounded-lg text-xs sm:text-sm">
             <option value="all">ประเภททั้งหมด</option>
             <option value="bug">แจ้งปัญหา</option>
             <option value="suggestion">เสนอแนะ</option>
@@ -163,11 +172,11 @@ export default function IssueReportManagement() {
         </div>
 
         {/* Table */}
-        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+        <div className="bg-white rounded-xl shadow-sm overflow-auto">
           {reports.length === 0 ? (
             <div className="text-center py-12 text-gray-400"><MessageSquare className="w-12 h-12 mx-auto mb-2 opacity-30" /><p>ไม่มีข้อมูล</p></div>
           ) : (
-            <table className="w-full">
+            <table className="w-full table-auto">
               <thead className="bg-gray-50 border-b">
                 <tr>
                   <th className="px-4 py-3 text-left text-xs text-gray-500 uppercase">ประเภท</th>
@@ -183,9 +192,9 @@ export default function IssueReportManagement() {
                   <tr key={r._id} className="hover:bg-gray-50">
                     <td className="px-4 py-3">{getTypeIcon(r.type)}</td>
                     <td className="px-4 py-3 text-sm font-medium text-gray-800 max-w-xs truncate">{r.title}</td>
-                    <td className="px-4 py-3">{getStatusBadge(r.status)}</td>
-                    <td className="px-4 py-3 text-sm text-gray-600">{r.reportedBy || "ไม่ระบุ"}</td>
-                    <td className="px-4 py-3 text-sm text-gray-500">{formatDate(r.createdAt)}</td>
+                    <td className="px-4 py-3 text-nowrap">{getStatusBadge(r.status)}</td>
+                    <td className="px-4 py-3 text-sm text-gray-600 text-nowrap">{r.reportedBy || "ไม่ระบุ"}</td>
+                    <td className="px-4 py-3 text-sm text-gray-500 text-nowrap">{formatDate(r.createdAt)}</td>
                     <td className="px-4 py-3 text-center">
                       <button onClick={() => openDetail(r)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"><Eye className="w-4 h-4" /></button>
                     </td>
@@ -211,7 +220,7 @@ export default function IssueReportManagement() {
               <div><p className="text-xs text-gray-500">รายละเอียด</p><p className="text-sm text-gray-700 whitespace-pre-wrap">{selectedReport.description}</p></div>
               <div className="grid grid-cols-2 gap-4">
                 <div><p className="text-xs text-gray-500 mb-1">สถานะ</p>
-                  <select value={editData.status} onChange={(e) => setEditData({ ...editData, status: e.target.value })} className="w-full px-3 py-2 border rounded-lg text-sm">
+                  <select value={editData.status} onChange={(e) => setEditData({ ...editData, status: e.target.value })} className={`w-full px-3 py-2 border rounded-lg text-sm`}>
                     <option value="pending">รอดำเนินการ</option>
                     <option value="in_progress">กำลังดำเนินการ</option>
                     <option value="resolved">แก้ไขแล้ว</option>
@@ -235,6 +244,6 @@ export default function IssueReportManagement() {
           </div>
         </div>
       )}
-    </div>
+    </main>
   );
 }

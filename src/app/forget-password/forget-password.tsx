@@ -101,7 +101,7 @@ function ForgetPassword() {
                   รหัสนักเรียน <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
-                  <IdCard className="absolute left-3 top-2.5 text-gray-400 w-5 h-5" />
+                  <IdCard className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
                   <input
                     id="studentId"
                     type="text"
@@ -114,7 +114,7 @@ function ForgetPassword() {
                       errors.studentId
                         ? "border-red-500"
                         : "border-gray-200 focus:border-blue-500"
-                    }`}
+                    } placeholder:text-xs sm:placeholder:text-sm`}
                     placeholder="เช่น 12345"
                   />
                 </div>
@@ -129,13 +129,13 @@ function ForgetPassword() {
                   ชื่อ-นามสกุล
                 </label>
                 <div className="relative">
-                  <User className="absolute left-3 top-2.5 text-gray-400 w-5 h-5" />
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
                   <input
                     id="studentName"
                     type="text"
                     value={formData.studentName}
                     onChange={(e) => setFormData({ ...formData, studentName: e.target.value })}
-                    className="w-full pl-10 pr-4 py-2 border-2 border-gray-200 rounded-lg outline-none focus:border-blue-500 transition-colors"
+                    className="w-full pl-10 pr-4 py-2 border-2 border-gray-200 rounded-lg outline-none focus:border-blue-500 transition-colors placeholder:text-xs sm:placeholder:text-sm"
                     placeholder="ชื่อจริง นามสกุล (ไม่บังคับ)"
                   />
                 </div>
@@ -150,15 +150,15 @@ function ForgetPassword() {
                   id="classes"
                   value={formData.classes}
                   onChange={(e) => setFormData({ ...formData, classes: e.target.value })}
-                  className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg outline-none focus:border-blue-500 transition-colors"
+                  className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg outline-none focus:border-blue-500 transition-colors "
                 >
                   <option value="">เลือกชั้นเรียน</option>
-                  <option value="ม.1">ม.1</option>
-                  <option value="ม.2">ม.2</option>
-                  <option value="ม.3">ม.3</option>
-                  <option value="ม.4">ม.4</option>
-                  <option value="ม.5">ม.5</option>
-                  <option value="ม.6">ม.6</option>
+                  <option value="ม.1">มัธยมศึกษาปีที่ 1</option>
+                  <option value="ม.2">มัธยมศึกษาปีที่ 2</option>
+                  <option value="ม.3">มัธยมศึกษาปีที่ 3</option>
+                  <option value="ม.4">มัธยมศึกษาปีที่ 4</option>
+                  <option value="ม.5">มัธยมศึกษาปีที่ 5</option>
+                  <option value="ม.6">มัธยมศึกษาปีที่ 6</option>
                 </select>
               </div>
 
@@ -168,13 +168,13 @@ function ForgetPassword() {
                   เหตุผล
                 </label>
                 <div className="relative">
-                  <MessageSquare className="absolute left-3 top-2.5 text-gray-400 w-5 h-5" />
+                  <MessageSquare className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
                   <input
                     id="reason"
                     type="text"
                     value={formData.reason}
                     onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
-                    className="w-full pl-10 pr-4 py-2 border-2 border-gray-200 rounded-lg outline-none focus:border-blue-500 transition-colors"
+                    className="w-full pl-10 pr-4 py-2 border-2 border-gray-200 rounded-lg outline-none focus:border-blue-500 transition-colors placeholder:text-xs sm:placeholder:text-sm"
                     placeholder="เช่น ลืมรหัสผ่าน (ไม่บังคับ)"
                   />
                 </div>

@@ -8,7 +8,7 @@ const endOfDay = new Date();
 endOfDay.setHours(23, 59, 59, 999);
 
 const attendance_Table = process.env.MARIA_DB_TABLE_ATTENDANCE;
-const data_student_Table = process.env.MARIA_DB_TABLE_STUDENT;
+const data_student_Table = process.env.MARIA_DB_TABLE_STUDENTS;
 
 // ฟังก์ชั่นคำนวณคะแนนความประพฤติหลังจาก cutoff
 export async function Calculate_behaviorScore(): Promise<void> {
@@ -133,7 +133,7 @@ export async function update_behaviorScore(
     for (const item of list) {
       const { update, studentId, status } = item;
       if (!update) {
-        const query: string = `INSERT INTO ${process.env.MARIA_DB_TABLE_ATTENDANCE} (HANDLER, STUDENT_ID, NAME, CLASSES, STATUS) SELECT ?, STUDENT_ID, NAME, CLASSES, ? FROM ${process.env.MARIA_DB_TABLE_STUDENTS} WHERE STUDENT_ID = ?`;
+        const query: string = `INSERT INTO ${attendance_Table} (HANDLER, STUDENT_ID, NAME, CLASSES, STATUS) SELECT ?, STUDENT_ID, NAME, CLASSES, ? FROM ${data_student_Table} WHERE STUDENT_ID = ?`;
         await conn.execute(query, [HANDLER, status, studentId]);
       }
 
@@ -145,6 +145,6 @@ export async function update_behaviorScore(
     console.error(error);
     return;
   } finally {
-    if (conn) conn.end();
+    if (conn) conn.release();
   }
 }

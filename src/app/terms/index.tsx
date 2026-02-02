@@ -4,7 +4,7 @@ import React from "react";
 import Nav from "../components/Navbar";
 import Footer from "../components/Footer/page";
 import Link from "next/link";
-import { FileText, Shield, UserCheck, AlertTriangle, Lock, BookOpen } from "lucide-react";
+import { FileText, Shield, UserCheck, AlertTriangle, Lock, BookOpen, ArrowLeft } from "lucide-react";
 import { useSession } from "next-auth/react";
 import type { Route } from "next";
 
@@ -77,7 +77,7 @@ function TermsOfService() {
               ข้อกำหนดการใช้งาน
             </h1>
             <p className="text-sm sm:text-base text-gray-500">
-              PKW Service System - ระบบบริการโรงเรียนพระแก้วอาสาวิทยา
+              PKW Service System <br className="sm:hidden" /><span className="hidden sm:inline">-</span> ระบบบริการโรงเรียนพระแก้วอาสาวิทยา
             </p>
           </header>
 
@@ -122,12 +122,12 @@ function TermsOfService() {
           </div>
 
           {/* Back Button */}
-          <div className="mt-6 text-center">
+          <div className="mt-6 text-center ">
             <Link
               href={"/login" as Route}
-              className="inline-block px-6 py-3 bg-white text-[#009EA3] rounded-lg shadow hover:shadow-md hover:bg-gray-50 transition-all font-medium"
+              className="inline-flex items-center justify-center px-4 py-2 bg-white text-[#009EA3] rounded-lg shadow hover:shadow-md hover:bg-gray-50 transition-all font-medium"
             >
-              ← กลับไปหน้าเข้าสู่ระบบ
+              <ArrowLeft className="w-4 h-4 mr-2" /> <p>กลับไปหน้าเข้าสู่ระบบ</p>
             </Link>
           </div>
         </div>

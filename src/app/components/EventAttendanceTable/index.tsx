@@ -401,17 +401,17 @@ function EventAttendanceTable({ session }: { session: any }) {
 
         {/* Table */}
         <div className="overflow-x-auto">
-          <table className="w-full table-auto border border-collapse border-gray-300 text-sm">
+          <table className="w-full table-auto border border-collapse border-slate-300 text-sm">
             <thead>
               <tr className="bg-blue-100 text-nowrap">
-                <th className="border border-gray-300 px-4 py-3 w-[15%]">
+                <th className="border border-slate-300 px-4 py-3 w-[15%]">
                   เลขประจำตัว
                 </th>
-                <th className="border border-gray-300 px-4 py-3">ชื่อ-สกุล</th>
-                <th className="border border-gray-300 px-4 py-3 w-[20%]">
+                <th className="border border-slate-300 px-4 py-3">ชื่อ-สกุล</th>
+                <th className="border border-slate-300 px-4 py-3 w-[20%]">
                   ชั้นเรียน
                 </th>
-                <th className="border border-gray-300 px-4 py-3 w-[20%]">
+                <th className="border border-slate-300 px-4 py-3 w-[20%]">
                   สถานะ
                 </th>
               </tr>
@@ -421,7 +421,7 @@ function EventAttendanceTable({ session }: { session: any }) {
                 <tr>
                   <td
                     colSpan={4}
-                    className="border border-gray-300 px-4 py-8 text-center text-gray-500"
+                    className="border border-slate-300 px-4 py-8 text-center text-slate-500"
                   >
                     กรุณาเลือกกิจกรรม
                   </td>
@@ -480,7 +480,7 @@ function EventAttendanceTable({ session }: { session: any }) {
                 <tr>
                   <td
                     colSpan={4}
-                    className="border border-gray-300 px-4 py-8 text-center text-gray-500"
+                    className="border border-slate-300 px-4 py-8 text-center text-slate-500"
                   >
                     ไม่มีข้อมูลนักเรียน
                   </td>

@@ -14,17 +14,20 @@ interface FormDataInterface {
   username: string;
   password: string;
 };
+
 const loginSuccess = async () => {
-  await Swal.fire({ title: "เข้าสู่ระบบสำเร็จ", icon: "success", timer: 4000, showConfirmButton: false, width: "60%", });
+  await Swal.fire({ title: "เข้าสู่ระบบสำเร็จ", icon: "success", timer: 4000, showConfirmButton: false, width: "75%", });
 }
+
+
 export default function LoginPage() {
   const { data: session, status } = useSession();
-
   const router = useRouter();
   const [FormData, setFormData] = useState<FormDataInterface>({
     username: "",
     password: "",
   });
+
   useEffect(() => {
     if (session && status === "authenticated") {
       const id = session?.id;
@@ -68,8 +71,7 @@ export default function LoginPage() {
       newErrors.username = "กรุณากรอกชื่อผู้ใช้";
     } else if (!FormData.password) {
       newErrors.password = "กรุณากรอกรหัสผ่าน";
-    }
-    if (!acceptTerms) {
+    } else if (!acceptTerms) {
       newErrors.terms = "กรุณายอมรับข้อกำหนดการใช้งาน";
     }
 
@@ -133,7 +135,6 @@ export default function LoginPage() {
       }
       
       if (res?.code) {
-        console.log(res);
         await Swal.fire({
           title: "เข้าสู่ระบบไม่สำเร็จ",
           text: res?.code || "กรุณาตรวจสอบชื่อผู้ใช้และรหัสผ่าน",
@@ -292,7 +293,7 @@ export default function LoginPage() {
               
               <div className="text-sm">
                 <a
-                  href="/forget-password"
+                  href={"/forget-password" as Route}
                   className="font-medium text-[10px] sm:text-sm text-[#009EA3] hover:text-[#00CAD1] transition-colors"
                 >
                   ลืมรหัสผ่าน?

@@ -214,25 +214,23 @@ function Dashboard() {
             </div>
           </h3>
           <div className="overflow-x-auto">
-            <table className="w-full table-auto text-sm sm:text-md rounded-xl shadow-xl">
+            <table className="w-full table-auto text-sm sm:text-md rounded-lg shadow-xl border border-slate-300">
               <thead>
-                <tr className="bg-gray-200">
-                  <th className="px-4 py-3 text-left text-nowrap bg-slate-300">
+                <tr className="bg-[#009EA3]">
+                  <th className="px-4 py-3 text-left text-nowrap">
                     รหัสนักเรียน
                   </th>
-                  <th className="px-4 py-3 text-left text-nowrap bg-slate-300">
+                  <th className="px-4 py-3 text-left text-nowrap">
                     ชื่อ-นามสกุล
                   </th>
-                  <th className="px-4 py-3 text-left text-nowrap bg-slate-300">
-                    ห้องเรียน
-                  </th>
+                  <th className="px-4 py-3 text-left text-nowrap">ห้องเรียน</th>
                   <th className="px-4 py-3 text-left text-nowrap bg-yellow-300">
                     จำนวนครั้งที่มาสาย
                   </th>
                   <th className="px-4 py-3 text-left text-nowrap bg-red-300">
                     จำนวนครั้งที่ขาด
                   </th>
-                  <th className="px-4 py-3 text-left text-nowrap bg-indigo-400">
+                  <th className="px-4 py-3 text-left text-nowrap bg-blue-400">
                     คะแนนคงเหลือ
                   </th>
                 </tr>
@@ -266,8 +264,8 @@ function Dashboard() {
                     </tr>
                   ))
                 ) : (
-                  <tr className="px-4 py-3 bg-slate-300">
-                    <td className="text-center mx-3" colSpan={6}>
+                  <tr className="bg-slate-200">
+                    <td className="text-center px-4 py-8" colSpan={6}>
                       ไม่มีข้อมูล
                     </td>
                   </tr>

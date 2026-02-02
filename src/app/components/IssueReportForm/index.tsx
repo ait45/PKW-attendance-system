@@ -86,7 +86,7 @@ export default function IssueReportForm() {
           </div>
           <div>
             <h1 className="text-xl font-bold text-gray-800">แจ้งปัญหา / เสนอแนะ</h1>
-            <p className="text-sm text-gray-500">กรุณากรอกข้อมูลเพื่อแจ้งปัญหาหรือข้อเสนอแนะ</p>
+            <p className="text-sm text-gray-500">กรุณากรอกข้อมูลเพื่อแจ้งปัญหา <br className="sm:hidden"/>หรือข้อเสนอแนะ</p>
           </div>
         </div>
 
@@ -122,7 +122,7 @@ export default function IssueReportForm() {
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
               placeholder="เช่น ระบบสแกน QR ใช้งานไม่ได้"
-              className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-xs sm:placeholder:text-sm"
             />
           </div>
 
@@ -136,7 +136,7 @@ export default function IssueReportForm() {
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               placeholder="อธิบายรายละเอียดปัญหาหรือข้อเสนอแนะ..."
               rows={4}
-              className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-xs sm:placeholder:text-sm"
             />
           </div>
 
@@ -149,7 +149,7 @@ export default function IssueReportForm() {
                 value={formData.reportedBy}
                 onChange={(e) => setFormData({ ...formData, reportedBy: e.target.value })}
                 placeholder="ชื่อ-นามสกุล"
-                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-xs sm:placeholder:text-sm"
               />
             </div>
             <div>
@@ -158,8 +158,8 @@ export default function IssueReportForm() {
                 type="text"
                 value={formData.studentId}
                 onChange={(e) => setFormData({ ...formData, studentId: e.target.value })}
-                placeholder="12345"
-                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="1234"
+                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-xs sm:placeholder:text-sm"
               />
             </div>
           </div>
