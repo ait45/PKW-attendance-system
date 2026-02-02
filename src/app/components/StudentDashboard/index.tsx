@@ -20,6 +20,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import AttendanceCheckPage from "../AttendanceCheck";
+import { SkeletonStudentDashboard } from "../Skeleton";
 
 interface User {
   studentId: number;
@@ -60,6 +61,7 @@ const periodTimes = [
 ];
 
 const StudentDashboard = ({ session }: { session: any }) => {
+  const [loading, setLoading] = useState(true);
   const [DataUser, setDataUser] = useState<User>({
     studentId: 0,
     name: "",
@@ -84,6 +86,7 @@ const StudentDashboard = ({ session }: { session: any }) => {
 
   const fetchDataUser = async () => {
     try {
+      setLoading(true);
       const req = await fetch(`/api/studentManagement/${session?.id}`);
       const data = await req.json();
       setDataUser(data.data);
@@ -102,6 +105,8 @@ const StudentDashboard = ({ session }: { session: any }) => {
       setDataUser((prev) => ({ ...prev, data_attendance }));
     } catch (error) {
       console.error("Error fetching user data:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -135,6 +140,10 @@ const StudentDashboard = ({ session }: { session: any }) => {
   }, [DataUser.classes]);
 
   const totalDays = DataUser.joinDays + DataUser.absentDays + DataUser.lateDays + DataUser.leaveDays || 1;
+
+  if (loading) {
+    return <SkeletonStudentDashboard />;
+  }
 
   const AttendanceCard = ({
     icon: Icon,

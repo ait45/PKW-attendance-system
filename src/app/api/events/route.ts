@@ -3,17 +3,25 @@ import { NextRequest, NextResponse } from "next/server";
 import { MariaDBConnection } from "@/lib/config.mariaDB.ts";
 import { PoolConnection } from "mariadb/*";
 
-
 const MARIA_DB_TABLE_EVENTS = process.env.MARIA_DB_TABLE_EVENTS;
-
 
 export async function GET(req: NextRequest) {
   const session = await auth();
   if (!session) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json(
+      {
+        error: "Unauthorized",
+        message: "คุณไม่ได้ยืนยันตัวตน",
+        code: "UNAUTHORIZED",
+      },
+      { status: 401 },
+    );
   }
   if (session.user.role !== "teacher") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return NextResponse.json(
+      { error: "Forbidden", message: "คุณไม่ได้รับอนุญาต", code: "FORBIDDEN" },
+      { status: 403 },
+    );
   }
   let conn: PoolConnection | undefined;
 
@@ -24,7 +32,7 @@ export async function GET(req: NextRequest) {
     conn.end();
     return NextResponse.json(
       { success: true, message: payload, code: "SUCCESS" },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error) {
     console.error(error);
@@ -34,20 +42,30 @@ export async function GET(req: NextRequest) {
         message: error,
         code: "INTERNAL_SERVER_ERROR",
       },
-      { status: 500 }
+      { status: 500 },
     );
   } finally {
-    if (conn) conn.end();
+    if (conn) conn.release();
   }
 }
 
 export async function POST(req: NextRequest) {
   const session = await auth();
   if (!session) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json(
+      {
+        error: "Unauthorized",
+        message: "คุณไม่ได้ยืนยันตัวตน",
+        code: "UNAUTHORIZED",
+      },
+      { status: 401 },
+    );
   }
   if (session.user.role !== "teacher") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return NextResponse.json(
+      { error: "Forbidden", message: "คุณไม่ได้รับอนุญาต", code: "FORBIDDEN" },
+      { status: 403 },
+    );
   }
 
   let conn: PoolConnection | undefined;
@@ -67,8 +85,12 @@ export async function POST(req: NextRequest) {
 
     if (!name || !eventDate) {
       return NextResponse.json(
-        { error: "Bad Request", message: "name and eventDate are required", code: "BAD_REQUEST" },
-        { status: 400 }
+        {
+          error: "Bad Request",
+          message: "name and eventDate are required",
+          code: "BAD_REQUEST",
+        },
+        { status: 400 },
       );
     }
 
@@ -94,7 +116,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(
       { success: true, message: "สร้างกิจกรรมสำเร็จ", code: "SUCCESS" },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error) {
     console.error(error);
@@ -104,9 +126,9 @@ export async function POST(req: NextRequest) {
         message: error,
         code: "INTERNAL_SERVER_ERROR",
       },
-      { status: 500 }
+      { status: 500 },
     );
   } finally {
-    if (conn) conn.end();
+    if (conn) conn.release();
   }
 }

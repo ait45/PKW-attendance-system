@@ -22,7 +22,7 @@ function QRScanning({ onScan, holiday }: { onScan: any; holiday: boolean }) {
   };
   const [loading, setLoading] = useState<boolean>(false);
 
-  const handleScan = (data: number) => {
+  const handleScan = (data: string) => {
     const json = {
       id: data,
     };
@@ -162,7 +162,6 @@ function QRScanning({ onScan, holiday }: { onScan: any; holiday: boolean }) {
             }
           )
           .then(() => {
-
             setScanning(true);
           })
           .catch((err) => {

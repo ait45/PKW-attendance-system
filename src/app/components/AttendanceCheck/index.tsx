@@ -2,16 +2,24 @@
 
 import { useEffect, useState } from "react";
 import QRScanning from "../QRScanning";
-import { IdCard, UserRoundCheck } from "lucide-react";
+import { IdCard, UserRoundCheck, ClipboardCheck } from "lucide-react";
 import Swal from "sweetalert2";
 
+interface QRdata {
+  id: string
+}
+
+interface holiday {
+  isHoliday: boolean;
+  name?: string;
+}
 // หน้าเช็คชื่อ
 function AttendanceCheckPage({ session }: { session: any }) {
-  const [qrData, setQrdata] = useState<Record<string, string>>({});
-  const [showHoliday, setShowHoliday] = useState({ isHoliday: false, name: "" });
+  const [qrData, setQrdata] = useState<QRdata>({ id: "" });
+  const [showHoliday, setShowHoliday] = useState<holiday>({ isHoliday: false, name: "" });
 
-  const [manualIdCheckIn, setManualIdCheckIn] = useState("");
-  const [emptyField, setEmptyField] = useState(false);
+  const [manualIdCheckIn, setManualIdCheckIn] = useState<string>("");
+  const [emptyField, setEmptyField] = useState<boolean>(false);
 
   const getHoliday = async () => {
     const req = await fetch("/api/holidays");
@@ -20,6 +28,7 @@ function AttendanceCheckPage({ session }: { session: any }) {
   };
 
   const attendance = async (id: string) => {
+    if (id === "") return;
     document.body.classList.add("loading");
     try {
       const req = await fetch("/api/scanAttendance", {
@@ -29,9 +38,9 @@ function AttendanceCheckPage({ session }: { session: any }) {
       });
       const res = await req.json();
       if (req.status === 400)
-        return Swal.fire({ text: res.message, icon: "error" });
+        return Swal.fire({ text: res.message, icon: "error", width: "60%" });
       if (res.success) {
-        return Swal.fire({ title: "เช็คชื่อสำเร็จ", icon: "success" });
+        return Swal.fire({ title: "เช็คชื่อสำเร็จ", icon: "success", width: "60%" });
       }
       Swal.fire({ title: "เกิดข้อผิดพลาด", text: res.message, icon: "error" });
     } catch (error: any) {
@@ -43,14 +52,14 @@ function AttendanceCheckPage({ session }: { session: any }) {
     }
   };
   useEffect(() => {
-    if (Object.keys(qrData).length > 0) {
+    if (Object.keys(qrData).length > 0 && qrData.id !== "") {
       attendance(qrData.id);
-      setQrdata({});
+      setQrdata({ id: ""});
     }
   }, [qrData]);
   useEffect(() => {
     getHoliday();
-  });
+  }, []);
 
   const handleManualCheckIn = (e: React.FormEvent) => {
     e.preventDefault();
@@ -106,16 +115,21 @@ function AttendanceCheckPage({ session }: { session: any }) {
 
       <div className="text-center">
         <QRScanning
-          onScan={(value: any) => setQrdata(value)}
+          onScan={(value: string) => setQrdata({ id: value })}
           holiday={showHoliday?.isHoliday}
         />
       </div>
       <div className="bg-linear-to-br from-blue-50 to-indigo-100 mt-4 p-4 rounded-md shadow-md">
-        <h1 className="text-[#009EA3] text-xl font-semibold">ID Check</h1>
+        <div className="flex items-center">
+          <div className="p-2 bg-blue-500 rounded-md mr-1">
+            <ClipboardCheck className="w-5 h-5 text-white" />
+          </div>
+          <h1 className="text-[#009EA3] text-xl font-semibold">ID Check</h1>
+        </div>
         <div className="flex items-center">
           <div>
             <label className="text-xs">เลขประจำตัวนักเรียน</label>
-            <div className="relative">
+            <div className="relative w-full">
               <IdCard
                 className={`absolute z-10 left-2 top-1/2 transform -translate-y-1/2 text-blue-500 ${
                   emptyField && "text-rose-500"
@@ -123,7 +137,7 @@ function AttendanceCheckPage({ session }: { session: any }) {
               />
               <input
                 type="number"
-                className={`relative outline-none bg-white px-3 py-2 ring-2 ring-blue-200 focus:ring-blue-400 rounded-md pl-10 w-30 sm:w-fit mt-3/2 ${
+                className={`relative outline-none bg-white px-3 py-2 ring-2 ring-blue-200 focus:ring-blue-400 rounded-md pl-10 w-full sm:w-fit mt-3/2 ${
                   emptyField && "ring-rose-500"
                 } placeholder:text-slate-300`}
                 value={manualIdCheckIn}

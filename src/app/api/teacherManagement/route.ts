@@ -157,24 +157,22 @@ export async function POST(req: NextRequest) {
 
 export async function PUT(req: NextRequest) {
   const session = await auth();
-  if (!session)
+  if (!session) {
     return NextResponse.json(
       {
         error: "Unauthorized",
-        message: "คุณไม่ได้รับอนุญาต",
+        message: "คุณไม่ได้ยืนยันตัวตน",
         code: "UNAUTHORIZED",
       },
       { status: 401 },
     );
-  if (session.user.role !== "teacher")
+  }
+  if (session.user.role !== "teacher") {
     return NextResponse.json(
-      {
-        error: "Forbidden",
-        message: "คุณไม่มีสิทธิ์เข้าถึงข้อมูลนี้",
-        code: "FORBIDDEN",
-      },
+      { error: "Forbidden", message: "คุณไม่ได้รับอนุญาต", code: "FORBIDDEN" },
       { status: 403 },
     );
+  }
   let conn: PoolConnection | undefined;
   try {
     const body = await req.json();
@@ -229,31 +227,28 @@ export async function PUT(req: NextRequest) {
       { status: 500 },
     );
   } finally {
-    if (conn) conn.end();
+    if (conn) conn.release();
   }
 }
 
 export async function DELETE(req: NextRequest) {
   const session = await auth();
-  if (!session)
+  if (!session) {
     return NextResponse.json(
       {
         error: "Unauthorized",
-        message: "คุณไม่ได้รับอนุญาต",
+        message: "คุณไม่ได้ยืนยันตัวตน",
         code: "UNAUTHORIZED",
       },
       { status: 401 },
     );
-  if (session.user.role !== "teacher")
+  }
+  if (session.user.role !== "teacher") {
     return NextResponse.json(
-      {
-        error: "Forbidden",
-        message: "คุณไม่มีสิทธิ์เข้าถึงข้อมูลนี้",
-        code: "FORBIDDEN",
-      },
+      { error: "Forbidden", message: "คุณไม่ได้รับอนุญาต", code: "FORBIDDEN" },
       { status: 403 },
     );
-
+  }
   let conn: PoolConnection | undefined;
   try {
     const { searchParams } = new URL(req.url);
@@ -290,6 +285,6 @@ export async function DELETE(req: NextRequest) {
       { status: 500 },
     );
   } finally {
-    if (conn) conn.end();
+    if (conn) conn.release();
   }
 }

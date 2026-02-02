@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import logo from "../../assets/logo.png";
 import Link from "next/link";
@@ -10,17 +10,30 @@ import Day from "../date-time/day";
 import Swal from 'sweetalert2';
 import type { Route } from "next";
 import { useRouter } from "next/navigation";
+import NotificationBell from "../NotificationBell";
 
 
 function NavBar({ session }: { session?: any }) {
   const [currentDate] = useState(Day());
   const [component, setComponent] = useState("");
   const router = useRouter();
+  const [isMobile, setIsMobile] = useState<boolean>(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      const isMobile = window.innerWidth < 768;
+      setIsMobile(isMobile);
+    }
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
   return (
     <header className="flex items-center bg-white w-auto max-h-50 border-b-2 border-[#009EA3]">
       <Image
         src={logo}
-        width={40}
+        width={40} 
         height={40}
         alt="logo"
         className="m-1 sm:m-2"
@@ -81,10 +94,13 @@ function NavBar({ session }: { session?: any }) {
             <p className="hidden sm:inline">เข้าสู่ระบบ</p>
           </Link>
         ) : (
-          <div className="flex">
-            <div className="flex items-center text-sm p-4" title="ชื่อผู้ใช้">
+          <div className="flex items-center">
+            {/* Notification Bell */}
+            <NotificationBell session={session} />
+            
+            <div className="flex items-center text-sm p-4" title={isMobile ? `${session?.user?.name}` : "ชื่อผู้ใช้"}>
               <CircleUserRound className="text-blue-500" />
-              <p>{session?.user?.name}</p>
+              <p className="hidden sm:inline">{session?.user?.name}</p>
             </div>
             <a
               onClick={async () => {
@@ -112,3 +128,4 @@ function NavBar({ session }: { session?: any }) {
 }
 
 export default NavBar;
+

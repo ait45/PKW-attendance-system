@@ -30,9 +30,33 @@ const nextConfig: NextConfig = {
       ...(config.resolve.alias || {}),
       "@foliojs-fork/fontkit": path.resolve(
         __dirname,
-        "node_modules/@foliojs-fork/fontkit"
+        "node_modules/@foliojs-fork/fontkit",
       ),
     };
+
+    // Ignore source maps for html5-qrcode library (prevents 404 errors)
+    config.module = {
+      ...config.module,
+      rules: [
+        ...(config.module?.rules || []),
+        {
+          test: /node_modules[\\/]html5-qrcode/,
+          enforce: "pre" as const,
+          use: ["source-map-loader"],
+          // Suppress warnings for missing source maps
+          resolve: {
+            fullySpecified: false,
+          },
+        },
+      ],
+    };
+
+    // Ignore warnings about missing source maps from html5-qrcode
+    config.ignoreWarnings = [
+      ...(config.ignoreWarnings || []),
+      /Failed to parse source map/,
+      /html5-qrcode/,
+    ];
 
     return config;
   },
@@ -48,6 +72,9 @@ const nextConfig: NextConfig = {
   },
 
   experimental: {},
+
+  // Disable source maps in production to prevent 404 errors from libraries like html5-qrcode
+  productionBrowserSourceMaps: false,
 
   // สำหรับ server-only packages
   serverExternalPackages: ["pdfkit"],

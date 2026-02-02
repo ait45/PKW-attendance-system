@@ -15,6 +15,7 @@ import {
   Info,
 } from "lucide-react";
 import Swal from "sweetalert2";
+import { SkeletonNotifications } from "@/app/components/Skeleton";
 
 interface Notification {
   ID: number;
@@ -40,6 +41,7 @@ interface NewNotification {
 
 function Notifications({ session }: { session?: any }) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [loading, setLoading] = useState(true);
   const [isOpenModal, setIsOpenModal] = useState(false);
   const [isFormUpdate, setIsFormUpdate] = useState(false);
   const [updateId, setUpdateId] = useState<number | null>(null);
@@ -58,6 +60,7 @@ function Notifications({ session }: { session?: any }) {
   const isTeacher = session?.user?.role === "teacher";
 
   const fetchNotifications = async () => {
+    setLoading(true);
     try {
       const res = await fetch("/api/notifications");
       const data = await res.json();
@@ -67,6 +70,8 @@ function Notifications({ session }: { session?: any }) {
     } catch (error) {
       console.error(error);
       Swal.fire("เกิดข้อผิดพลาด", "ไม่สามารถโหลดข้อมูลได้", "error");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -306,11 +311,21 @@ function Notifications({ session }: { session?: any }) {
       case "teachers":
         return "ครูเท่านั้น";
       case "students":
-        return "นักเรียนเท่านั้น";
+        return "นักเรียนทั้งหมด";
+      case "parents":
+        return "ผู้ปกครอง";
       default:
+        // Handle class-based audience (e.g., "class:ม.1")
+        if (audience.startsWith("class:")) {
+          return audience.replace("class:", "") + " เท่านั้น";
+        }
         return audience;
     }
   };
+
+  if (loading) {
+    return <SkeletonNotifications />;
+  }
 
   return (
     <div className="p-4">
@@ -522,9 +537,20 @@ function Notifications({ session }: { session?: any }) {
                     onChange={handleInputChange}
                     className="w-full px-4 py-2 border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-400 cursor-pointer"
                   >
-                    <option value="all">ทุกคน</option>
-                    <option value="teachers">ครูเท่านั้น</option>
-                    <option value="students">นักเรียนเท่านั้น</option>
+                    <optgroup label="กลุ่มทั่วไป">
+                      <option value="all">ทุกคน</option>
+                      <option value="teachers">ครูเท่านั้น</option>
+                      <option value="students">นักเรียนทั้งหมด</option>
+                      <option value="parents">ผู้ปกครองเท่านั้น</option>
+                    </optgroup>
+                    <optgroup label="เฉพาะชั้นเรียน">
+                      <option value="class:ม.1">ม.1 เท่านั้น</option>
+                      <option value="class:ม.2">ม.2 เท่านั้น</option>
+                      <option value="class:ม.3">ม.3 เท่านั้น</option>
+                      <option value="class:ม.4">ม.4 เท่านั้น</option>
+                      <option value="class:ม.5">ม.5 เท่านั้น</option>
+                      <option value="class:ม.6">ม.6 เท่านั้น</option>
+                    </optgroup>
                   </select>
                 </div>
               </div>

@@ -14,7 +14,6 @@ const data_student_Table = process.env.MARIA_DB_TABLE_STUDENT;
 export async function Calculate_behaviorScore(): Promise<void> {
   let conn: PoolConnection | undefined;
   try {
-    
     conn = await MariaDBConnection.getConnection();
     console.log("start deduction score");
     const setting = await readConfig();
@@ -35,7 +34,7 @@ export async function Calculate_behaviorScore(): Promise<void> {
       // แปลงค่าคะแนนจาก Setting ให้เป็นตัวเลข (เผื่อเป็น string มา)
       const scoreDeductLate = Number(setting.Scorededucted_lateAttendance || 0);
       const scoreDeductAbsent = Number(
-        setting.Scorededucted_absentAttendance || 0
+        setting.Scorededucted_absentAttendance || 0,
       );
 
       // ---------------------------------------------------------
@@ -124,7 +123,7 @@ export async function update_behaviorScore(
     name: string;
     classes: string;
     status: string;
-  }>
+  }>,
 ): Promise<void> {
   let conn: PoolConnection | undefined;
   try {

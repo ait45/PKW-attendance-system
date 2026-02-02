@@ -10,10 +10,20 @@ const STUDENTS_TABLE = process.env.MARIA_DB_TABLE_STUDENTS;
 export async function GET(req: NextRequest) {
   const session = await auth();
   if (!session) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json(
+      {
+        error: "Unauthorized",
+        message: "คุณไม่ได้ยืนยันตัวตน",
+        code: "UNAUTHORIZED",
+      },
+      { status: 401 },
+    );
   }
   if (session.user.role !== "teacher") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return NextResponse.json(
+      { error: "Forbidden", message: "คุณไม่ได้รับอนุญาต", code: "FORBIDDEN" },
+      { status: 403 },
+    );
   }
 
   const { searchParams } = new URL(req.url);
@@ -21,8 +31,12 @@ export async function GET(req: NextRequest) {
 
   if (!eventId) {
     return NextResponse.json(
-      { error: "Bad Request", message: "eventId is required" },
-      { status: 400 }
+      {
+        error: "Bad Request",
+        message: "eventId is required",
+        code: "BAD_REQUEST",
+      },
+      { status: 400 },
     );
   }
 
@@ -34,7 +48,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json(
       { success: true, message: data, code: "SUCCESS" },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error) {
     console.error(error);
@@ -44,20 +58,30 @@ export async function GET(req: NextRequest) {
         message: error,
         code: "INTERNAL_SERVER_ERROR",
       },
-      { status: 500 }
+      { status: 500 },
     );
   } finally {
-    if (conn) conn.end();
+    if (conn) conn.release();
   }
 }
 
 export async function POST(req: NextRequest) {
   const session = await auth();
   if (!session) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json(
+      {
+        error: "Unauthorized",
+        message: "คุณไม่ได้ยืนยันตัวตน",
+        code: "UNAUTHORIZED",
+      },
+      { status: 401 },
+    );
   }
   if (session.user.role !== "teacher") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return NextResponse.json(
+      { error: "Forbidden", message: "คุณไม่ได้รับอนุญาต", code: "FORBIDDEN" },
+      { status: 403 },
+    );
   }
 
   let conn: PoolConnection | undefined;
@@ -67,8 +91,12 @@ export async function POST(req: NextRequest) {
 
     if (!eventId || !studentId) {
       return NextResponse.json(
-        { error: "Bad Request", message: "eventId and studentId are required" },
-        { status: 400 }
+        {
+          error: "Bad Request",
+          message: "eventId and studentId are required",
+          code: "BAD_REQUEST",
+        },
+        { status: 400 },
       );
     }
 
@@ -97,13 +125,13 @@ export async function POST(req: NextRequest) {
           message: "ไม่พบรหัสนักเรียนในระบบ",
           code: "NOT_FOUND",
         },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
     return NextResponse.json(
       { success: true, message: "เช็คชื่อสำเร็จ", code: "SUCCESS" },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error: any) {
     console.error(error);
@@ -115,7 +143,7 @@ export async function POST(req: NextRequest) {
           message: "นักเรียนคนนี้ได้เช็คชื่อไปแล้ว",
           code: "CONFLICT",
         },
-        { status: 409 }
+        { status: 409 },
       );
     }
     return NextResponse.json(
@@ -124,20 +152,30 @@ export async function POST(req: NextRequest) {
         message: error,
         code: "INTERNAL_SERVER_ERROR",
       },
-      { status: 500 }
+      { status: 500 },
     );
   } finally {
-    if (conn) conn.end();
+    if (conn) conn.release();
   }
 }
 
 export async function PUT(req: NextRequest) {
   const session = await auth();
   if (!session) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json(
+      {
+        error: "Unauthorized",
+        message: "คุณไม่ได้ยืนยันตัวตน",
+        code: "UNAUTHORIZED",
+      },
+      { status: 401 },
+    );
   }
   if (session.user.role !== "teacher") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return NextResponse.json(
+      { error: "Forbidden", message: "คุณไม่ได้รับอนุญาต", code: "FORBIDDEN" },
+      { status: 403 },
+    );
   }
 
   let conn: PoolConnection | undefined;
@@ -150,8 +188,9 @@ export async function PUT(req: NextRequest) {
         {
           error: "Bad Request",
           message: "eventId and updates array are required",
+          code: "BAD_REQUEST"
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -185,7 +224,7 @@ export async function PUT(req: NextRequest) {
 
     return NextResponse.json(
       { success: true, message: "อัพเดตข้อมูลสำเร็จ", code: "SUCCESS" },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error) {
     console.error(error);
@@ -195,9 +234,9 @@ export async function PUT(req: NextRequest) {
         message: error,
         code: "INTERNAL_SERVER_ERROR",
       },
-      { status: 500 }
+      { status: 500 },
     );
   } finally {
-    if (conn) conn.end();
+    if (conn) conn.release();
   }
 }

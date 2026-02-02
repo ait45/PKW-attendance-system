@@ -15,7 +15,7 @@ export async function GET() {
         message: "คุณไม่ได้รับอนุญาต",
         code: "UNAUTHORIZED",
       },
-      { status: 401 }
+      { status: 401 },
     );
 
   const now = new Date();
@@ -26,12 +26,12 @@ export async function GET() {
     conn = await MariaDBConnection.getConnection();
     const query = `SELECT 
     DAYOFWEEK(CREATED_AT) as _id,
-    SUM(CASE WHEN STASTU = 'เข้าร่วมกิจกรรม' THEN 1 ELSE 0 END) as present,
+    SUM(CASE WHEN STATUS = 'เข้าร่วมกิจกรรม' THEN 1 ELSE 0 END) as present,
     SUM(CASE WHEN STATUS = 'ลา' THEN 1 ELSE 0 END) as \`leave\`, -- leave เป็นคำสงวน ต้องใส่ backtick ครอบ
     SUM(CASE WHEN STATUS = 'สาย' THEN 1 ELSE 0 END) as late,
     SUM(CASE WHEN STATUS = 'ขาด' THEN 1 ELSE 0 END) as absent
 FROM 
-    ${process.env.MARIA_DB_TABLE_ATTENDANCE_HISTORY}
+    ${process.env.MARIA_DB_TABLE_ATTENDANCE}
 WHERE 
     CREATED_AT >= ? AND CREATED_AT <= ?
 GROUP BY 
@@ -54,7 +54,7 @@ ORDER BY
       {
         data: weeklyData,
       },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error) {
     console.error("Error fetching weekly chart data:", error);
@@ -64,9 +64,9 @@ ORDER BY
         message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์",
         code: "INTERNAL_SERVER_ERROR",
       },
-      { status: 500 }
+      { status: 500 },
     );
   } finally {
-    if (conn) conn.end();
+    if (conn) conn.release();
   }
 }

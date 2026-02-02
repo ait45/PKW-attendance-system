@@ -7,7 +7,14 @@ import LineUser from "@/models/Mongo.model.LineUser.ts";
 export async function GET(req: NextRequest) {
   const session = await auth();
   if (!session) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json(
+      {
+        error: "Unauthorized",
+        message: "คุณไม่ได้ยืนยันตัวตน",
+        code: "UNAUTHORIZED",
+      },
+      { status: 401 },
+    );
   }
 
   const { searchParams } = new URL(req.url);
@@ -73,10 +80,20 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   const session = await auth();
   if (!session) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json(
+      {
+        error: "Unauthorized",
+        message: "คุณไม่ได้ยืนยันตัวตน",
+        code: "UNAUTHORIZED",
+      },
+      { status: 401 },
+    );
   }
   if (session.user.role !== "teacher") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return NextResponse.json(
+      { error: "Forbidden", message: "คุณไม่ได้รับอนุญาต", code: "FORBIDDEN" },
+      { status: 403 },
+    );
   }
 
   try {
@@ -85,7 +102,11 @@ export async function POST(req: NextRequest) {
 
     if (!userId) {
       return NextResponse.json(
-        { error: "Bad Request", message: "userId is required" },
+        {
+          error: "Bad Request",
+          message: "userId จำเป็นต้องกรอก",
+          code: "BAD_REQUEST",
+        },
         { status: 400 },
       );
     }
@@ -96,7 +117,11 @@ export async function POST(req: NextRequest) {
     const existing = await LineUser.findOne({ userId });
     if (existing) {
       return NextResponse.json(
-        { error: "Bad Request", message: "userId นี้มีอยู่แล้ว" },
+        {
+          error: "Bad Request",
+          message: "userId นี้มีอยู่แล้ว",
+          code: "BAD_REQUEST",
+        },
         { status: 400 },
       );
     }
@@ -130,10 +155,20 @@ export async function POST(req: NextRequest) {
 export async function PUT(req: NextRequest) {
   const session = await auth();
   if (!session) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json(
+      {
+        error: "Unauthorized",
+        message: "คุณไม่ได้ยืนยันตัวตน",
+        code: "UNAUTHORIZED",
+      },
+      { status: 401 },
+    );
   }
   if (session.user.role !== "teacher") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return NextResponse.json(
+      { error: "Forbidden", message: "คุณไม่ได้รับอนุญาต", code: "FORBIDDEN" },
+      { status: 403 },
+    );
   }
 
   try {
@@ -142,7 +177,11 @@ export async function PUT(req: NextRequest) {
 
     if (!id) {
       return NextResponse.json(
-        { error: "Bad Request", message: "id is required" },
+        {
+          error: "Bad Request",
+          message: "id จำเป็นต้องกรอก",
+          code: "BAD_REQUEST",
+        },
         { status: 400 },
       );
     }
@@ -157,7 +196,7 @@ export async function PUT(req: NextRequest) {
     });
 
     return NextResponse.json(
-      { success: true, message: "แก้ไข LINE User สำเร็จ" },
+      { success: true, message: "แก้ไข LINE User สำเร็จ", code: "SUCCESS" },
       { status: 200 },
     );
   } catch (error) {
@@ -177,10 +216,20 @@ export async function PUT(req: NextRequest) {
 export async function DELETE(req: NextRequest) {
   const session = await auth();
   if (!session) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json(
+      {
+        error: "Unauthorized",
+        message: "คุณไม่ได้ยืนยันตัวตน",
+        code: "UNAUTHORIZED",
+      },
+      { status: 401 },
+    );
   }
   if (session.user.role !== "teacher") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return NextResponse.json(
+      { error: "Forbidden", message: "คุณไม่ได้รับอนุญาต", code: "FORBIDDEN" },
+      { status: 403 },
+    );
   }
 
   const { searchParams } = new URL(req.url);
@@ -188,7 +237,11 @@ export async function DELETE(req: NextRequest) {
 
   if (!id) {
     return NextResponse.json(
-      { error: "Bad Request", message: "id is required" },
+      {
+        error: "Bad Request",
+        message: "id จำเป็ฯต้องกรอก",
+        code: "BAD_REQUEST",
+      },
       { status: 400 },
     );
   }
@@ -198,7 +251,7 @@ export async function DELETE(req: NextRequest) {
     await LineUser.findByIdAndDelete(id);
 
     return NextResponse.json(
-      { success: true, message: "ลบ LINE User สำเร็จ" },
+      { success: true, message: "ลบ LINE User สำเร็จ", code: "SUCCESS" },
       { status: 200 },
     );
   } catch (error) {

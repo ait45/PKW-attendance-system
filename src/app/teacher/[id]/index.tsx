@@ -50,14 +50,17 @@ function TeacherPage() {
     const checkMobile = () => {
       const mobile = window.innerWidth < 768;
       setIsMobile(mobile);
+      // Auto close sidebar when switching to desktop
+      if (!mobile) setIsSidebarOpen(false);
     };
     checkMobile();
     window.addEventListener("resize", checkMobile);
-    return () => window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
   const [isCollapsed, setIsCollapsed] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const SideBar = ({ activeMenu, setActiveMenu, session }: { activeMenu: string, setActiveMenu: (menu: string) => void, session: any }) => {
     const menuItems = [
@@ -197,11 +200,12 @@ function TeacherPage() {
           activeMenu={currentPage}
           setActiveMenu={handleChangePage}
           session={session}
+          onCollapseChange={(isCollapsed) => setIsSidebarOpen(!isCollapsed)}
         />
         <main
           className={`flex-1 py-1 w-full overflow-auto ${
-            isCollapsed && "inline"
-          } ${isMobile ? "hidden" : "inline"}`}
+            isMobile && isSidebarOpen ? "hidden" : ""
+          }`}
         >
           {currentPage === "dashboard" && <Dashboard />}
           {currentPage === "scan" && <AttendanceCheckPage session={session} />}

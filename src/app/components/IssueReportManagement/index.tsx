@@ -11,10 +11,10 @@ import {
   Clock,
   CheckCircle,
   XCircle,
-  Loader,
   Eye,
   X,
 } from "lucide-react";
+import { SkeletonIssueReportManagement } from "@/app/components/Skeleton";
 
 interface IssueReport {
   _id: string;
@@ -116,6 +116,10 @@ export default function IssueReportManagement() {
 
   const formatDate = (d: string) => new Date(d).toLocaleDateString("th-TH", { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
 
+  if (loading) {
+    return <SkeletonIssueReportManagement />;
+  }
+
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       <div className="max-w-6xl mx-auto">
@@ -160,9 +164,7 @@ export default function IssueReportManagement() {
 
         {/* Table */}
         <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-          {loading ? (
-            <div className="flex justify-center py-12"><Loader className="w-8 h-8 text-blue-500 animate-spin" /></div>
-          ) : reports.length === 0 ? (
+          {reports.length === 0 ? (
             <div className="text-center py-12 text-gray-400"><MessageSquare className="w-12 h-12 mx-auto mb-2 opacity-30" /><p>ไม่มีข้อมูล</p></div>
           ) : (
             <table className="w-full">

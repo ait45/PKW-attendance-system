@@ -12,7 +12,7 @@ const attendance_Table = process.env.MARIA_DB_TABLE_ATTENDANCE;
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const session = await auth();
   if (!session)
@@ -22,11 +22,11 @@ export async function GET(
         message: "คุณไม่ได้รับอนุญาต",
         code: "UNAUTHORIZED",
       },
-      { status: 401 }
+      { status: 401 },
     );
 
   const { id } = await params;
-  let conn: PoolConnection;
+  let conn: PoolConnection | undefined;
   try {
     conn = await MariaDBConnection.getConnection();
     const query = `SELECT NAME, STATUS, CREATED_AT FROM ${attendance_Table} WHERE STUDENT_ID = ? AND DATE(CREATED_AT) = CURDATE()`;
@@ -34,7 +34,7 @@ export async function GET(
     if (!data) {
       return NextResponse.json(
         { error: "Not Found", message: "ไม่พบข้อมูล", code: "NOT FOUND" },
-        { status: 404 }
+        { status: 404 },
       );
     }
     return NextResponse.json(
@@ -43,7 +43,7 @@ export async function GET(
         payload: data,
         code: "SUCCESS",
       },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error) {
     console.error(error);
@@ -53,7 +53,7 @@ export async function GET(
         message: error,
         code: "INTERNAL_ERROR",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

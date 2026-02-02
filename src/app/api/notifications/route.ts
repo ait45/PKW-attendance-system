@@ -8,7 +8,14 @@ const NOTIFICATIONS_TABLE = process.env.MARIA_DB_TABLE_NOTIFICATIONS;
 export async function GET(req: NextRequest) {
   const session = await auth();
   if (!session) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json(
+      {
+        error: "Unauthorized",
+        message: "คุณไม่ได้ยืนยันตัวตน",
+        code: "UNAUTHORIZED",
+      },
+      { status: 401 },
+    );
   }
 
   const { searchParams } = new URL(req.url);
@@ -48,17 +55,27 @@ export async function GET(req: NextRequest) {
       { status: 500 },
     );
   } finally {
-    if (conn) conn.end();
+    if (conn) conn.release();
   }
 }
 
 export async function POST(req: NextRequest) {
   const session = await auth();
   if (!session) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json(
+      {
+        error: "Unauthorized",
+        message: "คุณไม่ได้ยืนยันตัวตน",
+        code: "UNAUTHORIZED",
+      },
+      { status: 401 },
+    );
   }
   if (session.user.role !== "teacher") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return NextResponse.json(
+      { error: "Forbidden", message: "คุณไม่ได้รับอนุญาต", code: "FORBIDDEN" },
+      { status: 403 },
+    );
   }
 
   let conn: PoolConnection | undefined;
@@ -110,7 +127,7 @@ export async function POST(req: NextRequest) {
       { status: 500 },
     );
   } finally {
-    if (conn) conn.end();
+    if (conn) conn.release();
   }
 }
 
@@ -149,7 +166,11 @@ export async function PUT(req: NextRequest) {
 
     if (!id) {
       return NextResponse.json(
-        { error: "Bad Request", message: "id is required" },
+        {
+          error: "Bad Request",
+          message: "id จำเป็นต้องกรอก",
+          code: "BAD_REQUEST",
+        },
         { status: 400 },
       );
     }
@@ -188,17 +209,27 @@ export async function PUT(req: NextRequest) {
       { status: 500 },
     );
   } finally {
-    if (conn) conn.end();
+    if (conn) conn.release();
   }
 }
 
 export async function DELETE(req: NextRequest) {
   const session = await auth();
   if (!session) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json(
+      {
+        error: "Unauthorized",
+        message: "คุณไม่ได้ยืนยันตัวตน",
+        code: "UNAUTHORIZED",
+      },
+      { status: 401 },
+    );
   }
   if (session.user.role !== "teacher") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return NextResponse.json(
+      { error: "Forbidden", message: "คุณไม่ได้รับอนุญาต", code: "FORBIDDEN" },
+      { status: 403 },
+    );
   }
 
   let conn: PoolConnection | undefined;
@@ -208,7 +239,11 @@ export async function DELETE(req: NextRequest) {
 
     if (!id) {
       return NextResponse.json(
-        { error: "Bad Request", message: "id is required" },
+        {
+          error: "Bad Request",
+          message: "id จำเป็ฯต้องกรอก",
+          code: "BAD_REQUEST",
+        },
         { status: 400 },
       );
     }
@@ -233,6 +268,6 @@ export async function DELETE(req: NextRequest) {
       { status: 500 },
     );
   } finally {
-    if (conn) conn.end();
+    if (conn) conn.release();
   }
 }

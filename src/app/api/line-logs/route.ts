@@ -1,12 +1,19 @@
 import { auth } from "@/lib/auth.ts";
 import { NextRequest, NextResponse } from "next/server";
-import { MongoDBConnection } from "@/lib/config.mongoDB";
-import LineLog from "@/models/Mongo.model.LineLog";
+import { MongoDBConnection } from "@/lib/config.mongoDB.ts";
+import LineLog from "@/models/Mongo.model.LineLog.ts";
 
 export async function GET(req: NextRequest) {
   const session = await auth();
   if (!session) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json(
+      {
+        error: "Unauthorized",
+        message: "คุณไม่ได้ยืนยันตัวตน",
+        code: "UNAUTHORIZED",
+      },
+      { status: 401 },
+    );
   }
 
   const { searchParams } = new URL(req.url);
@@ -103,7 +110,7 @@ export async function DELETE(req: NextRequest) {
 
   if (!id) {
     return NextResponse.json(
-      { error: "Bad Request", message: "id is required" },
+      { error: "Bad Request", message: "id จำเป็นต้องกรอก", code: "SUCCESS" },
       { status: 400 },
     );
   }

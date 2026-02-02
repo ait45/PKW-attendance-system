@@ -266,7 +266,7 @@ export default function LoginPage() {
                       setErrors((prev) => ({ ...prev, terms: "" }));
                     }
                   }}
-                  className={`h-4 w-4 text-[#009EA3] focus:ring-[#009EA3] border-gray-300 rounded cursor-pointer accent-[#009EA3]`}
+                  className={`h-4 w-4 text-[#009EA3] focus:ring-[#009EA3] border-gray-300 rounded cursor-pointer accent-[#009EA3] outline-none`}
                 />
                 <label
                   htmlFor="accept-terms"
@@ -274,7 +274,7 @@ export default function LoginPage() {
                 >
                   ยอมรับ
                   <Link
-                    href="/terms"
+                    href={`/terms` as Route}
                     className="text-[#009EA3] hover:text-[#00CAD1] hover:underline ml-1"
                     target="_blank"
                   >

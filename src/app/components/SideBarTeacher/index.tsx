@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Home,
   Settings,
@@ -21,6 +21,7 @@ interface MenuItem {
   id: string;
   label: string;
   icon: LucideIcon;
+  badge?: number;
 }
 
 interface MenuGroup {
@@ -33,6 +34,7 @@ interface SideBarProps {
   setActiveMenu: (menu: string) => void;
   session: any;
   menuGroups?: MenuGroup[];
+  onCollapseChange?: (isCollapsed: boolean) => void;
 }
 
 const defaultMenuGroups: MenuGroup[] = [
@@ -73,8 +75,34 @@ function SideBarTeacher({
   setActiveMenu,
   session,
   menuGroups = defaultMenuGroups,
+  onCollapseChange,
 }: SideBarProps) {
   const [isCollapsed, setIsCollapsed] = useState(true);
+  const [pendingIssuesCount, setPendingIssuesCount] = useState(0);
+
+  const fetchPendingIssues = useCallback(async () => {
+    try {
+      const res = await fetch("/api/issue-reports?status=pending&type=all");
+      const data = await res.json();
+      if (data.success) {
+        setPendingIssuesCount(data.data.stats?.pending || 0);
+      }
+    } catch (error) {
+      console.error("Failed to fetch pending issues:", error);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchPendingIssues();
+    // Refresh every 30 seconds
+    const interval = setInterval(fetchPendingIssues, 30000);
+    return () => clearInterval(interval);
+  }, [fetchPendingIssues]);
+
+  // Sync collapse state with parent component
+  useEffect(() => {
+    onCollapseChange?.(isCollapsed);
+  }, [isCollapsed, onCollapseChange]);
 
   const toggleSideBar = () => {
     setIsCollapsed((prev) => !prev);
@@ -82,6 +110,10 @@ function SideBarTeacher({
 
   const handleMenuClick = (itemId: string) => {
     setActiveMenu(itemId);
+    // Refresh count when clicking on messages
+    if (itemId === "messages") {
+      fetchPendingIssues();
+    }
   };
 
   return (
@@ -143,6 +175,7 @@ function SideBarTeacher({
               {group.items.map((item) => {
                 const IconComponent = item.icon;
                 const isActive = activeMenu === item.id;
+                const badgeCount = item.id === "messages" ? pendingIssuesCount : 0;
 
                 return (
                   <li key={item.id}>
@@ -156,11 +189,19 @@ function SideBarTeacher({
                           : "justify-start space-x-3"
                       }`}
                     >
-                      <IconComponent
-                        className={`w-5 h-5 transition-transform duration-200 ${
-                          isActive ? "scale-110" : "group-hover:scale-105"
-                        }`}
-                      />
+                      <div className="relative">
+                        <IconComponent
+                          className={`w-5 h-5 transition-transform duration-200 ${
+                            isActive ? "scale-110" : "group-hover:scale-105"
+                          }`}
+                        />
+                        {/* Badge */}
+                        {badgeCount > 0 && (
+                          <span className="absolute -top-2 -right-2 min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1 shadow-lg animate-pulse">
+                            {badgeCount > 99 ? "99+" : badgeCount}
+                          </span>
+                        )}
+                      </div>
                       {!isCollapsed && (
                         <span className="font-medium flex-1 text-left text-sm">
                           {item.label}

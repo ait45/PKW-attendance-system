@@ -5,10 +5,11 @@ import Student from "@/models/Mongo.model.Student.ts";
 import { auth } from "@/lib/auth.ts";
 import crypto from "crypto";
 import bcrypt from "bcrypt";
+import { PoolConnection } from "mariadb/*";
 
 const TABLE_STUDENTS = process.env.MARIA_DB_TABLE_STUDENTS;
 
-interface Data {
+interface DataStudent {
   _id: string;
   STUDENT_ID: string;
   NAME: string;
@@ -24,6 +25,7 @@ interface Data {
   ABSENT_DAYS: string;
   BEHAVIOR_SCORE: string;
   IS_ADMIN: number;
+  EVENT_ABSENT_PERIODS: number;
 }
 
 // generatePassword
@@ -39,24 +41,24 @@ async function genPassword(size: number) {
 }
 export async function GET() {
   const session = await auth();
-  if (!session)
+  if (!session) {
     return NextResponse.json(
       {
         error: "Unauthorized",
-        message: "ต้องยืนยันตัวตนก่อนใช้งาน",
+        message: "คุณไม่ได้ยืนยันตัวตน",
         code: "UNAUTHORIZED",
       },
-      { status: 401 }
+      { status: 401 },
     );
-
+  }
+  let conn: PoolConnection | undefined;
   try {
-    const conn = await MariaDBConnection.getConnection();
+    conn = await MariaDBConnection.getConnection();
     const query = `SELECT * FROM ${TABLE_STUDENTS}`;
     const data = await conn.query(query);
-    conn.end();
 
-    if (session?.user?.role === "teacher" && session?.user?.isAdmin === true) {
-      const payload = data.map((index: Data) => {
+    if (session?.user?.role === "teacher") {
+      const payload = data.map((index: DataStudent) => {
         return {
           _id: index._id,
           studentId: index.STUDENT_ID,
@@ -64,7 +66,6 @@ export async function GET() {
           classes: index.CLASSES,
           phone: index.PHONE,
           parentPhone: index.PARENT_PHONE,
-          status: index.STATUS || null,
           plantData: index.PLANT_PASSWORD,
           Number: index.NUMBER,
           joinDays: index.JOIN_DAYS,
@@ -73,37 +74,17 @@ export async function GET() {
           absentDays: index.ABSENT_DAYS,
           behaviorScore: index.BEHAVIOR_SCORE,
           isAdmin: index.IS_ADMIN === 1 ? true : false,
+          event_absent_periods: index.EVENT_ABSENT_PERIODS,
         };
       });
       return NextResponse.json(
-        { success: true, payload: payload },
-        { status: 200 }
-      );
-    } else if (
-      session?.user?.role === "teacher" &&
-      session?.user?.isAdmin === false
-    ) {
-      const payload = data.map((index: Data) => {
-        return {
-          id: index._id,
-          studentId: index.STUDENT_ID,
-          name: index.NAME,
-          classes: index.CLASSES,
-          phone: index.PHONE,
-          parentPhone: index.PARENT_PHONE,
-          status: index.STATUS || null,
-          Number: index.NUMBER,
-          comeDays: index.JOIN_DAYS,
-          leaveDays: index.LEAVE_DAYS,
-          lateDays: index.LATE_DAYS,
-          absentDays: index.ABSENT_DAYS,
-          behaviorScore: index.BEHAVIOR_SCORE,
-          isAdmin: index.IS_ADMIN === 1 ? true : false,
-        };
-      });
-      return NextResponse.json(
-        { success: true, payload: payload },
-        { status: 200 }
+        {
+          success: true,
+          payload: payload,
+          message: "ดึงข้อมูลสำเร็จ",
+          code: "SUCCESS",
+        },
+        { status: 200 },
       );
     } else {
       return NextResponse.json(
@@ -112,7 +93,7 @@ export async function GET() {
           message: "ไม่มีสิทธิ์เข้าถึงข้อมูล",
           code: "FORBIDDEN",
         },
-        { status: 403 }
+        { status: 403 },
       );
     }
   } catch (error) {
@@ -123,8 +104,10 @@ export async function GET() {
         message: error,
         code: "INTERNAL_ERROR",
       },
-      { status: 500 }
+      { status: 500 },
     );
+  } finally {
+    if (conn) conn.release();
   }
 }
 export async function POST(req: NextRequest) {
@@ -136,15 +119,17 @@ export async function POST(req: NextRequest) {
         message: "ต้องยืนยันตัวตนก่อนใช้งาน",
         code: "UNAUTHORIZED",
       },
-      { status: 401 }
+      { status: 401 },
     );
+
+  let conn: PoolConnection | undefined;
   try {
     const { studentId, name, classes, phone, parentPhone, Number } =
       await req.json();
     const plantData = await genPassword(5);
     const password = await bcrypt.hash(plantData, 10);
 
-    const conn = await MariaDBConnection.getConnection();
+    conn = await MariaDBConnection.getConnection();
     const query = `INSERT INTO ${TABLE_STUDENTS} (STUDENT_ID, NAME, CLASSES, PHONE, PARENT_PHONE, PLANT_PASSWORD, NUMBER) VALUES (?, ?, ?, ?, ?, ?, ?)`;
     await conn.execute(query, [
       studentId,
@@ -155,7 +140,6 @@ export async function POST(req: NextRequest) {
       plantData,
       Number,
     ]);
-    conn.end();
     await MongoDBConnection();
     await Student.create({
       studentId: studentId,
@@ -165,7 +149,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(
       { success: true, message: "เพิ่มข้อมูลเสร็จสิ้น", code: "SUCCESS" },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error: any) {
     console.error("Error :", error);
@@ -178,7 +162,7 @@ export async function POST(req: NextRequest) {
             message: { studentId: "มีข้อมูลในระบบแล้ว" },
             code: "STUDENT_ID_EXISTS",
           },
-          { status: 409 }
+          { status: 409 },
         );
       }
       if (message.includes("unique_class_number")) {
@@ -188,7 +172,7 @@ export async function POST(req: NextRequest) {
             message: { Number: "เลขที่มีข้อมูลในระบบแล้ว" },
             code: "NUMBER_EXISTS",
           },
-          { status: 409 }
+          { status: 409 },
         );
       }
     }
@@ -198,7 +182,9 @@ export async function POST(req: NextRequest) {
         message: error,
         code: "INTERNAL_SERVER_ERROR",
       },
-      { status: 500 }
+      { status: 500 },
     );
+  } finally {
+    if (conn) conn.release();
   }
 }

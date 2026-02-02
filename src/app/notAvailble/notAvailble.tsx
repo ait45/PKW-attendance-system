@@ -5,7 +5,7 @@ import Footer from "../components/Footer/page";
 import { redirect } from "next/navigation";
 import type { Route } from "next";
 
-function System_off() {
+function notAvailble() {
   const [status, setStatus] = useState(false);
   const [loading, setLoading] = useState(true);
   const status_system = async () => {
@@ -68,4 +68,4 @@ function System_off() {
   );
 }
 
-export default System_off;
+export default notAvailble;

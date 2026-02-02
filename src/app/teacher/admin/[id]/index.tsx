@@ -29,6 +29,7 @@ import EventAttendanceTable from "@/app/components/EventAttendanceTable";
 import TeacherAdminBoard from "@/app/components/TeacherAdminBoard";
 import TeacherBoard from "@/app/components/TeacherBoard";
 import LineUserManagement from "@/app/components/LineUserManagement";
+import IssueReportManagement from "@/app/components/IssueReportManagement";
 
 function AdminPage() {
   const { data: session, status } = useSession();
@@ -43,11 +44,14 @@ function AdminPage() {
   };
 
   const [isMobile, setIsMobile] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
     const checkMobile = () => {
       const mobile = window.innerWidth < 768;
       setIsMobile(mobile);
+      // Auto close sidebar when switching to desktop
+      if (!mobile) setIsSidebarOpen(false);
     };
     checkMobile();
     window.addEventListener("resize", checkMobile);
@@ -76,9 +80,12 @@ function AdminPage() {
           activeMenu={currentPage}
           setActiveMenu={handleChangePage}
           session={session}
+          onCollapseChange={(isCollapsed) => setIsSidebarOpen(!isCollapsed)}
         />
         <main
-          className="flex-1 py-1 w-full overflow-y-scroll hide-scrollbar duration-300"
+          className={`flex-1 py-1 w-full overflow-y-scroll hide-scrollbar duration-300 ${
+            isMobile && isSidebarOpen ? "hidden" : ""
+          }`}
         >
           {currentPage === "dashboard" && <Dashboard />}
           {currentPage === "scan" && <AttendanceCheckPage session={session} />}
@@ -108,6 +115,7 @@ function AdminPage() {
           {currentPage === "eventCheck" && <EventAttendanceCheck session={session} />}
           {currentPage === "eventTable" && <EventAttendanceTable session={session} />}
           {currentPage === "LineUser" && <LineUserManagement />}
+          {currentPage === "messages" && <IssueReportManagement />}
         </main>
       </div>
       <Footer />

@@ -11,6 +11,41 @@ import {
   XCircle,
   CircleAlert,
 } from "lucide-react";
+import { SkeletonStatsGrid, SkeletonTable, SkeletonAvatar } from "../Skeleton";
+
+// Dashboard Skeleton Component
+const DashboardSkeleton = () => (
+  <main className="w-full p-3 md:p-4">
+    <div className="bg-white rounded-lg shadow-lg p-4 sm:p-8 mb-4 sm:mt-8">
+      {/* Header Skeleton */}
+      <div className="mb-6">
+        <div className="flex items-start sm:items-center">
+          <div className="p-3 bg-gray-200 rounded-md mb-2 mr-2 animate-pulse">
+            <div className="w-8 h-8" />
+          </div>
+          <div className="space-y-2">
+            <div className="h-6 w-48 bg-gray-200 rounded animate-pulse" />
+            <div className="h-4 w-32 bg-gray-200 rounded animate-pulse" />
+          </div>
+        </div>
+      </div>
+
+      {/* Stats Grid Skeleton */}
+      <SkeletonStatsGrid count={4} />
+    </div>
+
+    <div className="bg-slate-100 rounded-lg shadow-lg p-4 sm:p-8">
+      <div className="flex items-center gap-2 mb-4">
+        <div className="w-12 h-12 bg-gray-200 rounded animate-pulse" />
+        <div className="space-y-2">
+          <div className="h-5 w-48 bg-gray-200 rounded animate-pulse" />
+          <div className="h-3 w-32 bg-gray-200 rounded animate-pulse" />
+        </div>
+      </div>
+      <SkeletonTable rows={5} columns={6} />
+    </div>
+  </main>
+);
 
 function Dashboard() {
   // หน้าสถิติ
@@ -72,12 +107,9 @@ function Dashboard() {
   useEffect(() => {
     fetchData();
   }, []);
-  if (loading)
-    return (
-      <p className="flex justify-center items-center text-slate-500 p-4 ">
-        กำลังโหลด....
-      </p>
-    );
+
+  if (loading) return <DashboardSkeleton />;
+
   return (
     // หน้าสถิติ
     <main className="w-full p-3 md:p-4">
@@ -145,7 +177,7 @@ function Dashboard() {
             <div className="relative z-10">
               <div className="text-3xl font-bold text-amber-600 mb-2">
                 {DataStudent?.attendance?.lateDays
-                  ? DataStudent.attendnce.lateDays
+                  ? DataStudent.attendance.lateDays
                   : 0}
               </div>
               <p className="text-yellow-700 font-medium">สาย</p>

@@ -1,7 +1,7 @@
-import { auth } from "@/lib/auth";
+import { auth } from "@/lib/auth.ts";
 import { NextRequest, NextResponse } from "next/server";
 import { PoolConnection } from "mariadb/*";
-import { MariaDBConnection } from "@/lib/config.mariaDB";
+import { MariaDBConnection } from "@/lib/config.mariaDB.ts";
 
 const MARIA_DB_TABLE_EVENTS = process.env.MARIA_DB_TABLE_EVENTS;
 
@@ -11,10 +11,20 @@ export async function GET(
 ) {
   const session = await auth();
   if (!session) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json(
+      {
+        error: "Unauthorized",
+        message: "คุณไม่ได้ยืนยันตัวตน",
+        code: "UNAUTHORIZED",
+      },
+      { status: 401 },
+    );
   }
   if (session.user.role !== "teacher") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return NextResponse.json(
+      { error: "Forbidden", message: "คุณไม่ได้รับอนุญาต", code: "FORBIDDEN" },
+      { status: 403 },
+    );
   }
 
   const { id: eventId } = await params;
@@ -31,11 +41,15 @@ export async function GET(
     );
   } catch (error) {
     return NextResponse.json(
-      { error: "Internal Server Error" },
+      {
+        error: "Internal Server Error",
+        message: error,
+        code: "INTERNAL_SERVER_ERROR",
+      },
       { status: 500 },
     );
   } finally {
-    if (conn) conn.end();
+    if (conn) conn.release();
   }
 }
 
@@ -48,7 +62,7 @@ export async function PUT(
     return NextResponse.json(
       {
         error: "Unauthorized",
-        message: "คุณไม่ได้รับอนุญาต",
+        message: "คุณไม่ได้ยืนยันตัวตน",
         code: "UNAUTHORIZED",
       },
       { status: 401 },
@@ -56,7 +70,7 @@ export async function PUT(
   }
   if (session.user.role !== "teacher") {
     return NextResponse.json(
-      { error: "Forbidden", message: "ไม่มีสิทธิ์", code: "FORBIDDEN" },
+      { error: "Forbidden", message: "คุณไม่ได้รับอนุญาต", code: "FORBIDDEN" },
       { status: 403 },
     );
   }
@@ -112,7 +126,7 @@ export async function PUT(
       { status: 500 },
     );
   } finally {
-    if (conn) conn.end();
+    if (conn) conn.release();
   }
 }
 
@@ -126,7 +140,7 @@ export async function DELETE(
     return NextResponse.json(
       {
         error: "Unauthorized",
-        message: "คุณไม่ได้รับอนุญาต",
+        message: "คุณไม่ได้ยืนยันตัวตน",
         code: "UNAUTHORIZED",
       },
       { status: 401 },
@@ -134,7 +148,7 @@ export async function DELETE(
   }
   if (session.user.role !== "teacher") {
     return NextResponse.json(
-      { error: "Forbidden", message: "ไม่มีสิทธิ์", code: "FORBIDDEN" },
+      { error: "Forbidden", message: "คุณไม่ได้รับอนุญาต", code: "FORBIDDEN" },
       { status: 403 },
     );
   }
@@ -161,6 +175,6 @@ export async function DELETE(
       { status: 500 },
     );
   } finally {
-    if (conn) conn.end();
+    if (conn) conn.release();
   }
 }

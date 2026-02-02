@@ -3,20 +3,63 @@ import React, { useEffect, useState, useMemo } from "react";
 import { BookUser, Calendar, RefreshCcw, SquarePen } from "lucide-react";
 import Swal from "sweetalert2";
 import CurrentDay from "../date-time/day";
+import { SkeletonTable } from "../Skeleton";
 
 interface holiday {
   isHoliday: boolean;
   name?: string;
 }
+interface DataStudent {
+  _id: string;
+  studentId: string;
+  name: string;
+  classes: string;
+  phone: string;
+  parentPhone: string;
+  Number: number;
+  plantData: string;
+  joinDays: number;
+  lateDays: number;
+  leaveDays: number;
+  adsentDays: number;
+  behaviorScore: number;
+  event_absent_periods: number;
+
+}
+
+interface DataAttendance {
+  HANDLER: string;
+  STUDENT_ID: string;
+  NAME: string;
+  CLASSES: string;
+  STATUS: string;
+  CREATED_AT: Date;
+}
+const getStatusColor = (status: string) => {
+    switch (status) {
+      case "เข้าร่วมกิจกรรม":
+        return "bg-emerald-500 text-white";
+      case "ลา":
+        return "bg-yellow-500 text-white";
+      case "สาย":
+        return "bg-orange-500 text-white";
+      case "ขาด":
+        return "bg-red-500 text-white";
+      default:
+        return "bg-gray-200 text-gray-700";
+    }
+  };
+
+
 function TableAttendance({ session }: { session: any }) {
   const now = new Date();
-  const [DataStudentAttendance, setDataStudentAttendance] = useState<any[]>([]);
-  const [DataStudent, setDataStudent] = useState<any[]>([]);
-  const [stateSelectDisable, setStateSelectDisable] = useState<Partial<boolean>>(false);
-  const [selectClasses, setSelectClasses] = useState<Partial<string>>("ทั้งหมด");
-  const [overTimeEditState, setOverTimeEditState] = useState(false);
-  const [dataHoliday, setDataHolidays] = useState<Partial<holiday>>({});
-  const [loading, setLoading] = useState(false);
+  const [DataStudentAttendance, setDataStudentAttendance] = useState<DataAttendance[]>([]);
+  const [DataStudent, setDataStudent] = useState<DataStudent[]>([]);
+  const [stateSelectDisable, setStateSelectDisable] = useState<boolean>(false);
+  const [selectClasses, setSelectClasses] = useState<string>("ทั้งหมด");
+  const [overTimeEditState, setOverTimeEditState] = useState<boolean>(false);
+  const [dataHoliday, setDataHolidays] = useState<holiday>({ isHoliday: false, name: "" });
+  const [loading, setLoading] = useState<boolean>(false);
 
   const classes = [
     { label: "มัธยมศึกษาปีที่ 1", val: 0 },
@@ -70,8 +113,7 @@ function TableAttendance({ session }: { session: any }) {
       return;
     }
   };
-  useEffect(() => {
-    const fetchDataStudent = async () => {
+  const fetchDataStudent = async () => {
       try {
         const req = await fetch("/api/studentManagement");
         const data = await req.json();
@@ -83,11 +125,14 @@ function TableAttendance({ session }: { session: any }) {
         Swal.fire("เกิดข้อผิดพลาด", error, "error");
       }
     };
+  useEffect(() => {
+    
     fetchDataAttendance();
     fetchDataStudent();
     fetchDataSetting();
     checkTimeOut_Edit();
     holiday();
+
     if (session?.user?.role !== "teacher" && session?.user?.isAdmin === false)
       setStateSelectDisable(true);
   }, []);
@@ -414,7 +459,7 @@ function TableAttendance({ session }: { session: any }) {
                     </td>
                     <td className="border border-slate-300 px-4 py-3">
                       <select
-                        className="px-2 border border-slate-500 focus:border-blue-500 transition-colors rounded-md outline-none cursor-pointer disabled:text-slate-400 disabled:border-slate-400 disabled:cursor-not-allowed"
+                        className={`px-2 border border-slate-500 focus:border-blue-500 transition-colors rounded-md outline-none cursor-pointer disabled:text-slate-400 disabled:border-slate-400 disabled:cursor-not-allowed ${getStatusColor(value.status)}`}
                         value={value.status}
                         onChange={(e) =>
                           handleStatusChange(value.studentId, e.target.value)

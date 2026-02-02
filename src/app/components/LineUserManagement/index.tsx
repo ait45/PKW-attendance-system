@@ -13,6 +13,7 @@ import {
   Search,
   MessageCircle,
 } from "lucide-react";
+import { SkeletonLineUserManagement } from "@/app/components/Skeleton";
 
 interface LineUser {
   _id: string;
@@ -221,6 +222,10 @@ export default function LineUserManagement() {
       user.displayName.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  if (loading) {
+    return <SkeletonLineUserManagement />;
+  }
+
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       <div className="max-w-6xl mx-auto">
@@ -316,11 +321,7 @@ export default function LineUserManagement() {
 
         {/* Users Table */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-          {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <RefreshCw className="w-8 h-8 text-blue-500 animate-spin" />
-            </div>
-          ) : filteredUsers.length === 0 ? (
+          {filteredUsers.length === 0 ? (
             <div className="text-center py-12 text-gray-500">
               <MessageCircle className="w-12 h-12 mx-auto mb-3 text-gray-300" />
               <p>ไม่พบข้อมูล</p>

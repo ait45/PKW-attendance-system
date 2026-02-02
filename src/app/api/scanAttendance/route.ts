@@ -15,6 +15,15 @@ endOfDay.setHours(23, 59, 59, 999);
 const attendance_Table = process.env.MARIA_DB_TABLE_ATTENDANCE;
 const students_Table = process.env.MARIA_DB_TABLE_STUDENTS;
 
+interface DataAttendance {
+  HANDLER: string;
+  STUDENT_ID: string;
+  NAME: string;
+  CLASSES: string;
+  STATUS: string;
+  CREATED_AT: Date;
+}
+
 export async function POST(req: NextRequest) {
   const session = await auth();
   if (!session)
@@ -24,7 +33,7 @@ export async function POST(req: NextRequest) {
         message: "ต้องยืนยันตัวตนก่อนใช้งาน",
         code: "UNAUTHORIZED",
       },
-      { status: 401 }
+      { status: 401 },
     );
   if (session?.user?.isAdmin === false)
     return NextResponse.json(
@@ -33,7 +42,7 @@ export async function POST(req: NextRequest) {
         message: "คุณไม่มีสิทธิ์ในการเข้าถึงข้อมูลนี้",
         code: "FORBIDDEN",
       },
-      { status: 403 }
+      { status: 403 },
     );
   let conn: PoolConnection | undefined;
   try {
@@ -52,7 +61,7 @@ export async function POST(req: NextRequest) {
             message: "ไม่พบรหัสนักเรียนในระบบ",
             code: "NOT_FOUND",
           },
-          { status: 404 }
+          { status: 404 },
         );
       }
       return NextResponse.json(
@@ -61,7 +70,7 @@ export async function POST(req: NextRequest) {
           message: "เช็คชื่อสำเร็จ",
           code: "SUCCESS",
         },
-        { status: 200 }
+        { status: 200 },
       );
     }
   } catch (error: any) {
@@ -72,11 +81,17 @@ export async function POST(req: NextRequest) {
           message: "วันนี้ได้ทำการเช็คชื่อไปแล้ว",
           code: "CONFLICT",
         },
-        { status: 409 }
+        { status: 409 },
       );
+    } else {
+      return NextResponse.json({
+        error: "Internal Server Error",
+        message: error,
+        code: "INTERNAL_SERVER_ERROR",
+      });
     }
   } finally {
-    if (conn) conn.end();
+    if (conn) conn.release();
   }
 }
 
@@ -89,7 +104,7 @@ export async function GET(req: NextRequest) {
         message: "คุณไม่ได้รับอนุญาต",
         code: "UNAUTHORIZED",
       },
-      { status: 401 }
+      { status: 401 },
     );
   }
   let conn: PoolConnection | undefined;
@@ -103,32 +118,23 @@ export async function GET(req: NextRequest) {
     if (data.length === 0)
       return NextResponse.json(
         { error: "Not Found", message: "ไม่พบข้อมูล", code: "NOT_FOUND" },
-        { status: 404 }
+        { status: 404 },
       );
 
-    const payload = data.map(
-      (index: {
-        HANDLER: string;
-        STUDENT_ID: string;
-        NAME: string;
-        CLASSES: string;
-        STATUS: string;
-        CREATED_AT: Date;
-      }) => {
-        return {
-          handler: index.HANDLER,
-          studentId: index.STUDENT_ID,
-          name: index.NAME,
-          classes: index.CLASSES,
-          status: index.STATUS,
-          createdAt: index.CREATED_AT,
-        };
-      }
-    );
+    const payload = data.map((index: DataAttendance) => {
+      return {
+        handler: index.HANDLER,
+        studentId: index.STUDENT_ID,
+        name: index.NAME,
+        classes: index.CLASSES,
+        status: index.STATUS,
+        createdAt: index.CREATED_AT,
+      };
+    });
 
     return NextResponse.json(
       { success: true, message: payload },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error) {
     console.log(error);
@@ -138,8 +144,10 @@ export async function GET(req: NextRequest) {
         message: error,
         code: "INTERNAL_ERROR",
       },
-      { status: 500 }
+      { status: 500 },
     );
+  } finally {
+    if (conn) conn.release();
   }
 }
 export async function PUT(req: NextRequest) {
@@ -152,22 +160,26 @@ export async function PUT(req: NextRequest) {
         message: "คุณไม่ได้รับอนุญาต",
         code: "UNAUTHORIZED",
       },
-      { status: 401 }
+      { status: 401 },
     );
   }
 
   const list = await req.json();
   if (!Array.isArray(list)) {
     return NextResponse.json(
-      { error: "Data must be an array", message: "Data ต้องเป็น list" },
-      { status: 400 }
+      {
+        error: "Data must be an array",
+        message: "Data ต้องเป็น list",
+        code: "DATA_TYPE_IS_LIST_ONLY",
+      },
+      { status: 400 },
     );
   }
   try {
     await update_behaviorScore(list);
     return NextResponse.json(
       { success: true, message: "แก้ไขข้อมูลเสร็จสิ้น", code: "SUCCESS" },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error) {
     console.error(error);
@@ -177,7 +189,7 @@ export async function PUT(req: NextRequest) {
         message: error,
         code: "BAD_REQUEST",
       },
-      { status: 400 }
+      { status: 400 },
     );
   }
 }

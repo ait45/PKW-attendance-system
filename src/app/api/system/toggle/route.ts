@@ -2,37 +2,39 @@ import { NextResponse, NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 import fs from "fs";
 import path from "path";
+import { auth } from "@/lib/auth";
 
 const systemPath = path.join(process.cwd(), "config/system.json");
 
 export async function GET(req: NextRequest) {
-  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
-  if (!token) {
+  const session = await auth();
+  if (!session) {
     return NextResponse.json(
       {
         error: "Unauthorized",
-        message: "คุณไม่ได้รับอนุญาต",
+        message: "คุณไม่ได้ยืนยันตัวตน",
         code: "UNAUTHORIZED",
       },
-      { status: 401 }
+      { status: 401 },
     );
   }
+
   const data = JSON.parse(fs.readFileSync(systemPath, "utf-8"));
   return NextResponse.json(
     { success: true, data: data, code: "SUCCESS" },
-    { status: 200 }
+    { status: 200 },
   );
 }
 export async function POST(req: NextRequest) {
-  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
-  if (!token) {
+  const session = await auth();
+  if (!session) {
     return NextResponse.json(
       {
         error: "Unauthorized",
-        message: "คุณไม่ได้รับอนุญาต",
+        message: "คุณไม่ได้ยืนยันตัวตน",
         code: "UNAUTHORIZED",
       },
-      { status: 401 }
+      { status: 401 },
     );
   }
 
@@ -41,7 +43,7 @@ export async function POST(req: NextRequest) {
   console.log("System State:", main_active);
   fs.writeFileSync(
     systemPath,
-    JSON.stringify({ main_active: main_active }, null, 2)
+    JSON.stringify({ main_active: main_active }, null, 2),
   );
   return NextResponse.json({ ok: true, main_active }, { status: 200 });
 }

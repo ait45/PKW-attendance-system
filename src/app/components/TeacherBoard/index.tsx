@@ -38,6 +38,8 @@ interface Teacher {
   SUBJECT_GROUP: string;
 }
 
+import { SkeletonTeacherCards } from "../Skeleton";
+
 const iconMap: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {
   Flask: Beaker,
   Calculator: Calculator,
@@ -107,11 +109,7 @@ function TeacherBoard() {
   };
 
   if (loading) {
-    return (
-      <div className="flex justify-center items-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-      </div>
-    );
+    return <SkeletonTeacherCards />;
   }
 
   return (

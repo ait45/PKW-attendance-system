@@ -1,16 +1,26 @@
 import { auth } from "@/lib/auth.ts";
 import { NextRequest, NextResponse } from "next/server";
-import { MongoDBConnection } from "@/lib/config.mongoDB";
-import PasswordResetRequest from "@/models/Mongo.model.PasswordResetRequest";
+import { MongoDBConnection } from "@/lib/config.mongoDB.ts";
+import PasswordResetRequest from "@/models/Mongo.model.PasswordResetRequest.ts";
 
 // GET - ดึงรายการคำขอรีเซ็ตรหัสผ่าน (Admin)
 export async function GET(req: NextRequest) {
   const session = await auth();
   if (!session) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json(
+      {
+        error: "Unauthorized",
+        message: "คุณไม่ได้ยืนยันตัวตน",
+        code: "UNAUTHORIZED",
+      },
+      { status: 401 },
+    );
   }
   if (session.user.role !== "teacher") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return NextResponse.json(
+      { error: "Forbidden", message: "คุณไม่ได้รับอนุญาต", code: "FORBIDDEN" },
+      { status: 403 },
+    );
   }
 
   const { searchParams } = new URL(req.url);
@@ -40,13 +50,17 @@ export async function GET(req: NextRequest) {
     });
 
     return NextResponse.json(
-      { success: true, data: { requests, stats: statsMap } },
+      { success: true, data: { requests, stats: statsMap }, code: "SUCCESS" },
       { status: 200 },
     );
   } catch (error) {
     console.error(error);
     return NextResponse.json(
-      { error: "Internal Server Error", message: error },
+      {
+        error: "Internal Server Error",
+        message: error,
+        code: "INTERNAL_SERVER_ERROR",
+      },
       { status: 500 },
     );
   }
@@ -78,6 +92,7 @@ export async function POST(req: NextRequest) {
         {
           error: "Bad Request",
           message: "มีคำขอที่รอดำเนินการอยู่แล้ว กรุณารอการตอบกลับ",
+          code: "BAD_REQUEST",
         },
         { status: 400 },
       );
@@ -95,13 +110,18 @@ export async function POST(req: NextRequest) {
         success: true,
         message: "ส่งคำขอสำเร็จ กรุณารอการตอบกลับจากผู้ดูแลระบบ",
         data: newRequest,
+        code: "SUCCESS",
       },
       { status: 200 },
     );
   } catch (error) {
     console.error(error);
     return NextResponse.json(
-      { error: "Internal Server Error", message: error },
+      {
+        error: "Internal Server Error",
+        message: error,
+        code: "INTERNAL_SERVER_ERROR",
+      },
       { status: 500 },
     );
   }
@@ -111,10 +131,20 @@ export async function POST(req: NextRequest) {
 export async function PUT(req: NextRequest) {
   const session = await auth();
   if (!session) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json(
+      {
+        error: "Unauthorized",
+        message: "คุณไม่ได้ยืนยันตัวตน",
+        code: "UNAUTHORIZED",
+      },
+      { status: 401 },
+    );
   }
   if (session.user.role !== "teacher") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return NextResponse.json(
+      { error: "Forbidden", message: "คุณไม่ได้รับอนุญาต", code: "FORBIDDEN" },
+      { status: 403 },
+    );
   }
 
   try {
@@ -123,7 +153,11 @@ export async function PUT(req: NextRequest) {
 
     if (!id) {
       return NextResponse.json(
-        { error: "Bad Request", message: "id is required" },
+        {
+          error: "Bad Request",
+          message: "id จำเป็นต้องกรอก",
+          code: "BAD_REQUEST",
+        },
         { status: 400 },
       );
     }
@@ -139,13 +173,17 @@ export async function PUT(req: NextRequest) {
     await PasswordResetRequest.findByIdAndUpdate(id, updateData);
 
     return NextResponse.json(
-      { success: true, message: "อัพเดทสำเร็จ" },
+      { success: true, message: "อัพเดทสำเร็จ", code: "SUCCESS" },
       { status: 200 },
     );
   } catch (error) {
     console.error(error);
     return NextResponse.json(
-      { error: "Internal Server Error", message: error },
+      {
+        error: "Internal Server Error",
+        message: error,
+        code: "INTERNAL_SERVER_ERROR",
+      },
       { status: 500 },
     );
   }
@@ -155,10 +193,20 @@ export async function PUT(req: NextRequest) {
 export async function DELETE(req: NextRequest) {
   const session = await auth();
   if (!session) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json(
+      {
+        error: "Unauthorized",
+        message: "คุณไม่ได้ยืนยันตัวตน",
+        code: "UNAUTHORIZED",
+      },
+      { status: 401 },
+    );
   }
   if (session.user.role !== "teacher") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return NextResponse.json(
+      { error: "Forbidden", message: "คุณไม่ได้รับอนุญาต", code: "FORBIDDEN" },
+      { status: 403 },
+    );
   }
 
   const { searchParams } = new URL(req.url);
@@ -166,7 +214,11 @@ export async function DELETE(req: NextRequest) {
 
   if (!id) {
     return NextResponse.json(
-      { error: "Bad Request", message: "id is required" },
+      {
+        error: "Bad Request",
+        message: "id จำเป็นต้องกรอก",
+        code: "BAD_REQUEST",
+      },
       { status: 400 },
     );
   }
@@ -176,13 +228,17 @@ export async function DELETE(req: NextRequest) {
     await PasswordResetRequest.findByIdAndDelete(id);
 
     return NextResponse.json(
-      { success: true, message: "ลบสำเร็จ" },
+      { success: true, message: "ลบสำเร็จ", code: "DELETE_DATA_SUCCESS" },
       { status: 200 },
     );
   } catch (error) {
     console.error(error);
     return NextResponse.json(
-      { error: "Internal Server Error", message: error },
+      {
+        error: "Internal Server Error",
+        message: error,
+        code: "INTERNAL_SERVER_ERROR",
+      },
       { status: 500 },
     );
   }

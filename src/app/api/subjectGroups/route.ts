@@ -11,15 +11,16 @@ const subjectGroupsPath = path.join(
 
 export async function GET(req: NextRequest) {
   const session = await auth();
-  if (!session)
+  if (!session) {
     return NextResponse.json(
       {
         error: "Unauthorized",
-        message: "ต้องยืนยันตัวตนก่อนใช้งาน",
+        message: "คุณไม่ได้ยืนยันตัวตน",
         code: "UNAUTHORIZED",
       },
       { status: 401 },
     );
+  }
 
   try {
     const file = JSON.parse(fs.readFileSync(subjectGroupsPath, "utf-8"));

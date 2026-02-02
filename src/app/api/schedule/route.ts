@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth.ts";
 import { NextResponse, NextRequest } from "next/server";
 import { MariaDBConnection } from "@/lib/config.mariaDB.ts";
+import { PoolConnection } from "mariadb/*";
 
 export async function GET(req: NextRequest) {
   const session = await auth();
@@ -14,8 +15,9 @@ export async function GET(req: NextRequest) {
       { status: 401 },
     );
 
+  let conn: PoolConnection | undefined;
   try {
-    const conn = await MariaDBConnection.getConnection();
+    conn = await MariaDBConnection.getConnection();
     const { searchParams } = new URL(req.url);
     const classId = searchParams.get("classId");
     const dayOfWeek = searchParams.get("dayOfWeek");
@@ -41,15 +43,20 @@ export async function GET(req: NextRequest) {
     query += ` ORDER BY s.DAY_OF_WEEK, s.PERIOD`;
 
     const payload = await conn.query(query, params);
-    conn.end();
 
     return NextResponse.json({ success: true, data: payload }, { status: 200 });
   } catch (error) {
     console.error(error);
     return NextResponse.json(
-      { success: false, message: error },
+      {
+        error: "Internal Server Error",
+        message: error,
+        code: "INTERNAL_SERVER_ERROR",
+      },
       { status: 500 },
     );
+  } finally {
+    if (conn) conn.release();
   }
 }
 
@@ -74,6 +81,7 @@ export async function POST(req: NextRequest) {
       { status: 403 },
     );
 
+  let conn;
   try {
     const body = await req.json();
     const { classId, dayOfWeek, period, subject, teacherId, room } = body;
@@ -89,7 +97,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const conn = await MariaDBConnection.getConnection();
+    conn = await MariaDBConnection.getConnection();
 
     // Check for duplicate
     const checkQuery = `
@@ -99,7 +107,6 @@ export async function POST(req: NextRequest) {
     const existing = await conn.query(checkQuery, [classId, dayOfWeek, period]);
 
     if (existing.length > 0) {
-      conn.end();
       return NextResponse.json(
         {
           error: "Conflict",
@@ -124,18 +131,27 @@ export async function POST(req: NextRequest) {
       teacherId || null,
       room || null,
     ]);
-    conn.end();
 
     return NextResponse.json(
-      { success: true, message: "เพิ่มตารางเรียนสำเร็จ" },
+      {
+        success: true,
+        message: "เพิ่มตารางเรียนสำเร็จ",
+        code: "ADD_TABLE_SUCCESS",
+      },
       { status: 201 },
     );
   } catch (error) {
     console.error(error);
     return NextResponse.json(
-      { success: false, message: error },
+      {
+        error: "Internal Server Error",
+        message: error,
+        code: "INTERNAL_SERVER_ERROR",
+      },
       { status: 500 },
     );
+  } finally {
+    if (conn) conn.release();
   }
 }
 
@@ -160,6 +176,7 @@ export async function PUT(req: NextRequest) {
       { status: 403 },
     );
 
+  let conn;
   try {
     const body = await req.json();
     const { id, classId, dayOfWeek, period, subject, teacherId, room } = body;
@@ -171,7 +188,7 @@ export async function PUT(req: NextRequest) {
       );
     }
 
-    const conn = await MariaDBConnection.getConnection();
+    conn = await MariaDBConnection.getConnection();
     const query = `
       UPDATE ${process.env.MARIA_DB_TABLE_SCHEDULE} SET 
       CLASS_ID = ?, DAY_OF_WEEK = ?, PERIOD = ?, SUBJECT = ?, TEACHER_ID = ?, ROOM = ?
@@ -187,18 +204,27 @@ export async function PUT(req: NextRequest) {
       room || null,
       id,
     ]);
-    conn.end();
 
     return NextResponse.json(
-      { success: true, message: "แก้ไขตารางเรียนสำเร็จ" },
+      {
+        success: true,
+        message: "แก้ไขตารางเรียนสำเร็จ",
+        code: "EDITED_TABLE_SUCCESS",
+      },
       { status: 200 },
     );
   } catch (error) {
     console.error(error);
     return NextResponse.json(
-      { success: false, message: error },
+      {
+        error: "Internal Server Error",
+        message: error,
+        code: "INTERNAL_SERVER_ERROR",
+      },
       { status: 500 },
     );
+  } finally {
+    if (conn) conn.release();
   }
 }
 
@@ -223,6 +249,7 @@ export async function DELETE(req: NextRequest) {
       { status: 403 },
     );
 
+  let conn;
   try {
     const { searchParams } = new URL(req.url);
     const id = searchParams.get("id");
@@ -234,20 +261,25 @@ export async function DELETE(req: NextRequest) {
       );
     }
 
-    const conn = await MariaDBConnection.getConnection();
+    conn = await MariaDBConnection.getConnection();
     const query = `DELETE FROM ${process.env.MARIA_DB_TABLE_SCHEDULE} WHERE ID = ?`;
     await conn.query(query, [id]);
-    conn.end();
 
     return NextResponse.json(
-      { success: true, message: "ลบรายการสำเร็จ" },
+      { success: true, message: "ลบรายการสำเร็จ", code: "DELETE_SUCCESS" },
       { status: 200 },
     );
   } catch (error) {
     console.error(error);
     return NextResponse.json(
-      { success: false, message: error },
+      {
+        error: "Internal Server Error",
+        message: error,
+        code: "INTERNAL_SERVER_ERROR",
+      },
       { status: 500 },
     );
+  } finally {
+    if (conn) conn.release();
   }
 }

@@ -23,7 +23,7 @@ function registerFonts(doc: PDFDoc) {
       italic: path.join(process.cwd(), "assets/fonts/THSarabunNew Italic.ttf"),
       ExtraBold: path.join(
         process.cwd(),
-        "assets/fonts/NotoSansThai ExtraBold.ttf"
+        "assets/fonts/NotoSansThai ExtraBold.ttf",
       ),
     },
   };
@@ -86,18 +86,19 @@ const NameService: string = "PKW SERVICE SYSTEM";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: Promise<{ method: string }> }
+  { params }: { params: Promise<{ method: string }> },
 ) {
   const session = await auth();
-  if (!session)
+  if (!session) {
     return NextResponse.json(
       {
         error: "Unauthorized",
-        message: "คุณไม่ได้รับอนุญาต",
+        message: "คุณไม่ได้ยืนยันตัวตน",
         code: "UNAUTHORIZED",
       },
-      { status: 401 }
+      { status: 401 },
     );
+  }
 
   const { method } = await params;
 
@@ -153,7 +154,7 @@ export async function GET(
       `ออกเมื่อวันที่: ${getThaiDate()}`,
       doc.page.margins.left,
       doc.page.height - 40,
-      { align: "right" }
+      { align: "right" },
     );
     doc.fontSize(12).text("โดยระบบ", { align: "right" });
   };
@@ -168,7 +169,7 @@ export async function GET(
         doc.page.height - 50,
         {
           align: "right",
-        }
+        },
       );
   };
 
@@ -292,7 +293,7 @@ export async function GET(
         headers: {
           "Content-Type": "application/pdf",
           "Content-Disposition": `inline; filename="${encodeURIComponent(
-            fileName
+            fileName,
           )}`,
         },
       });
@@ -304,7 +305,7 @@ export async function GET(
           message: error,
           code: "INTERNAL_ERROR",
         },
-        { status: 500 }
+        { status: 500 },
       );
     }
   }
@@ -334,7 +335,7 @@ export async function GET(
             acc[cur.classes].push(cur);
             return acc;
           },
-          {} as Record<string, any[]>
+          {} as Record<string, any[]>,
         );
 
         // loop ชั้นเรียนแต่ละชั้น
@@ -353,7 +354,7 @@ export async function GET(
               "รายงานคะแนนความประพฤติ",
               doc.page.margins.left,
               doc.page.margins.top + 65,
-              { align: "center" }
+              { align: "center" },
             );
           doc
             .font("THSarabunNew normal")
@@ -362,7 +363,7 @@ export async function GET(
               `ระดับชั้น : ${classes}`,
               doc.page.margins.left,
               doc.page.margins.top + 90,
-              { align: "center" }
+              { align: "center" },
             );
           // สร้างตาราง
           const headers = [
@@ -408,7 +409,7 @@ export async function GET(
         headers: {
           "Content-Type": "application/pdf",
           "Content-Disposition": `inline; filename=${encodeURIComponent(
-            filename
+            filename,
           )}`,
         },
       });
@@ -420,7 +421,7 @@ export async function GET(
           message: error,
           code: "INTERNAL_ERROR",
         },
-        { status: 500 }
+        { status: 500 },
       );
     }
   }
@@ -446,12 +447,12 @@ export async function GET(
           message: error,
           code: "INTERNAL_ERROR",
         },
-        { status: 500 }
+        { status: 500 },
       );
     }
   } else
     return NextResponse.json(
       { error: "Bad Request", message: "คำขอไม่ถูกต้อง", code: "BAD_REQUEST" },
-      { status: 400 }
+      { status: 400 },
     );
 }

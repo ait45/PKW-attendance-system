@@ -13,5 +13,7 @@ export const MariaDBConnection: mariaDB.Pool = mariaDB.createPool({
   password: process.env.MARIA_DB_PASSWORD as string,
   database: process.env.MARIA_DB_DATABASE as string,
   connectTimeout: 10000,
-  connectionLimit: 5,
+  connectionLimit: 10, // เพิ่มจาก 5
+  idleTimeout: 30000, // Release connection หลังไม่ใช้งาน 30 วินาที
+  acquireTimeout: 30000, // เพิ่มเวลารอ connection
 });

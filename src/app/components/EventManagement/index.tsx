@@ -12,6 +12,7 @@ import {
   Calendar,
 } from "lucide-react";
 import Swal from "sweetalert2";
+import { SkeletonEventManagement } from "@/app/components/Skeleton";
 
 interface Event {
   ID: number;
@@ -41,6 +42,7 @@ interface NewEvent {
 
 function EventManagement({ session }: { session: any }) {
   const [events, setEvents] = useState<Event[]>([]);
+  const [loading, setLoading] = useState(true);
   const [isOpenModal, setIsOpenModal] = useState(false);
   const [isFormUpdate, setIsFormUpdate] = useState(false);
   const [updateId, setUpdateId] = useState<number | null>(null);
@@ -70,6 +72,7 @@ function EventManagement({ session }: { session: any }) {
   ];
 
   const fetchEvents = async () => {
+    setLoading(true);
     try {
       const res = await fetch("/api/events");
       const data = await res.json();
@@ -79,6 +82,8 @@ function EventManagement({ session }: { session: any }) {
     } catch (error) {
       console.error(error);
       Swal.fire("เกิดข้อผิดพลาด", "ไม่สามารถโหลดข้อมูลได้", "error");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -297,6 +302,10 @@ function EventManagement({ session }: { session: any }) {
       day: "numeric",
     });
   };
+
+  if (loading) {
+    return <SkeletonEventManagement />;
+  }
 
   return (
     <div className="p-4">
