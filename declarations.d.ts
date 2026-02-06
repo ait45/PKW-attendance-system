@@ -1,2 +1,0 @@
-// ไฟล์ declarations.d.ts
-declare module "*.css";
